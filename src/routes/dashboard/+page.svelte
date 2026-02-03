@@ -7,13 +7,18 @@
 	import X from 'lucide-svelte/icons/x';
 	import User from 'lucide-svelte/icons/user';
 	import Keyboard from 'lucide-svelte/icons/keyboard';
+	import FileText from 'lucide-svelte/icons/file-text';
+	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import { t } from '$lib/i18n';
 	import RecordButton from '$lib/components/RecordButtonMobile.svelte';
 	import { inputPreferences, type InputMode } from '$lib/stores/inputPreferences';
+	import { isRecordingMode as isRecordingModeStore } from '$lib/stores/appState';
 
 	let { data } = $props();
 
 	// Check for existing review session from server data (persistent across browser restarts)
+	const pendingReview = $derived(data.pendingReview);
+	let pendingReviewDismissed = $state(false);
 
 	type State = 'idle' | 'recording' | 'paused' | 'processing';
 
@@ -101,6 +106,11 @@
 	);
 	const isTypingMode = $derived(inputMode === 'text');
 	const isRecordingMode = $derived(currentState !== 'idle');
+
+	// Sync recording mode to global store for BottomNav visibility
+	$effect(() => {
+		isRecordingModeStore.set(currentState !== 'idle');
+	});
 
 	// Auto-scroll transcript textarea when content changes during recording
 	$effect(() => {
@@ -471,7 +481,6 @@
 		currentState = 'processing';
 
 		try {
-			await new Promise((resolve) => setTimeout(resolve, 500));
 			sessionStorage.setItem('review_transcript', savedTranscript);
 			goto('/dashboard/review');
 		} catch (err) {
@@ -516,6 +525,30 @@
 	function dismissNameBanner() {
 		nameBannerDismissed = true;
 		localStorage.setItem('nameBannerDismissed', 'true');
+	}
+
+	function dismissPendingReview() {
+		pendingReviewDismissed = true;
+	}
+
+	function resumePendingReview() {
+		if (pendingReview?.id) {
+			goto(`/dashboard/review?session=${pendingReview.id}`);
+		}
+	}
+
+	// Get a summary for the pending review card
+	function getPendingReviewSummary(): string {
+		if (!pendingReview) return '';
+		// Try to get client name from parsed data
+		const clientName = pendingReview.parsed_data?.client?.name;
+		if (clientName) return clientName;
+		// Fall back to summary or transcript preview
+		if (pendingReview.summary) return pendingReview.summary;
+		if (pendingReview.original_transcript) {
+			return pendingReview.original_transcript.slice(0, 50) + '...';
+		}
+		return translate('dashboard.unfinishedDoc');
 	}
 
 	onMount(async () => {
@@ -613,6 +646,39 @@
 				</div>
 			{/if}
 
+			<!-- Pending Review Banner -->
+			{#if pendingReview && !pendingReviewDismissed}
+				<div
+					class="pending-review-card"
+					role="button"
+					tabindex="0"
+					onclick={resumePendingReview}
+					onkeydown={(e) => e.key === 'Enter' && resumePendingReview()}
+					in:fly={{ y: -10, duration: 300, delay: 100 }}
+				>
+					<div class="pending-review-icon">
+						<FileText size={20} />
+					</div>
+					<div class="pending-review-content">
+						<strong>{translate('dashboard.continueDraft')}</strong>
+						<span>{getPendingReviewSummary()}</span>
+					</div>
+					<div class="pending-review-actions">
+						<ChevronRight size={20} />
+					</div>
+					<button
+						class="pending-review-close"
+						onclick={(e) => {
+							e.stopPropagation();
+							dismissPendingReview();
+						}}
+						aria-label="Dismiss"
+					>
+						<X size={16} />
+					</button>
+				</div>
+			{/if}
+
 			<!-- Main Content -->
 			<div class="idle-content" in:fly={{ y: 20, duration: 500, delay: 100, easing: cubicOut }}>
 				<!-- Record Button Section -->
@@ -687,6 +753,12 @@
 						placeholder={inputMode === 'text'
 							? translate('placeholder.typeRequest')
 							: translate('dashboard.wordsAppearHere')}
+						spellcheck="false"
+						autocorrect="off"
+						autocomplete="off"
+						data-gramm="false"
+						data-gramm_editor="false"
+						data-enable-grammarly="false"
 					></textarea>
 					{#if interimTranscript && inputMode === 'voice'}
 						<span class="popup-listening">
@@ -867,6 +939,90 @@
 		background: rgba(245, 158, 11, 0.2);
 	}
 
+	/* Pending Review Card */
+	.pending-review-card {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		margin: 0 var(--page-padding-x, 20px) var(--space-4);
+		padding: var(--space-3) var(--space-4);
+		background: rgba(0, 102, 255, 0.08);
+		border: 1px solid rgba(0, 102, 255, 0.2);
+		border-radius: var(--radius-lg);
+		cursor: pointer;
+		transition: all var(--duration-fast) ease;
+		text-align: left;
+		width: calc(100% - var(--page-padding-x, 20px) * 2);
+	}
+
+	.pending-review-card:hover {
+		background: rgba(0, 102, 255, 0.12);
+		border-color: rgba(0, 102, 255, 0.3);
+	}
+
+	.pending-review-icon {
+		flex-shrink: 0;
+		width: 40px;
+		height: 40px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0, 102, 255, 0.15);
+		border-radius: var(--radius-md);
+		color: var(--blu-primary, #0066ff);
+	}
+
+	.pending-review-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	.pending-review-content strong {
+		font-size: var(--text-sm);
+		font-weight: var(--font-semibold);
+		color: var(--blu-primary, #0066ff);
+	}
+
+	.pending-review-content span {
+		font-size: var(--text-xs);
+		color: var(--gray-600, #475569);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.pending-review-actions {
+		flex-shrink: 0;
+		color: var(--blu-primary, #0066ff);
+		opacity: 0.7;
+	}
+
+	.pending-review-close {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		background: transparent;
+		border: none;
+		border-radius: var(--radius-sm);
+		color: var(--gray-400, #9ca3af);
+		cursor: pointer;
+		transition: all var(--duration-fast) ease;
+	}
+
+	.pending-review-close:hover {
+		background: rgba(0, 0, 0, 0.05);
+		color: var(--gray-600, #475569);
+	}
+
 	.idle-content {
 		flex: 1;
 		display: flex;
@@ -962,11 +1118,11 @@
 	/* ========== FLOATING TRANSCRIPT POPUP ========== */
 	.transcript-popup {
 		position: fixed;
-		bottom: calc(120px + var(--safe-area-bottom, 0px));
+		bottom: calc(16px + var(--safe-area-bottom, 0px));
 		left: var(--page-padding-x);
 		right: var(--page-padding-x);
 		max-width: 500px;
-		max-height: 50dvh;
+		max-height: 70dvh;
 		overflow-y: auto;
 		margin: 0 auto;
 		background: var(--glass-blu-light-95);
@@ -1069,12 +1225,12 @@
 
 	.popup-textarea {
 		width: 100%;
-		height: 100px;
+		height: 180px;
 		padding: 0;
 		background: transparent;
 		border: none;
 		color: var(--gray-900);
-		font-size: var(--text-base);
+		font-size: var(--text-lg);
 		font-weight: var(--font-normal);
 		line-height: var(--leading-relaxed);
 		resize: none;
@@ -1085,6 +1241,15 @@
 		/* iOS improvements */
 		-webkit-appearance: none;
 		-webkit-overflow-scrolling: touch;
+		/* Disable spellcheck underlines */
+		-webkit-text-decoration: none;
+		text-decoration: none;
+	}
+
+	.popup-textarea::spelling-error,
+	.popup-textarea::grammar-error {
+		text-decoration: none;
+		background: none;
 	}
 
 	.popup-textarea::placeholder {
@@ -1316,27 +1481,28 @@
 		.transcript-popup {
 			left: 12px;
 			right: 12px;
-			bottom: calc(90px + var(--safe-area-bottom, 0px));
-			border-radius: 16px;
+			bottom: calc(12px + var(--safe-area-bottom, 0px));
+			border-radius: 20px;
+			max-height: 60dvh;
 		}
 
 		.popup-header {
-			padding: 10px 14px;
+			padding: 12px 16px;
 		}
 
 		.popup-close-btn {
-			width: 36px;
-			height: 36px;
-			border-radius: 10px;
+			width: 40px;
+			height: 40px;
+			border-radius: 12px;
 		}
 
 		.popup-content {
-			padding: 10px 14px;
+			padding: 12px 16px;
 		}
 
 		.popup-textarea {
-			font-size: 16px;
-			height: 90px;
+			font-size: 17px;
+			height: 150px;
 		}
 
 		.popup-generate {
@@ -1361,6 +1527,7 @@
 		.transcript-popup {
 			left: 8px;
 			right: 8px;
+			bottom: calc(8px + var(--safe-area-bottom, 0px));
 		}
 
 		.popup-timer {
@@ -1368,7 +1535,8 @@
 		}
 
 		.popup-textarea {
-			font-size: 15px;
+			font-size: 16px;
+			height: 130px;
 		}
 
 		.popup-generate {
@@ -1380,7 +1548,12 @@
 	/* Handle keyboard visibility on mobile */
 	@media (max-height: 500px) {
 		.transcript-popup {
-			bottom: 10px;
+			bottom: 8px;
+			max-height: 50dvh;
+		}
+
+		.popup-textarea {
+			height: 100px;
 		}
 
 		.idle-ui {

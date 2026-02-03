@@ -2,6 +2,15 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { calculateSimilarity } from '$lib/utils/phonetic';
 
+// Normalize text by removing accents and converting to lowercase
+function normalizeText(text: string): string {
+	return text
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.trim();
+}
+
 interface ClientSuggestion {
 	id: string;
 	name: string;
@@ -54,8 +63,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		for (const client of clients) {
 			const similarity = calculateSimilarity(name, client.name);
 
-			// Check for exact match (case-insensitive)
-			if (name.toLowerCase().trim() === client.name.toLowerCase().trim()) {
+			// Check for exact match (case-insensitive, accent-insensitive)
+			const normalizedSearch = normalizeText(name);
+			const normalizedClient = normalizeText(client.name);
+			if (normalizedSearch === normalizedClient) {
 				exactMatch = {
 					id: client.id,
 					name: client.name,

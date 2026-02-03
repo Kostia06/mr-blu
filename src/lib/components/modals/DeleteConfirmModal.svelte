@@ -2,6 +2,7 @@
 	import { fly, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { t } from '$lib/i18n';
+	import { isModalOpen } from '$lib/stores/appState';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import AlertTriangle from 'lucide-svelte/icons/alert-triangle';
 	import X from 'lucide-svelte/icons/x';
@@ -63,11 +64,14 @@
 		}
 	}
 
-	// Reset state when modal opens
+	// Reset state when modal opens and sync with global modal state
 	$effect(() => {
 		if (open) {
 			error = null;
 			isDeleting = false;
+			isModalOpen.set(true);
+		} else {
+			isModalOpen.set(false);
 		}
 	});
 </script>
@@ -180,10 +184,10 @@
 		position: fixed;
 		inset: 0;
 		display: flex;
-		align-items: flex-end;
+		align-items: center;
 		justify-content: center;
 		z-index: 1001;
-		padding: 0;
+		padding: 20px;
 	}
 
 	.modal-content {
@@ -191,23 +195,11 @@
 		background: rgba(255, 255, 255, 0.98);
 		backdrop-filter: blur(20px);
 		-webkit-backdrop-filter: blur(20px);
-		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-		padding: 32px 24px calc(24px + var(--safe-area-bottom, 0px));
+		border-radius: var(--radius-lg, 20px);
+		padding: 32px 24px 24px;
 		max-width: 400px;
 		width: 100%;
 		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-	}
-
-	.modal-content::before {
-		content: '';
-		position: absolute;
-		top: 8px;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 36px;
-		height: 5px;
-		background: #D1D1D6;
-		border-radius: 3px;
 	}
 
 	.close-btn {

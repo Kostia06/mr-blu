@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import Mic from 'lucide-svelte/icons/mic';
 	import FileText from 'lucide-svelte/icons/file-text';
 	import Settings from 'lucide-svelte/icons/settings';
 	import { t } from '$lib/i18n';
 	import { pageTransition } from '$lib/stores/pageTransition';
+	import { isRecordingMode, isModalOpen } from '$lib/stores/appState';
 
 	const isActive = (href: string) => {
 		const pathname = $page.url.pathname;
@@ -31,7 +34,8 @@
 	});
 </script>
 
-<nav class="bottom-nav">
+{#if !$isRecordingMode && !$isModalOpen}
+<nav class="bottom-nav" transition:fly={{ y: 100, duration: 300, easing: cubicOut }}>
 	<!-- Animated indicator -->
 	<div class="indicator" style="transform: translateX({activeIndex * 72}px)"></div>
 
@@ -67,6 +71,7 @@
 		<Settings size={28} strokeWidth={isActive('/dashboard/settings') ? 2 : 1.5} />
 	</a>
 </nav>
+{/if}
 
 <style>
 	.bottom-nav {

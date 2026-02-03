@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { t } from '$lib/i18n';
+	import { t, locale } from '$lib/i18n';
+	import { toast } from '$lib/stores/toast';
 	import FileText from 'lucide-svelte/icons/file-text';
 	import Mail from 'lucide-svelte/icons/mail';
 	import Save from 'lucide-svelte/icons/save';
@@ -498,6 +499,13 @@
 				body: JSON.stringify({ transcription })
 			});
 
+			// Handle rate limit error - redirect to dashboard with toast
+			if (response.status === 429) {
+				toast.error($t('error.rateLimit'), 6000);
+				goto('/dashboard');
+				return;
+			}
+
 			const result = await response.json();
 
 			if (result.success) {
@@ -895,6 +903,20 @@
 				clientSuggestions = result.suggestions || [];
 				exactClientMatch = result.exactMatch || null;
 				showClientSuggestions = clientSuggestions.length > 0 && !exactClientMatch;
+
+				// Auto-fill client details from exact match (email, phone, address)
+				if (exactClientMatch) {
+					const { firstName, lastName } = parseClientName(exactClientMatch.name || '');
+					data.client = {
+						...data.client,
+						name: exactClientMatch.name || data.client.name,
+						firstName: firstName || data.client.firstName,
+						lastName: lastName || data.client.lastName,
+						email: exactClientMatch.email || data.client.email,
+						phone: exactClientMatch.phone || data.client.phone,
+						address: exactClientMatch.address || data.client.address
+					};
+				}
 			}
 		} catch (error) {
 			console.error('Client suggestion error:', error);

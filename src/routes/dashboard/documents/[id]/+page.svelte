@@ -40,6 +40,7 @@
 
 	// Edit mode state
 	let isEditing = $state(false);
+	let editExitedManually = $state(false); // Prevents auto-edit from re-triggering after save
 	let saveError = $state('');
 	let saveSuccess = $state(false);
 
@@ -75,7 +76,7 @@
 	);
 
 	const calculatedTaxAmount = $derived(
-		editData.tax_rate ? calculatedSubtotal * editData.tax_rate : 0
+		editData.tax_rate ? calculatedSubtotal * (editData.tax_rate / 100) : 0
 	);
 
 	const calculatedTotal = $derived(calculatedSubtotal + calculatedTaxAmount);
@@ -131,12 +132,20 @@
 		notes: doc.notes || undefined
 	});
 
-	// Auto-start editing if ?edit=true
+	// Auto-start editing if ?edit=true (but not if we just exited edit mode manually)
 	$effect(() => {
-		if ($page.url.searchParams.get('edit') === 'true' && doc && !isEditing) {
+		if ($page.url.searchParams.get('edit') === 'true' && doc && !isEditing && !editExitedManually) {
 			startEditing();
 		}
 	});
+
+	// Normalize tax rate - handle both decimal (0.08) and percentage (8) formats
+	function normalizeTaxRate(rate: number | null | undefined): number {
+		if (!rate) return 0;
+		// If rate is less than 1, it's likely a decimal (0.08 for 8%) - convert to percentage
+		// If rate is >= 1, it's already a percentage (8 for 8%)
+		return rate < 1 ? rate * 100 : rate;
+	}
 
 	// Start editing
 	function startEditing() {
@@ -157,7 +166,7 @@
 				rate: item.rate || 0,
 				total: item.total || 0
 			})),
-			tax_rate: doc?.tax_rate || 0,
+			tax_rate: normalizeTaxRate(doc?.tax_rate),
 			due_date: doc?.due_date || '',
 			notes: doc?.notes || ''
 		};
@@ -165,10 +174,14 @@
 		showMenu = false;
 	}
 
-	// Cancel editing
+	// Cancel editing - navigate back to documents list
 	function cancelEditing() {
-		isEditing = false;
-		saveError = '';
+		goto('/dashboard/documents');
+	}
+
+	// Go back from edit mode - navigate to documents list
+	function handleBackFromEdit() {
+		goto('/dashboard/documents');
 	}
 
 	// Save changes
@@ -187,6 +200,11 @@
 					type: editData.type,
 					invoice_number: editData.invoice_number,
 					client_name: editData.client,
+					client_details: {
+						email: editData.clientDetails.email || null,
+						phone: editData.clientDetails.phone || null,
+						address: editData.clientDetails.address || null
+					},
 					line_items: editData.line_items.map((item) => ({
 						description: item.description,
 						quantity: item.quantity,
@@ -208,8 +226,15 @@
 			if (response.ok && result.success) {
 				// Reload the page data to reflect changes
 				await invalidateAll();
+				editExitedManually = true; // Prevent auto-edit effect from re-triggering
 				isEditing = false;
 				saveSuccess = true;
+				// Remove ?edit=true from URL to stay in view mode
+				if ($page.url.searchParams.has('edit')) {
+					const url = new URL($page.url);
+					url.searchParams.delete('edit');
+					await goto(url.pathname + url.search, { replaceState: true, noScroll: true });
+				}
 				setTimeout(() => {
 					saveSuccess = false;
 				}, 3000);
@@ -392,7 +417,7 @@
 	<header class="page-header" in:fly={{ y: -20, duration: 400, easing: cubicOut }}>
 		<button
 			class="back-btn"
-			onclick={() => (isEditing ? cancelEditing() : goto(backUrl))}
+			onclick={() => (isEditing ? handleBackFromEdit() : goto(backUrl))}
 			aria-label={$t('common.back')}
 		>
 			<ChevronLeft size={22} strokeWidth={2} />
@@ -663,9 +688,7 @@
 							id="tax-rate"
 							type="number"
 							class="field-input"
-							value={editData.tax_rate * 100}
-							oninput={(e) =>
-								(editData.tax_rate = parseFloat((e.target as HTMLInputElement).value) / 100 || 0)}
+							bind:value={editData.tax_rate}
 							min="0"
 							max="100"
 							step="0.01"
@@ -690,7 +713,7 @@
 				</div>
 				{#if editData.tax_rate > 0}
 					<div class="total-row">
-						<span>{$t('docDetail.tax')} ({(editData.tax_rate * 100).toFixed(1)}%)</span>
+						<span>{$t('docDetail.tax')} ({editData.tax_rate.toFixed(1)}%)</span>
 						<span>{formatCurrency(calculatedTaxAmount)}</span>
 					</div>
 				{/if}

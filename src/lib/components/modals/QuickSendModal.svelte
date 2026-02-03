@@ -2,6 +2,7 @@
 	import { fly, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { t } from '$lib/i18n';
+	import { isModalOpen } from '$lib/stores/appState';
 	import Send from 'lucide-svelte/icons/send';
 	import Mail from 'lucide-svelte/icons/mail';
 	import Check from 'lucide-svelte/icons/check';
@@ -112,13 +113,16 @@
 		}
 	});
 
-	// Reset state when modal opens
+	// Reset state when modal opens and sync with global modal state
 	$effect(() => {
 		if (open) {
 			customMessage = '';
 			error = null;
 			success = false;
 			isSending = false;
+			isModalOpen.set(true);
+		} else {
+			isModalOpen.set(false);
 		}
 	});
 </script>

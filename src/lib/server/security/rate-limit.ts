@@ -94,8 +94,8 @@ export const rateLimiters = {
 	/** Authentication endpoints: 5 requests per minute */
 	auth: createRateLimiter({ maxRequests: 5, windowMs: 60 * 1000 }),
 
-	/** AI/expensive endpoints: 10 requests per minute */
-	ai: createRateLimiter({ maxRequests: 10, windowMs: 60 * 1000 }),
+	/** AI/expensive endpoints: 30 requests per minute */
+	ai: createRateLimiter({ maxRequests: 30, windowMs: 60 * 1000 }),
 
 	/** Email sending: 20 requests per hour */
 	email: createRateLimiter({ maxRequests: 20, windowMs: 60 * 60 * 1000 }),

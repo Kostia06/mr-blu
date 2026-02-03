@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { t } from '$lib/i18n';
+	import { isModalOpen, isRecordingMode } from '$lib/stores/appState';
 	import MessageCircle from 'lucide-svelte/icons/message-circle';
 	import X from 'lucide-svelte/icons/x';
 	import Send from 'lucide-svelte/icons/send';
 	import CheckCircle from 'lucide-svelte/icons/check-circle';
 
 	let open = $state(false);
+
+	// Hide button when modals are open or recording mode is active (transcript visible)
+	const shouldHide = $derived($isModalOpen || $isRecordingMode);
 	let comment = $state('');
 	let category = $state<'bug' | 'feature' | 'general' | 'praise'>('general');
 	let submitting = $state(false);
@@ -31,8 +35,16 @@
 
 	function close() {
 		open = false;
+		isModalOpen.set(false);
 		reset();
 	}
+
+	// Sync feedback modal state with global modal state
+	$effect(() => {
+		if (open) {
+			isModalOpen.set(true);
+		}
+	});
 
 	async function submit() {
 		if (!canSubmit) return;
@@ -57,10 +69,12 @@
 	}
 </script>
 
-<!-- Floating button -->
-<button class="fab" onclick={() => (open = true)} aria-label="Send feedback">
-	<MessageCircle size={22} />
-</button>
+<!-- Floating button - hidden when modals/recording active -->
+{#if !shouldHide}
+	<button class="fab" onclick={() => (open = true)} aria-label="Send feedback">
+		<MessageCircle size={22} />
+	</button>
+{/if}
 
 <!-- Modal -->
 {#if open}

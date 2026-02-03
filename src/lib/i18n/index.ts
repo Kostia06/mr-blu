@@ -205,7 +205,15 @@ const translations: Translations = {
 		'dashboard.addNameAction': 'Go to Profile',
 
 		// Documents Extended
-		'documents.searchPlaceholder': 'Search... try "estimates sent to Kos"',
+		'documents.searchPlaceholder': 'Search documents...',
+		'documents.allTab': 'All',
+		'documents.invoicesTab': 'Invoices',
+		'documents.estimatesTab': 'Estimates',
+		'documents.emptyTitle': 'No documents yet',
+		'documents.emptyDescription': 'Create your first document by recording or typing',
+		'documents.emptyFiltered': 'No documents match',
+		'documents.createDocument': 'Create Document',
+		'documents.docsCount': 'docs',
 		'documents.status': 'Status',
 		'documents.allStatuses': 'All statuses',
 		'documents.draft': 'Draft',
@@ -268,6 +276,7 @@ const translations: Translations = {
 		'error.sessionExpired': 'Session expired. Please sign in again.',
 		'error.failedSaveProfile': 'Failed to save profile',
 		'error.failedLoad': 'Failed to load',
+		'error.rateLimit': 'Too many requests. Please wait a moment and try again.',
 		'errors.speechToTextUnavailable':
 			'Voice recognition is unavailable. Please type your request instead.',
 
@@ -1151,7 +1160,15 @@ const translations: Translations = {
 		'dashboard.addNameAction': 'Ir al Perfil',
 
 		// Documents Extended
-		'documents.searchPlaceholder': 'Buscar... prueba "presupuestos enviados a Juan"',
+		'documents.searchPlaceholder': 'Buscar documentos...',
+		'documents.allTab': 'Todo',
+		'documents.invoicesTab': 'Facturas',
+		'documents.estimatesTab': 'Presupuestos',
+		'documents.emptyTitle': 'Sin documentos',
+		'documents.emptyDescription': 'Crea tu primer documento grabando o escribiendo',
+		'documents.emptyFiltered': 'Sin resultados',
+		'documents.createDocument': 'Crear Documento',
+		'documents.docsCount': 'docs',
 		'documents.status': 'Estado',
 		'documents.allStatuses': 'Todos los estados',
 		'documents.draft': 'Borrador',
@@ -1214,6 +1231,7 @@ const translations: Translations = {
 		'error.sessionExpired': 'Sesión expirada. Por favor inicia sesión de nuevo.',
 		'error.failedSaveProfile': 'Error al guardar perfil',
 		'error.failedLoad': 'Error al cargar',
+		'error.rateLimit': 'Demasiadas solicitudes. Por favor espera un momento e intenta de nuevo.',
 		'errors.speechToTextUnavailable':
 			'El reconocimiento de voz no está disponible. Por favor escribe tu solicitud.',
 
