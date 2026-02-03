@@ -1,0 +1,325 @@
+@import 'tailwindcss';
+@import '$lib/styles/tokens.css';
+
+@theme {
+	/* Primary brand blue color palette based on #0684C7 */
+	--color-primary-50: #e6f4fb;
+	--color-primary-100: #cce9f7;
+	--color-primary-200: #99d3ef;
+	--color-primary-300: #66bde7;
+	--color-primary-400: #33a7df;
+	--color-primary-500: #0684c7;
+	--color-primary-600: #056fa6;
+	--color-primary-700: #045a85;
+	--color-primary-800: #034564;
+	--color-primary-900: #023043;
+
+	/* Keep navy as secondary for text/accents */
+	--color-navy-50: #f0f4f8;
+	--color-navy-100: #d9e2ec;
+	--color-navy-200: #bcccdc;
+	--color-navy-300: #9fb3c8;
+	--color-navy-400: #829ab1;
+	--color-navy-500: #627d98;
+	--color-navy-600: #486581;
+	--color-navy-700: #334e68;
+	--color-navy-800: #243b53;
+	--color-navy-900: #102a43;
+
+	--animate-spin-slow: spin 2s linear infinite;
+	--animate-pulse-slow: pulse 3s ease-in-out infinite;
+}
+
+:root {
+	--color-bg: #dbe8f4;
+	--color-bg-secondary: #dbe8f4;
+	--color-text: #0f172a;
+	--color-text-secondary: #64748b;
+	--color-border: #c5d9eb;
+	--color-accent: #0684c7;
+	color-scheme: light;
+}
+
+.dark {
+	--color-bg: #0a0a0a;
+	--color-bg-secondary: #171717;
+	--color-text: #f8fafc;
+	--color-text-secondary: #94a3b8;
+	--color-border: #262626;
+	--color-accent: #33a7df;
+	color-scheme: dark;
+}
+
+html {
+	font-family:
+		'Inter',
+		-apple-system,
+		BlinkMacSystemFont,
+		sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+	display: none;
+}
+
+body {
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	/* GPU-accelerated: color transitions are safe, background handled by pseudo-element */
+	transition: color 0.3s ease;
+}
+
+/* GPU-optimized background transition using pseudo-element */
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background-color: var(--color-bg);
+	transition: background-color 0.3s ease;
+	pointer-events: none;
+}
+
+/* Light mode backgrounds */
+.bg-page {
+	background-color: var(--color-bg);
+}
+
+.bg-card {
+	background-color: var(--color-bg-secondary);
+}
+
+/* Dark mode background overrides */
+.dark .bg-\[\#faf9f7\],
+.dark .bg-\[\#f8fafc\] {
+	background-color: #0a0a0a;
+}
+
+.dark .bg-white {
+	background-color: #171717;
+}
+
+.dark .bg-white\/80 {
+	background-color: rgb(23 23 23 / 0.8);
+}
+
+.dark .bg-white\/90 {
+	background-color: rgb(23 23 23 / 0.9);
+}
+
+.dark .bg-white\/95 {
+	background-color: rgb(23 23 23 / 0.95);
+}
+
+/* Dark mode text colors */
+.dark .text-navy-800 {
+	color: #e2e8f0;
+}
+
+.dark .text-navy-900 {
+	color: #f1f5f9;
+}
+
+.dark .text-neutral-400 {
+	color: #71717a;
+}
+
+.dark .text-neutral-500 {
+	color: #a1a1aa;
+}
+
+.dark .text-neutral-600 {
+	color: #d4d4d8;
+}
+
+.dark .text-neutral-700 {
+	color: #e4e4e7;
+}
+
+/* Dark mode borders */
+.dark .border-neutral-200 {
+	border-color: #262626;
+}
+
+.dark .border-neutral-200\/80 {
+	border-color: rgb(38 38 38 / 0.8);
+}
+
+.dark .border-neutral-300 {
+	border-color: #404040;
+}
+
+/* Dark mode backgrounds for elements */
+.dark .bg-neutral-100 {
+	background-color: #262626;
+}
+
+.dark .bg-neutral-50 {
+	background-color: #1c1c1c;
+}
+
+/* iOS safe areas */
+.pb-safe {
+	padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+	padding-top: env(safe-area-inset-top);
+}
+
+/* Hide scrollbar */
+.scrollbar-hide {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+	display: none;
+}
+
+/* Smooth transitions for interactive elements - GPU-accelerated properties only */
+button,
+a {
+	touch-action: manipulation;
+	transition:
+		transform 0.2s ease,
+		opacity 0.2s ease,
+		background-color 0.2s ease,
+		border-color 0.2s ease,
+		color 0.2s ease;
+}
+
+input,
+textarea {
+	transition:
+		border-color 0.2s ease,
+		box-shadow 0.2s ease,
+		background-color 0.2s ease;
+}
+
+/* Focus ring styles */
+:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 2px;
+}
+
+/* ================================================
+   PAGE TRANSITIONS
+   ================================================ */
+
+/* View Transitions API Styles (Native support) */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 300ms;
+	animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Forward navigation - slide left */
+[data-transition='forward']::view-transition-old(root) {
+	animation: slideOutLeft 300ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+[data-transition='forward']::view-transition-new(root) {
+	animation: slideInRight 300ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Backward navigation - slide right */
+[data-transition='backward']::view-transition-old(root) {
+	animation: slideOutRight 300ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+[data-transition='backward']::view-transition-new(root) {
+	animation: slideInLeft 300ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Fade transition - for same-level navigation */
+[data-transition='fade']::view-transition-old(root) {
+	animation: fadeOut 150ms ease-out forwards;
+}
+
+[data-transition='fade']::view-transition-new(root) {
+	animation: fadeIn 200ms ease-in forwards;
+	animation-delay: 50ms;
+}
+
+/* Transition keyframes */
+@keyframes slideOutLeft {
+	to {
+		transform: translateX(-30%);
+		opacity: 0.5;
+	}
+}
+
+@keyframes slideInRight {
+	from {
+		transform: translateX(100%);
+		opacity: 0.8;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideOutRight {
+	to {
+		transform: translateX(100%);
+		opacity: 0.8;
+	}
+}
+
+@keyframes slideInLeft {
+	from {
+		transform: translateX(-30%);
+		opacity: 0.5;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes fadeOut {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* Legacy page transition class (fallback) */
+.page-transition {
+	animation: fadeSlideIn 0.3s ease-out;
+}
+
+@keyframes fadeSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-old(root),
+	::view-transition-new(root) {
+		animation: none !important;
+	}
+
+	.page-transition {
+		animation: none !important;
+	}
+}

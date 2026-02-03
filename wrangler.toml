@@ -1,0 +1,24 @@
+name = "mr-blu"
+pages_build_output_dir = ".svelte-kit/cloudflare"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+PUBLIC_SUPABASE_URL = ""
+PUBLIC_SUPABASE_ANON_KEY = ""
+
+# R2 bucket for file storage (uncomment when bucket is created)
+# [[r2_buckets]]
+# binding = "R2"
+# bucket_name = "mr-blu-files"
+
+# Environment variables (set via dashboard or wrangler secret)
+# SUPABASE_SERVICE_ROLE_KEY
+# OPENAI_API_KEY
+# DEEPGRAM_API_KEY
+# TWILIO_ACCOUNT_SID
+# TWILIO_AUTH_TOKEN
+# RESEND_API_KEY
+
+[browser]
+binding = "MYBROWSER"

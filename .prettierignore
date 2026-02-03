@@ -1,0 +1,6 @@
+.svelte-kit/
+build/
+node_modules/
+.cloudflare/
+.wrangler/
+package-lock.json

@@ -1,0 +1,43 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+/.next
+/dev-dist
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+notes.md
+
+# Capacitor / Mobile
+ios/
+android/
+*.xcworkspace
+*.xcodeproj
+Pods/
+.gradle/
+capacitor-cordova-android-plugins/
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+.playwright-mcp/
+Mr_Blu_Core_Use_Case_Crossing_the_Chasm.pdf
+
+# Test outputs
+coverage/
+test-results/
+playwright-report/

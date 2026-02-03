@@ -1,0 +1,46 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Cloud orb gradient matching dashboard design -->
+    <radialGradient id="orbGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#BAE6FD"/>
+      <stop offset="20%" stop-color="#7DD3FC"/>
+      <stop offset="40%" stop-color="#38BDF8"/>
+      <stop offset="60%" stop-color="#0EA5E9"/>
+      <stop offset="80%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#0369A1"/>
+    </radialGradient>
+
+    <!-- Ambient light overlay -->
+    <radialGradient id="ambientLight" cx="30%" cy="25%" r="50%">
+      <stop offset="0%" stop-color="rgba(219, 232, 244, 0.5)"/>
+      <stop offset="40%" stop-color="rgba(219, 232, 244, 0.2)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+
+    <!-- Center glow -->
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(186, 230, 253, 0.4)"/>
+      <stop offset="50%" stop-color="rgba(56, 189, 248, 0.2)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Main orb circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#orbGrad)"/>
+
+  <!-- Ambient light overlay -->
+  <circle cx="256" cy="256" r="240" fill="url(#ambientLight)"/>
+
+  <!-- Center glow overlay -->
+  <circle cx="256" cy="256" r="240" fill="url(#centerGlow)"/>
+
+  <!-- Three Spotify-style curved sound lines (arcing upward) -->
+  <g fill="none" stroke="white" stroke-width="32" stroke-linecap="round">
+    <!-- Top line (longest, largest curve) -->
+    <path d="M110 172 Q256 92 402 172"/>
+    <!-- Middle line (medium curve) -->
+    <path d="M140 242 Q256 182 372 242"/>
+    <!-- Bottom line (shortest, smallest curve) -->
+    <path d="M170 312 Q256 272 342 312"/>
+  </g>
+</svg>

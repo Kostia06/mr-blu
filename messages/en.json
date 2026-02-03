@@ -1,0 +1,393 @@
+{
+	"common": {
+		"loading": "Loading...",
+		"error": "An error occurred",
+		"save": "Save",
+		"cancel": "Cancel",
+		"delete": "Delete",
+		"edit": "Edit",
+		"send": "Send",
+		"download": "Download",
+		"preview": "Preview",
+		"back": "Back",
+		"next": "Next",
+		"confirm": "Confirm",
+		"close": "Close",
+		"search": "Search",
+		"noResults": "No results found",
+		"required": "Required"
+	},
+	"landing": {
+		"getStarted": "Get Started Free",
+		"nav": {
+			"features": "Features",
+			"howItWorks": "How It Works",
+			"pricing": "Pricing"
+		},
+		"hero": {
+			"badge": "Voice-Powered Documents",
+			"headline": "Speak It. Send It. Get Paid.",
+			"subheadline": "Create professional contracts and invoices in seconds using just your voice. No typing. No templates. Just talk.",
+			"cta": {
+				"primary": "Start Free",
+				"secondary": "Watch Demo"
+			},
+			"trusted": "Trusted by 500+ contractors"
+		},
+		"socialProof": {
+			"trustedBy": "Trusted by 500+ contractors",
+			"rating": "from 200+ reviews",
+			"documentsCreated": "documents created"
+		},
+		"problemSolution": {
+			"title": "There's a Better Way",
+			"subtitle": "Stop wasting time on paperwork. Start getting paid faster.",
+			"old": {
+				"title": "The Old Way",
+				"typing": "Typing contracts on your phone after a long day",
+				"chasing": "Chasing clients for signatures",
+				"forgetting": "Forgetting to send invoices",
+				"losing": "Losing track of who paid"
+			},
+			"new": {
+				"title": "The Mr.Blu Way",
+				"speak": "Speak naturally, AI creates the document",
+				"sign": "Clients sign directly from their phone",
+				"reminders": "Automatic invoice reminders",
+				"tracking": "Payment tracking in one place"
+			}
+		},
+		"howItWorks": {
+			"title": "How It Works",
+			"subtitle": "From voice to signed contract in minutes, not hours.",
+			"step1": {
+				"title": "Record",
+				"description": "Tap the button and describe your job. Speak in any language - English, Spanish, or mix them up. Include client details, pricing, and terms."
+			},
+			"step2": {
+				"title": "Review & Edit",
+				"description": "AI creates a professional contract or invoice instantly. Review the document, make any edits, or ask AI to optimize the language."
+			},
+			"step3": {
+				"title": "Send & Get Signed",
+				"description": "Send via email, WhatsApp, or text. Clients sign digitally on their phone. You get notified instantly when it's done."
+			}
+		},
+		"featuresGrid": {
+			"title": "Everything You Need",
+			"subtitle": "Powerful features designed for contractors on the go.",
+			"voice": {
+				"title": "Voice to Document",
+				"description": "Speak naturally in any language. AI understands context and creates perfect documents."
+			},
+			"memory": {
+				"title": "Smart Client Memory",
+				"description": "AI remembers your clients. Mention 'John from the Smith project' and we auto-fill their details."
+			},
+			"signatures": {
+				"title": "Digital Signatures",
+				"description": "Legally binding signatures collected on any device. Clients sign in seconds."
+			},
+			"recurring": {
+				"title": "Automatic Invoicing",
+				"description": "Set it and forget it. Weekly, monthly, or custom schedules for recurring clients."
+			},
+			"multichannel": {
+				"title": "Multi-Channel Sending",
+				"description": "Send however your client prefers. Email, text, WhatsApp, or shareable link."
+			},
+			"tracking": {
+				"title": "Payment Tracking",
+				"description": "Mark invoices as paid, partial, or overdue. Always know who owes you."
+			}
+		},
+		"testimonials": {
+			"title": "Contractors Love Mr.Blu",
+			"subtitle": "Join thousands of contractors who've simplified their paperwork.",
+			"miguel": {
+				"quote": "I used to spend 30 minutes typing up contracts after every job. Now I just talk for 2 minutes while driving home. Game changer.",
+				"name": "Miguel R.",
+				"role": "Landscaping, Houston TX"
+			},
+			"david": {
+				"quote": "My clients are impressed. They get a professional invoice within an hour of me finishing the job. Makes my small business look big.",
+				"name": "David K.",
+				"role": "General Contractor, Phoenix AZ"
+			},
+			"carlos": {
+				"quote": "The Spanish support is perfect. I can speak in Spanish and send documents in English to my clients. Love it.",
+				"name": "Carlos M.",
+				"role": "Painter, Los Angeles CA"
+			}
+		},
+		"useCases": {
+			"title": "Built for Every Trade",
+			"subtitle": "Whether you're mowing lawns or wiring houses, Mr.Blu works for you.",
+			"landscapers": {
+				"title": "Landscapers",
+				"description": "Quote lawn care, hardscaping, and seasonal maintenance with ease."
+			},
+			"contractors": {
+				"title": "General Contractors",
+				"description": "Renovation contracts, project milestones, and change orders."
+			},
+			"painters": {
+				"title": "Painters",
+				"description": "Room-by-room estimates, interior and exterior quotes."
+			},
+			"plumbers": {
+				"title": "Plumbers",
+				"description": "Service calls, emergency repairs, and installation contracts."
+			},
+			"electricians": {
+				"title": "Electricians",
+				"description": "Inspection reports, installation quotes, and maintenance agreements."
+			},
+			"cleaners": {
+				"title": "Cleaners",
+				"description": "Recurring cleaning schedules and one-time deep clean quotes."
+			}
+		},
+		"pricing": {
+			"title": "Free to Start. Free to Stay.",
+			"subtitle": "No hidden fees. No credit card required.",
+			"badge": "Most Popular",
+			"perMonth": "/month",
+			"features": {
+				"voiceRecordings": "Unlimited voice recordings",
+				"contractsInvoices": "Unlimited contracts & invoices",
+				"clientSignatures": "Digital client signatures",
+				"sending": "Email, SMS & WhatsApp sending",
+				"paymentTracking": "Payment tracking",
+				"languages": "English & Spanish support"
+			},
+			"cta": "Get Started Free",
+			"note": "No credit card required. No hidden fees."
+		},
+		"faq": {
+			"title": "Frequently Asked Questions",
+			"subtitle": "Everything you need to know about Mr.Blu.",
+			"questions": {
+				"voiceToDocument": {
+					"question": "How does voice-to-document work?",
+					"answer": "Simply tap the record button and describe your project naturally. Our AI listens to your voice, extracts key details like client info, pricing, and scope of work, then generates a professional document. You can review and edit before sending."
+				},
+				"languages": {
+					"question": "What languages are supported?",
+					"answer": "Currently we support English and Spanish. You can speak in either language or even mix them - our AI understands both. The generated documents can be in your preferred language."
+				},
+				"security": {
+					"question": "Is my data secure?",
+					"answer": "Yes, absolutely. All data is encrypted in transit and at rest. We use bank-level security and never share your information with third parties. Your documents and client data are yours alone."
+				},
+				"clientSigning": {
+					"question": "Can clients sign without downloading an app?",
+					"answer": "Yes! When you send a contract, your client receives a link they can open in any browser. They can review the document and sign with their finger - no app download required."
+				},
+				"recurring": {
+					"question": "How do recurring invoices work?",
+					"answer": "Set up a schedule (weekly, bi-weekly, or monthly) and Mr.Blu automatically generates and sends invoices to your recurring clients. You can choose to review before sending or let it run automatically."
+				},
+				"customize": {
+					"question": "Can I customize my documents?",
+					"answer": "Absolutely. You can edit any document before sending, save custom templates, and add your business logo and signature. The AI-generated content is just a starting point - make it yours."
+				}
+			}
+		},
+		"finalCta": {
+			"title": "Ready to Save Hours Every Week?",
+			"subtitle": "Join thousands of contractors who've ditched the paperwork. Start creating professional documents with just your voice.",
+			"cta": "Get Started Free",
+			"googleCta": "Continue with Google",
+			"trustNote": "Free forever. No credit card required."
+		},
+		"footer": {
+			"tagline": "The voice-powered document platform for contractors. Create contracts and invoices in seconds, not hours.",
+			"product": {
+				"title": "Product",
+				"features": "Features",
+				"howItWorks": "How It Works",
+				"pricing": "Pricing"
+			},
+			"support": {
+				"title": "Support",
+				"helpCenter": "Help Center",
+				"contact": "Contact Us",
+				"faq": "FAQ"
+			},
+			"legal": {
+				"title": "Legal",
+				"privacy": "Privacy Policy",
+				"terms": "Terms of Service"
+			},
+			"copyright": "2024 Mr.Blu. Made for hardworking contractors."
+		}
+	},
+	"auth": {
+		"login": "Log In",
+		"logout": "Log Out",
+		"email": "Email address",
+		"emailPlaceholder": "you@example.com",
+		"magicLink": "Send Magic Link",
+		"magicLinkSent": "Check your email for the login link!",
+		"continueWithGoogle": "Continue with Google",
+		"or": "or"
+	},
+	"dashboard": {
+		"home": "Home",
+		"documents": "Documents",
+		"clients": "Clients",
+		"settings": "Settings",
+		"record": {
+			"title": "Create New Document",
+			"instruction": "Tap to start recording",
+			"recording": "Recording...",
+			"paused": "Paused",
+			"processing": "Processing your recording...",
+			"tapToStop": "Tap to stop",
+			"tapToResume": "Tap to resume"
+		},
+		"transcript": {
+			"title": "Transcript",
+			"detected": "We detected this might be a",
+			"contract": "Contract",
+			"invoice": "Invoice",
+			"switchTo": "Switch to",
+			"generate": "Generate Document"
+		}
+	},
+	"contracts": {
+		"title": "Contracts",
+		"new": "New Contract",
+		"draft": "Draft",
+		"sent": "Sent",
+		"signed": "Signed",
+		"completed": "Completed",
+		"actions": "Actions",
+		"send": "Send to Client",
+		"status": {
+			"draft": "Draft",
+			"sent": "Sent for Signing",
+			"signed": "Signed"
+		},
+		"signature": {
+			"title": "Your Signature",
+			"contractor": "Contractor Signature",
+			"add": "Add Your Signature",
+			"change": "Change",
+			"saved": "Use Saved Signature"
+		},
+		"editor": {
+			"title": "Contract Title",
+			"parties": "Parties",
+			"contractor": "Contractor",
+			"client": "Client",
+			"scopeOfWork": "Scope of Work",
+			"terms": "Terms & Conditions",
+			"paymentDetails": "Payment Details",
+			"startDate": "Start Date",
+			"endDate": "End Date",
+			"optimizeWithAI": "Optimize with AI",
+			"addFromVoice": "Add from Voice",
+			"saveAsTemplate": "Save as Template"
+		},
+		"sign": {
+			"title": "Sign Contract",
+			"instruction": "Draw your signature below",
+			"clear": "Clear",
+			"submit": "Submit Signature",
+			"signed": "Contract Signed Successfully!"
+		}
+	},
+	"invoices": {
+		"title": "Invoices",
+		"new": "New Invoice",
+		"draft": "Draft",
+		"sent": "Sent",
+		"paid": "Paid",
+		"overdue": "Overdue",
+		"partial": "Partial",
+		"editor": {
+			"invoiceNumber": "Invoice #",
+			"lineItems": "Line Items",
+			"description": "Description",
+			"quantity": "Qty",
+			"rate": "Rate",
+			"amount": "Amount",
+			"addItem": "Add Item",
+			"subtotal": "Subtotal",
+			"tax": "Tax",
+			"total": "Total",
+			"dueDate": "Due Date",
+			"notes": "Notes",
+			"amountPaid": "Amount Paid",
+			"balance": "Balance Due"
+		},
+		"recurring": {
+			"title": "Recurring Schedule",
+			"enable": "Enable recurring invoice",
+			"frequency": "Frequency",
+			"weekly": "Weekly",
+			"biweekly": "Bi-weekly",
+			"monthly": "Monthly",
+			"endDate": "End Date (optional)",
+			"requireConfirmation": "Require confirmation before sending"
+		}
+	},
+	"clients": {
+		"title": "Clients",
+		"new": "New Client",
+		"name": "Name",
+		"email": "Email",
+		"phone": "Phone",
+		"address": "Address",
+		"notes": "Notes",
+		"noClients": "No clients yet. Add your first client!"
+	},
+	"settings": {
+		"title": "Settings",
+		"profile": {
+			"title": "Profile",
+			"fullName": "Full Name",
+			"businessName": "Business Name",
+			"phone": "Phone Number",
+			"email": "Email",
+			"address": "Business Address"
+		},
+		"defaults": {
+			"title": "Defaults",
+			"paymentTerms": "Default Payment Terms",
+			"hourlyRate": "Default Hourly Rate"
+		},
+		"signature": {
+			"title": "Signature",
+			"saved": "Saved Signature",
+			"update": "Update Signature",
+			"noSignature": "No signature saved"
+		},
+		"language": {
+			"title": "Language",
+			"english": "English",
+			"spanish": "Spanish"
+		}
+	},
+	"send": {
+		"title": "Send Document",
+		"method": "Delivery Method",
+		"email": "Email",
+		"sms": "SMS",
+		"whatsapp": "WhatsApp",
+		"link": "Shareable Link",
+		"recipient": "Recipient",
+		"message": "Message (optional)",
+		"sending": "Sending...",
+		"sent": "Document sent successfully!",
+		"copyLink": "Copy Link",
+		"linkCopied": "Link copied to clipboard!"
+	},
+	"pdf": {
+		"generating": "Generating PDF...",
+		"download": "Download PDF",
+		"preview": "Preview PDF"
+	}
+}

@@ -1,0 +1,810 @@
+<script lang="ts">
+	import { t } from '$lib/i18n';
+	import Plus from 'lucide-svelte/icons/plus';
+	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import Check from 'lucide-svelte/icons/check';
+	import X from 'lucide-svelte/icons/x';
+	import ChevronDown from 'lucide-svelte/icons/chevron-down';
+	import ChevronUp from 'lucide-svelte/icons/chevron-up';
+	import Database from 'lucide-svelte/icons/database';
+	import AlertTriangle from 'lucide-svelte/icons/alert-triangle';
+
+	interface LineItem {
+		id: string;
+		description: string;
+		quantity: number;
+		unit: string;
+		rate: number;
+		total: number;
+		material?: string | null;
+		measurementType?: 'sqft' | 'linear_ft' | 'unit' | 'hour' | 'job' | null;
+		dimensions?: {
+			width: number | null;
+			length: number | null;
+			unit: 'ft' | 'm' | null;
+		} | null;
+		suggestedPrice?: number | null;
+		pricingConfidence?: number;
+		hasPricingSuggestion?: boolean;
+	}
+
+	let {
+		items = $bindable(),
+		taxRate = $bindable(),
+		calculatedSubtotal,
+		calculatedTaxAmount,
+		calculatedTotal,
+		formatCurrency,
+		onAddItem,
+		onRemoveItem,
+		onUpdateItemTotal,
+		onUpdateDimensionsQuantity,
+		onApplySuggestedPrice,
+		onDismissPricingSuggestion
+	}: {
+		items: LineItem[];
+		taxRate: number | null;
+		calculatedSubtotal: number;
+		calculatedTaxAmount: number;
+		calculatedTotal: number;
+		formatCurrency: (amount: number) => string;
+		onAddItem: () => void;
+		onRemoveItem: (id: string) => void;
+		onUpdateItemTotal: (item: LineItem) => void;
+		onUpdateDimensionsQuantity: (item: LineItem) => void;
+		onApplySuggestedPrice: (itemId: string) => void;
+		onDismissPricingSuggestion: (itemId: string) => void;
+	} = $props();
+
+	// Internal state
+	let expandedItemId = $state<string | null>(null);
+</script>
+
+<div class="line-items-section">
+	<div class="line-items-header">
+		<span class="items-label"
+			>{items.length !== 1
+				? $t('review.lineItemsCount').replace('{n}', String(items.length))
+				: $t('review.lineItemCount').replace('{n}', String(items.length))}</span
+		>
+		{#if items.length === 0}
+			<div class="inline-warning" title="At least one line item is required">
+				<AlertTriangle size={16} />
+			</div>
+		{/if}
+	</div>
+
+	{#if items.length > 0}
+		<div class="line-items-list">
+			{#each items as item, index (item.id)}
+				{@const isExpanded = expandedItemId === item.id}
+				{@const hasSuggestion = item.hasPricingSuggestion && item.suggestedPrice}
+				<div
+					class="line-item-card"
+					class:expanded={isExpanded}
+					class:has-suggestion={hasSuggestion}
+				>
+					<button
+						class="line-item-header"
+						onclick={() => (expandedItemId = isExpanded ? null : item.id)}
+					>
+						<span class="line-item-num">{index + 1}</span>
+						<div class="line-item-summary">
+							<span class="line-item-desc">{item.description || 'Untitled item'}</span>
+							<span class="line-item-meta">
+								{item.quantity}
+								{item.unit} × {formatCurrency(item.rate)}
+							</span>
+						</div>
+						<div class="line-item-total-wrapper">
+							<span class="line-item-total" class:needs-price={!item.total || item.total === 0}
+								>{formatCurrency(item.total)}</span
+							>
+							{#if hasSuggestion}
+								<span class="pricing-hint" title="Suggested price based on history">
+									<Database size={12} />
+								</span>
+							{/if}
+						</div>
+						{#if isExpanded}
+							<ChevronUp size={16} class="expand-icon" />
+						{:else}
+							<ChevronDown size={16} class="expand-icon" />
+						{/if}
+					</button>
+
+					{#if hasSuggestion}
+						<div class="pricing-suggestion">
+							<div class="suggestion-content">
+								<Database size={14} />
+								<span>
+									{$t('review.suggestedPrice')}:
+									<strong>{formatCurrency(item.suggestedPrice!)}</strong>
+									{#if item.pricingConfidence && item.pricingConfidence >= 0.8}
+										<span class="confidence high">{$t('review.highConfidence')}</span>
+									{:else if item.pricingConfidence && item.pricingConfidence >= 0.6}
+										<span class="confidence medium">{$t('review.mediumConfidence')}</span>
+									{:else}
+										<span class="confidence low">{$t('review.lowConfidence')}</span>
+									{/if}
+								</span>
+							</div>
+							<div class="suggestion-actions">
+								<button class="apply-btn" onclick={() => onApplySuggestedPrice(item.id)}>
+									<Check size={14} />
+									Apply
+								</button>
+								<button class="dismiss-btn" onclick={() => onDismissPricingSuggestion(item.id)}>
+									<X size={14} />
+								</button>
+							</div>
+						</div>
+					{/if}
+
+					{#if isExpanded}
+						<div class="line-item-edit">
+							<div class="edit-field full">
+								<label for="item-desc-{item.id}">{$t('review.description')}</label>
+								<input
+									id="item-desc-{item.id}"
+									type="text"
+									bind:value={item.description}
+									placeholder={$t('placeholder.description')}
+								/>
+							</div>
+							<div class="edit-row">
+								<div class="edit-field">
+									<label for="item-qty-{item.id}">{$t('review.quantity')}</label>
+									<input
+										id="item-qty-{item.id}"
+										type="number"
+										bind:value={item.quantity}
+										oninput={() => onUpdateItemTotal(item)}
+										min="0"
+										step="0.01"
+										disabled={item.dimensions?.width != null && item.dimensions?.length != null}
+									/>
+								</div>
+								<div class="edit-field">
+									<label for="item-unit-{item.id}">{$t('review.unit')}</label>
+									<input
+										id="item-unit-{item.id}"
+										type="text"
+										bind:value={item.unit}
+										placeholder={$t('placeholder.unit')}
+									/>
+								</div>
+							</div>
+							<div class="edit-row">
+								<div class="edit-field full">
+									<label for="item-rate-{item.id}">{$t('review.rate')}</label>
+									<input
+										id="item-rate-{item.id}"
+										type="number"
+										bind:value={item.rate}
+										oninput={() => onUpdateItemTotal(item)}
+										min="0"
+										step="0.01"
+									/>
+								</div>
+							</div>
+							{#if item.dimensions || item.measurementType === 'sqft'}
+								<div class="dimensions-row">
+									<span class="dimensions-label">{$t('review.dimensions')}</span>
+									<div class="dimensions-inputs">
+										<input
+											type="number"
+											class="dimension-input"
+											value={item.dimensions?.width ?? ''}
+											oninput={(e) => {
+												if (!item.dimensions) {
+													item.dimensions = { width: null, length: null, unit: 'ft' };
+												}
+												item.dimensions.width =
+													parseFloat((e.target as HTMLInputElement).value) || null;
+												onUpdateDimensionsQuantity(item);
+											}}
+											placeholder="W"
+											min="0"
+											step="0.1"
+										/>
+										<span class="dimension-separator">×</span>
+										<input
+											type="number"
+											class="dimension-input"
+											value={item.dimensions?.length ?? ''}
+											oninput={(e) => {
+												if (!item.dimensions) {
+													item.dimensions = { width: null, length: null, unit: 'ft' };
+												}
+												item.dimensions.length =
+													parseFloat((e.target as HTMLInputElement).value) || null;
+												onUpdateDimensionsQuantity(item);
+											}}
+											placeholder="L"
+											min="0"
+											step="0.1"
+										/>
+										<span class="dimension-unit">{item.dimensions?.unit || 'ft'}</span>
+										{#if item.dimensions?.width && item.dimensions?.length}
+											<span class="dimension-result"
+												>= {item.dimensions.width * item.dimensions.length}
+												{item.unit || 'sqft'}</span
+											>
+										{/if}
+									</div>
+								</div>
+							{/if}
+							{#if item.material}
+								<div class="material-info">
+									<span class="material-tag">
+										<Database size={12} />
+										{item.material}
+										{#if item.measurementType}
+											<span class="measurement-type">({item.measurementType})</span>
+										{/if}
+									</span>
+								</div>
+							{/if}
+							<div class="edit-actions">
+								<button class="delete-item-btn" onclick={() => onRemoveItem(item.id)}>
+									<Trash2 size={14} />
+									Delete
+								</button>
+							</div>
+						</div>
+					{/if}
+				</div>
+			{/each}
+		</div>
+	{/if}
+
+	{#if items.length > 0}
+		<div class="tax-summary">
+			<div class="tax-row">
+				<span class="tax-label">{$t('review.subtotal')}</span>
+				<span class="tax-value">{formatCurrency(calculatedSubtotal)}</span>
+			</div>
+			<div class="tax-row tax-rate-row">
+				<span class="tax-label">{$t('review.tax')}</span>
+				<div class="tax-rate-input-wrapper">
+					<input
+						type="number"
+						class="tax-rate-input"
+						value={taxRate ?? 0}
+						oninput={(e) => {
+							const val = parseFloat((e.target as HTMLInputElement).value);
+							taxRate = isNaN(val) ? null : val;
+						}}
+						min="0"
+						max="100"
+						step="0.1"
+					/>
+					<span class="tax-percent">%</span>
+				</div>
+				<span class="tax-value">{formatCurrency(calculatedTaxAmount)}</span>
+			</div>
+			<div class="tax-row tax-total-row">
+				<span class="tax-label">{$t('review.total')}</span>
+				<span class="tax-value total">{formatCurrency(calculatedTotal)}</span>
+			</div>
+		</div>
+	{/if}
+
+	<button
+		class="add-item-btn"
+		onclick={() => {
+			onAddItem();
+			expandedItemId = `item-${Date.now()}`;
+		}}
+	>
+		<Plus size={16} />
+		{$t('review.addLineItem')}
+	</button>
+</div>
+
+<style>
+	.line-items-section {
+		padding: 16px;
+		background: linear-gradient(135deg, rgba(0, 102, 255, 0.06), rgba(59, 130, 246, 0.04));
+		border-radius: var(--radius-card);
+	}
+
+	.line-items-header {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 12px;
+	}
+
+	.line-items-header .items-label {
+		margin-bottom: 0;
+	}
+
+	.items-label {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--gray-600);
+	}
+
+	.inline-warning {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		background: rgba(245, 158, 11, 0.12);
+		border-radius: 8px;
+		color: var(--data-amber);
+		flex-shrink: 0;
+		margin-left: auto;
+	}
+
+	.line-items-list {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		margin-bottom: 12px;
+	}
+
+	.line-item-card {
+		background: var(--white);
+		border: 1px solid var(--gray-200);
+		border-radius: 12px;
+		overflow: hidden;
+		transition: all 0.2s ease;
+	}
+
+	.line-item-card.expanded {
+		border-color: var(--blu-primary, #0066ff);
+		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+	}
+
+	.line-item-header {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		padding: 12px 14px;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		text-align: left;
+		transition: background 0.2s ease;
+	}
+
+	.line-item-header:hover {
+		background: transparent;
+	}
+
+	.line-item-num {
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--gray-100);
+		border-radius: 6px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--gray-500);
+		flex-shrink: 0;
+	}
+
+	.line-item-summary {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.line-item-desc {
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--gray-900);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.line-item-meta {
+		font-size: 12px;
+		color: var(--gray-500);
+	}
+
+	.line-item-total {
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--data-green);
+		flex-shrink: 0;
+	}
+
+	.line-item-total.needs-price {
+		color: var(--data-amber);
+	}
+
+	.line-item-total-wrapper {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-shrink: 0;
+	}
+
+	.pricing-hint {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 18px;
+		height: 18px;
+		background: #dbeafe;
+		border-radius: 4px;
+		color: #2563eb;
+		animation: pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.5;
+		}
+	}
+
+	.line-item-card.has-suggestion {
+		border-color: #93c5fd;
+		background: #f0f9ff;
+	}
+
+	.pricing-suggestion {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 10px 14px;
+		background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+		border-top: 1px solid #bfdbfe;
+		gap: 12px;
+	}
+
+	.suggestion-content {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+		color: #1e40af;
+	}
+
+	.suggestion-content strong {
+		color: #1d4ed8;
+	}
+
+	.suggestion-content .confidence {
+		font-size: 11px;
+		padding: 2px 6px;
+		border-radius: 4px;
+		margin-left: 4px;
+	}
+
+	.confidence.high {
+		background: #dcfce7;
+		color: #166534;
+	}
+
+	.confidence.medium {
+		background: #fef3c7;
+		color: #92400e;
+	}
+
+	.confidence.low {
+		background: #fee2e2;
+		color: #991b1b;
+	}
+
+	.suggestion-actions {
+		display: flex;
+		gap: 6px;
+	}
+
+	.suggestion-actions .apply-btn {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		padding: 6px 12px;
+		background: #2563eb;
+		color: white;
+		border: none;
+		border-radius: 6px;
+		font-size: 12px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.suggestion-actions .apply-btn:hover {
+		background: #1d4ed8;
+	}
+
+	.suggestion-actions .dismiss-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		background: transparent;
+		color: var(--gray-500);
+		border: 1px solid #cbd5e1;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.suggestion-actions .dismiss-btn:hover {
+		background: var(--gray-100);
+		color: var(--gray-600);
+	}
+
+	.material-info {
+		padding-top: 8px;
+		border-top: 1px dashed #e2e8f0;
+	}
+
+	.material-tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 10px;
+		background: #f0f9ff;
+		border: 1px solid #bae6fd;
+		border-radius: 6px;
+		font-size: 12px;
+		color: #0369a1;
+	}
+
+	.material-tag .measurement-type {
+		color: var(--gray-500);
+	}
+
+	.line-item-header :global(.expand-icon) {
+		color: var(--gray-400);
+		flex-shrink: 0;
+	}
+
+	.line-item-edit {
+		padding: 14px;
+		border-top: 1px solid var(--gray-200);
+		background: var(--gray-50);
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.line-item-edit .edit-field {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.line-item-edit .edit-field.full {
+		width: 100%;
+	}
+
+	.line-item-edit .edit-field label {
+		font-size: 11px;
+		font-weight: 500;
+		color: var(--gray-500);
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.line-item-edit .edit-field input {
+		padding: 10px 12px;
+		border: 1px solid var(--gray-200);
+		border-radius: 8px;
+		font-size: 14px;
+		color: var(--gray-900);
+		background: var(--white);
+		transition: all 0.2s ease;
+	}
+
+	.line-item-edit .edit-field input:focus {
+		outline: none;
+		border-color: var(--blu-primary, #0066ff);
+		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+	}
+
+	.line-item-edit .edit-row {
+		display: flex;
+		gap: 10px;
+	}
+
+	.line-item-edit .edit-row .edit-field {
+		flex: 1;
+	}
+
+	.dimensions-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 0;
+		margin-top: 4px;
+		border-top: 1px dashed #e2e8f0;
+	}
+
+	.dimensions-label {
+		font-size: 12px;
+		font-weight: 500;
+		color: var(--gray-500);
+		white-space: nowrap;
+	}
+
+	.dimensions-inputs {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex: 1;
+	}
+
+	.dimension-input {
+		width: 60px;
+		padding: 6px 8px;
+		border: 1px solid #d1d5db;
+		border-radius: 6px;
+		font-size: 13px;
+		text-align: center;
+	}
+
+	.dimension-input:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+	}
+
+	.dimension-separator {
+		color: #9ca3af;
+		font-weight: 500;
+	}
+
+	.dimension-unit {
+		font-size: 12px;
+		color: #6b7280;
+		margin-left: 4px;
+	}
+
+	.dimension-result {
+		font-size: 12px;
+		color: var(--data-green);
+		font-weight: 500;
+		margin-left: 8px;
+		padding: 4px 8px;
+		background: #ecfdf5;
+		border-radius: 4px;
+	}
+
+	.line-item-edit .edit-actions {
+		display: flex;
+		justify-content: flex-end;
+		padding-top: 8px;
+		border-top: 1px solid var(--gray-200);
+	}
+
+	.delete-item-btn {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 12px;
+		background: transparent;
+		border: 1px solid #fecaca;
+		border-radius: 8px;
+		color: #dc2626;
+		font-size: 13px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.delete-item-btn:hover {
+		background: rgba(220, 38, 38, 0.08);
+	}
+
+	.tax-summary {
+		background: var(--white);
+		border: 1px solid var(--gray-200);
+		border-radius: 12px;
+		padding: 12px 14px;
+		margin-bottom: 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.tax-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.tax-label {
+		font-size: 13px;
+		color: var(--gray-500);
+		font-weight: 500;
+	}
+
+	.tax-value {
+		font-size: 13px;
+		color: var(--gray-700);
+		font-weight: 500;
+		text-align: right;
+	}
+
+	.tax-value.total {
+		font-size: 15px;
+		font-weight: 700;
+		color: var(--data-green);
+	}
+
+	.tax-rate-row {
+		gap: 8px;
+	}
+
+	.tax-rate-input-wrapper {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		margin-left: auto;
+		margin-right: 12px;
+	}
+
+	.tax-rate-input {
+		width: 60px;
+		padding: 6px 8px;
+		border: 1px solid var(--gray-200);
+		border-radius: 8px;
+		font-size: 13px;
+		text-align: center;
+		color: var(--gray-900);
+		background: var(--gray-50);
+		transition: all 0.2s ease;
+	}
+
+	.tax-rate-input:focus {
+		outline: none;
+		border-color: var(--blu-primary, #0066ff);
+		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+		background: var(--white);
+	}
+
+	.tax-percent {
+		font-size: 12px;
+		color: var(--gray-400);
+		font-weight: 500;
+	}
+
+	.tax-total-row {
+		padding-top: 8px;
+		border-top: 1px solid var(--gray-200);
+	}
+
+	.add-item-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		width: 100%;
+		padding: 12px;
+		background: rgba(0, 102, 255, 0.06);
+		border: 1px dashed rgba(0, 102, 255, 0.3);
+		border-radius: 10px;
+		color: var(--blu-primary, #0066ff);
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.add-item-btn:hover {
+		background: rgba(0, 102, 255, 0.1);
+		border-color: var(--blu-primary, #0066ff);
+	}
+</style>
