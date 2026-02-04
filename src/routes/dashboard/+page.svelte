@@ -480,6 +480,16 @@
 		stopMediaResources();
 		currentState = 'processing';
 
+		// Clear any existing pending review when starting a new one
+		if (pendingReview?.id) {
+			try {
+				await fetch(`/api/reviews/${pendingReview.id}`, { method: 'DELETE' });
+			} catch (e) {
+				console.error('Failed to clear pending review:', e);
+			}
+		}
+		pendingReviewDismissed = true;
+
 		try {
 			sessionStorage.setItem('review_transcript', savedTranscript);
 			goto('/dashboard/review');
@@ -527,8 +537,18 @@
 		localStorage.setItem('nameBannerDismissed', 'true');
 	}
 
-	function dismissPendingReview() {
+	async function dismissPendingReview() {
 		pendingReviewDismissed = true;
+		// Also delete the pending review from the database
+		if (pendingReview?.id) {
+			try {
+				await fetch(`/api/reviews/${pendingReview.id}`, {
+					method: 'DELETE'
+				});
+			} catch (error) {
+				console.error('Failed to delete pending review:', error);
+			}
+		}
 	}
 
 	function resumePendingReview() {
@@ -646,39 +666,6 @@
 				</div>
 			{/if}
 
-			<!-- Pending Review Banner -->
-			{#if pendingReview && !pendingReviewDismissed}
-				<div
-					class="pending-review-card"
-					role="button"
-					tabindex="0"
-					onclick={resumePendingReview}
-					onkeydown={(e) => e.key === 'Enter' && resumePendingReview()}
-					in:fly={{ y: -10, duration: 300, delay: 100 }}
-				>
-					<div class="pending-review-icon">
-						<FileText size={20} />
-					</div>
-					<div class="pending-review-content">
-						<strong>{translate('dashboard.continueDraft')}</strong>
-						<span>{getPendingReviewSummary()}</span>
-					</div>
-					<div class="pending-review-actions">
-						<ChevronRight size={20} />
-					</div>
-					<button
-						class="pending-review-close"
-						onclick={(e) => {
-							e.stopPropagation();
-							dismissPendingReview();
-						}}
-						aria-label="Dismiss"
-					>
-						<X size={16} />
-					</button>
-				</div>
-			{/if}
-
 			<!-- Main Content -->
 			<div class="idle-content" in:fly={{ y: 20, duration: 500, delay: 100, easing: cubicOut }}>
 				<!-- Record Button Section -->
@@ -783,6 +770,35 @@
 		{/if}
 	{/if}
 
+	<!-- Pending Review Toast - Fixed above navbar -->
+	{#if pendingReview && !pendingReviewDismissed}
+		<div
+			class="pending-review-card"
+			role="button"
+			tabindex="0"
+			onclick={resumePendingReview}
+			onkeydown={(e) => e.key === 'Enter' && resumePendingReview()}
+			in:fly={{ y: 20, duration: 300 }}
+		>
+			<div class="pending-review-icon">
+				<FileText size={18} />
+			</div>
+			<div class="pending-review-content">
+				<strong>{translate('dashboard.continueDraft')}</strong>
+				<span>{getPendingReviewSummary()}</span>
+			</div>
+			<button
+				class="pending-review-close"
+				onclick={(e) => {
+					e.stopPropagation();
+					dismissPendingReview();
+				}}
+				aria-label="Dismiss"
+			>
+				<X size={14} />
+			</button>
+		</div>
+	{/if}
 </main>
 
 <style>
@@ -939,37 +955,45 @@
 		background: rgba(245, 158, 11, 0.2);
 	}
 
-	/* Pending Review Card */
+	/* Pending Review Card - Fixed above navbar, glassy white */
 	.pending-review-card {
-		position: relative;
+		position: fixed;
+		bottom: calc(var(--safe-area-bottom, 0px) + 90px);
+		left: 50%;
+		transform: translateX(-50%);
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
-		margin: 0 var(--page-padding-x, 20px) var(--space-4);
-		padding: var(--space-3) var(--space-4);
-		background: rgba(0, 102, 255, 0.08);
-		border: 1px solid rgba(0, 102, 255, 0.2);
-		border-radius: var(--radius-lg);
+		gap: 10px;
+		padding: 10px 40px 10px 12px;
+		background: var(--glass-white-70, rgba(255, 255, 255, 0.85));
+		backdrop-filter: blur(20px) saturate(150%);
+		-webkit-backdrop-filter: blur(20px) saturate(150%);
+		border: 1px solid rgba(255, 255, 255, 0.5);
+		border-radius: var(--radius-full, 50px);
 		cursor: pointer;
 		transition: all var(--duration-fast) ease;
 		text-align: left;
-		width: calc(100% - var(--page-padding-x, 20px) * 2);
+		max-width: 300px;
+		width: auto;
+		z-index: calc(var(--z-fixed, 100) + 10);
+		box-shadow: var(--blu-shadow-md, 0 4px 16px rgba(0, 0, 0, 0.1));
 	}
 
 	.pending-review-card:hover {
-		background: rgba(0, 102, 255, 0.12);
-		border-color: rgba(0, 102, 255, 0.3);
+		background: rgba(255, 255, 255, 0.95);
+		transform: translateX(-50%) translateY(-2px);
+		box-shadow: var(--blu-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.15));
 	}
 
 	.pending-review-icon {
 		flex-shrink: 0;
-		width: 40px;
-		height: 40px;
+		width: 32px;
+		height: 32px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(0, 102, 255, 0.15);
-		border-radius: var(--radius-md);
+		background: rgba(0, 102, 255, 0.1);
+		border-radius: 50%;
 		color: var(--blu-primary, #0066ff);
 	}
 
@@ -977,42 +1001,38 @@
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: 1px;
 		min-width: 0;
 	}
 
 	.pending-review-content strong {
-		font-size: var(--text-sm);
-		font-weight: var(--font-semibold);
-		color: var(--blu-primary, #0066ff);
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--gray-900, #0f172a);
 	}
 
 	.pending-review-content span {
-		font-size: var(--text-xs);
-		color: var(--gray-600, #475569);
+		font-size: 11px;
+		color: var(--gray-500, #64748b);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-	}
-
-	.pending-review-actions {
-		flex-shrink: 0;
-		color: var(--blu-primary, #0066ff);
-		opacity: 0.7;
+		max-width: 180px;
 	}
 
 	.pending-review-close {
 		position: absolute;
-		top: 8px;
-		right: 8px;
+		top: 50%;
+		right: 10px;
+		transform: translateY(-50%);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 24px;
-		height: 24px;
+		width: 22px;
+		height: 22px;
 		background: transparent;
 		border: none;
-		border-radius: var(--radius-sm);
+		border-radius: 50%;
 		color: var(--gray-400, #9ca3af);
 		cursor: pointer;
 		transition: all var(--duration-fast) ease;

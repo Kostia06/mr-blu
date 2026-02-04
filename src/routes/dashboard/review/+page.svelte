@@ -1241,7 +1241,8 @@
 
 		isExecuting = false;
 
-		if (savedDocumentId && allActionsCompleted) {
+		// Complete the review session whenever a document was created, regardless of other actions
+		if (savedDocumentId) {
 			await session.completeReviewSession(savedDocumentId, data.documentType);
 		}
 	}
