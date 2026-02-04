@@ -51,27 +51,25 @@ export function createReviewSession() {
 		}, 2000);
 	}
 
+	function cancelAutoSave() {
+		clearTimeout(autoSaveTimeout);
+	}
+
 	async function completeReviewSession(documentId: string, documentType: 'invoice' | 'estimate') {
-		if (!reviewSessionId) return;
+		const sessionIdToDelete = reviewSessionId;
+		if (!sessionIdToDelete) return;
+
+		// Clear any pending auto-saves immediately
+		cancelAutoSave();
+
+		// Set to null first to prevent any race conditions
+		reviewSessionId = null;
 
 		try {
-			// First mark as completed
-			await fetch(`/api/reviews/${reviewSessionId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					status: 'completed',
-					createdDocumentId: documentId,
-					createdDocumentType: documentType
-				})
-			});
-
-			// Then delete the session to prevent it showing in dashboard
-			await fetch(`/api/reviews/${reviewSessionId}`, {
+			// Delete the session to prevent it showing in dashboard
+			await fetch(`/api/reviews/${sessionIdToDelete}`, {
 				method: 'DELETE'
 			});
-
-			reviewSessionId = null;
 		} catch (error) {
 			console.error('Complete review error:', error);
 		}

@@ -1689,6 +1689,8 @@
 						savedDocumentId = doc.id;
 						const idx = data.actions.findIndex((a) => a.id === actionId);
 						if (idx !== -1) data.actions[idx].status = 'completed';
+						// Complete and delete the review session
+						await session.completeReviewSession(doc.id, data.documentType);
 					}
 				}}
 				onOpenViewLinkModal={() =>
