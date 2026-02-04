@@ -263,20 +263,25 @@
 	.hero-phone-container {
 		position: relative;
 		width: 100%;
-		max-width: 320px;
+		max-width: 300px;
 		margin: 0 auto;
 		overflow: visible;
 		perspective: 1000px;
 	}
 
-	/* Larger phone on big screens */
-	@media (min-width: 1024px) {
+	@media (min-width: 480px) {
+		.hero-phone-container {
+			max-width: 340px;
+		}
+	}
+
+	@media (min-width: 768px) {
 		.hero-phone-container {
 			max-width: 380px;
 		}
 	}
 
-	@media (min-width: 1280px) {
+	@media (min-width: 1024px) {
 		.hero-phone-container {
 			max-width: 420px;
 		}
