@@ -136,8 +136,7 @@
 		display: flex;
 		align-items: center;
 		padding: 120px 24px 80px;
-		overflow-x: hidden;
-		overflow-y: visible;
+		overflow-x: clip;
 		background: transparent;
 	}
 
@@ -156,7 +155,21 @@
 	@media (min-width: 1024px) {
 		.hero-container {
 			grid-template-columns: 1fr 1fr;
+			gap: 60px;
+		}
+	}
+
+	@media (min-width: 1280px) {
+		.hero-container {
+			max-width: 1400px;
 			gap: 80px;
+		}
+	}
+
+	@media (min-width: 1536px) {
+		.hero-container {
+			max-width: 1600px;
+			gap: 100px;
 		}
 	}
 
@@ -416,6 +429,18 @@
 	@media (max-width: 1023px) {
 		.hero-visual {
 			order: -1;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.hero-visual {
+			padding: 20px;
+		}
+	}
+
+	@media (min-width: 1440px) {
+		.hero-visual {
+			padding: 40px;
 		}
 	}
 

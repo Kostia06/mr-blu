@@ -54,138 +54,197 @@
 		{ icon: Moon, label: $t('landing.phone.darkMode'), value: $t('landing.phone.off') },
 		{ icon: Shield, label: $t('landing.phone.security'), value: '' }
 	]);
+
+	// Current time for status bar
+	const currentTime = $derived.by(() => {
+		const now = new Date();
+		return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+	});
 </script>
 
-<!-- Mobile-only title -->
 <div class="hero-phone-container" bind:this={phoneRef}>
-	<div class="phone-frame">
-		<!-- Phone notch -->
-		<div class="phone-notch"></div>
+	<div class="phone-3d-wrapper">
+	<!-- iPhone Frame -->
+	<div class="iphone-frame">
+		<!-- Titanium edge highlights -->
+		<div class="frame-highlight frame-highlight-left"></div>
+		<div class="frame-highlight frame-highlight-right"></div>
+		<div class="frame-highlight frame-highlight-top"></div>
 
-		<!-- Phone screen -->
-		<div class="phone-screen">
-			<!-- Dashboard Header -->
-			<div class="dashboard-header">
-				<div class="greeting">
-					<span class="greeting-text">{$t('landing.phone.greeting')}</span>
-					<span class="user-name">{$t('landing.phone.userName')}</span>
-				</div>
-				<div class="avatar">
-					<span>M</span>
+		<!-- Side buttons -->
+		<div class="side-button volume-up"></div>
+		<div class="side-button volume-down"></div>
+		<div class="side-button silent-switch"></div>
+		<div class="side-button power-button"></div>
+
+		<!-- Screen bezel -->
+		<div class="screen-bezel">
+			<!-- Glass reflection overlay -->
+			<div class="glass-reflection"></div>
+
+			<!-- Dynamic Island -->
+			<div class="dynamic-island">
+				<div class="island-camera"></div>
+				<div class="island-sensor"></div>
+			</div>
+
+			<!-- Status Bar -->
+			<div class="status-bar">
+				<span class="status-time">{currentTime}</span>
+				<div class="status-right">
+					<div class="signal-bars">
+						<div class="bar bar-1"></div>
+						<div class="bar bar-2"></div>
+						<div class="bar bar-3"></div>
+						<div class="bar bar-4"></div>
+					</div>
+					<div class="wifi-icon">
+						<svg viewBox="0 0 16 12" fill="currentColor">
+							<path d="M8 9.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-3.5-2.3a5 5 0 017 0l-.9.9a3.7 3.7 0 00-5.2 0l-.9-.9zm-2.1-2.1a7.5 7.5 0 0111.2 0l-.9.9a6.2 6.2 0 00-9.4 0l-.9-.9z"/>
+						</svg>
+					</div>
+					<div class="battery">
+						<div class="battery-body">
+							<div class="battery-level"></div>
+						</div>
+						<div class="battery-cap"></div>
+					</div>
 				</div>
 			</div>
 
-			<!-- Content Area -->
-			<div class="content-area">
-				{#if activeTab === 'record'}
-					<!-- Record Section -->
-					<div class="record-section">
-						<!-- Cloud Orb Button -->
-						<div class="record-btn-wrapper">
-							<div class="glow-ring"></div>
-							<div class="orb">
-								<!-- ChatGPT-style rotating gradient layers -->
-								<div class="gradient-pulse"></div>
-								<!-- Cloud texture layers -->
-								<div class="cloud-layer layer-1"></div>
-								<div class="cloud-layer layer-2"></div>
-								<div class="cloud-layer layer-3"></div>
-								<div class="ambient-light"></div>
+			<!-- Phone screen content -->
+			<div class="phone-screen">
+				<!-- Background blobs (like dashboard) -->
+				<div class="screen-blobs">
+					<div class="screen-blob blob-1"></div>
+					<div class="screen-blob blob-2"></div>
+					<div class="screen-blob blob-3"></div>
+				</div>
+
+				<!-- Dashboard Header -->
+				<div class="dashboard-header">
+					<div class="greeting">
+						<span class="greeting-text">{$t('landing.phone.greeting')}</span>
+						<span class="user-name">{$t('landing.phone.userName')}</span>
+					</div>
+					<div class="avatar">
+						<span>M</span>
+					</div>
+				</div>
+
+				<!-- Content Area -->
+				<div class="content-area">
+					{#if activeTab === 'record'}
+						<!-- Record Section -->
+						<div class="record-section">
+							<!-- Cloud Orb Button -->
+							<div class="record-btn-wrapper">
+								<div class="glow-ring"></div>
+								<div class="orb">
+									<div class="gradient-pulse"></div>
+									<div class="cloud-layer layer-1"></div>
+									<div class="cloud-layer layer-2"></div>
+									<div class="cloud-layer layer-3"></div>
+									<div class="ambient-light"></div>
+								</div>
+							</div>
+
+							<p class="record-hint">{$t('landing.phone.tapToRecord')}</p>
+
+							<button class="type-option">
+								<Keyboard size={12} strokeWidth={2} />
+								<span>{$t('landing.phone.orTypeInstead')}</span>
+							</button>
+						</div>
+					{:else if activeTab === 'documents'}
+						<!-- Documents Section -->
+						<div class="documents-section">
+							<div class="section-header">
+								<h3 class="section-title">{$t('landing.phone.recent')}</h3>
+								<button class="see-all">{$t('landing.phone.seeAll')}</button>
+							</div>
+							<div class="documents-list">
+								{#each documents as doc}
+									<div class="document-item">
+										<div
+											class="doc-icon"
+											class:invoice={doc.typeKey === 'invoice'}
+											class:estimate={doc.typeKey === 'estimate'}
+											class:receipt={doc.typeKey === 'receipt'}
+										>
+											<FileText size={14} strokeWidth={2} />
+										</div>
+										<div class="doc-info">
+											<span class="doc-type">{doc.type}</span>
+											<span class="doc-client">{doc.client}</span>
+										</div>
+										<div class="doc-meta">
+											<span class="doc-amount">{doc.amount}</span>
+											<span class="doc-date">{doc.date}</span>
+										</div>
+										<ChevronRight size={14} class="doc-arrow" />
+									</div>
+								{/each}
 							</div>
 						</div>
+					{:else if activeTab === 'settings'}
+						<!-- Settings Section -->
+						<div class="settings-section">
+							<div class="settings-list">
+								{#each settingsItems as item}
+									<div class="settings-item">
+										<div class="settings-icon">
+											<item.icon size={16} strokeWidth={2} />
+										</div>
+										<span class="settings-label">{item.label}</span>
+										{#if item.value}
+											<span class="settings-value">{item.value}</span>
+										{/if}
+										<ChevronRight size={14} class="settings-arrow" />
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+				</div>
 
-						<p class="record-hint">{$t('landing.phone.tapToRecord')}</p>
+				<!-- Bottom Nav -->
+				<div class="bottom-nav-wrapper">
+					<div class="bottom-nav">
+						<div class="indicator" style="transform: translateX({activeIndex * 48}px)"></div>
 
-						<button class="type-option">
-							<Keyboard size={12} strokeWidth={2} />
-							<span>{$t('landing.phone.orTypeInstead')}</span>
+						<button
+							class="nav-item"
+							class:active={activeTab === 'documents'}
+							onclick={() => (activeTab = 'documents')}
+						>
+							<FileText size={18} strokeWidth={activeTab === 'documents' ? 2 : 1.5} />
+						</button>
+						<button
+							class="nav-item"
+							class:active={activeTab === 'record'}
+							onclick={() => (activeTab = 'record')}
+						>
+							<Mic size={18} strokeWidth={activeTab === 'record' ? 2 : 1.5} />
+						</button>
+						<button
+							class="nav-item"
+							class:active={activeTab === 'settings'}
+							onclick={() => (activeTab = 'settings')}
+						>
+							<Settings size={18} strokeWidth={activeTab === 'settings' ? 2 : 1.5} />
 						</button>
 					</div>
-				{:else if activeTab === 'documents'}
-					<!-- Documents Section -->
-					<div class="documents-section">
-						<div class="section-header">
-							<h3 class="section-title">{$t('landing.phone.recent')}</h3>
-							<button class="see-all">{$t('landing.phone.seeAll')}</button>
-						</div>
-						<div class="documents-list">
-							{#each documents as doc}
-								<div class="document-item">
-									<div
-										class="doc-icon"
-										class:invoice={doc.typeKey === 'invoice'}
-										class:estimate={doc.typeKey === 'estimate'}
-										class:receipt={doc.typeKey === 'receipt'}
-									>
-										<FileText size={14} strokeWidth={2} />
-									</div>
-									<div class="doc-info">
-										<span class="doc-type">{doc.type}</span>
-										<span class="doc-client">{doc.client}</span>
-									</div>
-									<div class="doc-meta">
-										<span class="doc-amount">{doc.amount}</span>
-										<span class="doc-date">{doc.date}</span>
-									</div>
-									<ChevronRight size={14} class="doc-arrow" />
-								</div>
-							{/each}
-						</div>
-					</div>
-				{:else if activeTab === 'settings'}
-					<!-- Settings Section -->
-					<div class="settings-section">
-						<div class="settings-list">
-							{#each settingsItems as item}
-								<div class="settings-item">
-									<div class="settings-icon">
-										<item.icon size={16} strokeWidth={2} />
-									</div>
-									<span class="settings-label">{item.label}</span>
-									{#if item.value}
-										<span class="settings-value">{item.value}</span>
-									{/if}
-									<ChevronRight size={14} class="settings-arrow" />
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			</div>
 
-			<!-- Bottom Nav - Glass pill with indicator (exact replica of BottomNav) -->
-			<div class="bottom-nav-wrapper">
-				<div class="bottom-nav">
-					<!-- Animated indicator -->
-					<div class="indicator" style="transform: translateX({activeIndex * 48}px)"></div>
-
-					<button
-						class="nav-item"
-						class:active={activeTab === 'documents'}
-						onclick={() => (activeTab = 'documents')}
-					>
-						<FileText size={18} strokeWidth={activeTab === 'documents' ? 2 : 1.5} />
-					</button>
-					<button
-						class="nav-item"
-						class:active={activeTab === 'record'}
-						onclick={() => (activeTab = 'record')}
-					>
-						<Mic size={18} strokeWidth={activeTab === 'record' ? 2 : 1.5} />
-					</button>
-					<button
-						class="nav-item"
-						class:active={activeTab === 'settings'}
-						onclick={() => (activeTab = 'settings')}
-					>
-						<Settings size={18} strokeWidth={activeTab === 'settings' ? 2 : 1.5} />
-					</button>
+					<!-- Home indicator -->
+					<div class="home-indicator"></div>
 				</div>
 			</div>
 		</div>
+	</div>
 
-		<!-- Phone shadow -->
-		<div class="phone-shadow"></div>
+	<!-- Realistic shadow -->
+	<div class="phone-shadow"></div>
 	</div>
 
 	<!-- Floating notifications -->
@@ -205,41 +264,366 @@
 		position: relative;
 		width: 100%;
 		max-width: 320px;
+		margin: 0 auto;
 		overflow: visible;
+		perspective: 1000px;
 	}
 
-	.phone-frame {
+	/* Larger phone on big screens */
+	@media (min-width: 1024px) {
+		.hero-phone-container {
+			max-width: 380px;
+		}
+	}
+
+	@media (min-width: 1280px) {
+		.hero-phone-container {
+			max-width: 420px;
+		}
+	}
+
+	.phone-3d-wrapper {
 		position: relative;
-		background: linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%);
-		border-radius: 40px;
-		padding: 12px;
-		box-shadow:
-			0 25px 50px -12px rgba(0, 0, 0, 0.25),
-			0 0 0 1px rgba(219, 232, 244, 0.1) inset,
-			0 -1px 0 0 rgba(219, 232, 244, 0.05) inset;
 		transform-style: preserve-3d;
+		will-change: transform, opacity;
+		animation: phone-entrance 1s ease-out forwards;
 	}
 
-	.phone-notch {
+	.hero-phone-container:hover .phone-3d-wrapper {
+		transform: rotateY(4deg) rotateX(3deg) translateY(-5px);
+	}
+
+	@keyframes phone-entrance {
+		0% {
+			opacity: 0;
+			transform: translateY(60px) scale(0.95);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
+	}
+
+	/* iPhone Frame - Titanium finish */
+	.iphone-frame {
+		position: relative;
+		background: linear-gradient(
+			145deg,
+			#2a2a2e 0%,
+			#1c1c1e 20%,
+			#0a0a0a 50%,
+			#1c1c1e 80%,
+			#2a2a2e 100%
+		);
+		border-radius: 52px;
+		padding: 3px;
+		box-shadow:
+			/* Outer glow */
+			0 0 0 0.5px rgba(255, 255, 255, 0.1),
+			/* Main shadow */
+			0 25px 50px -12px rgba(0, 0, 0, 0.5),
+			0 12px 24px -8px rgba(0, 0, 0, 0.3),
+			/* Inner highlight */
+			inset 0 1px 1px rgba(255, 255, 255, 0.1),
+			inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+	}
+
+	/* Titanium edge highlights */
+	.frame-highlight {
+		position: absolute;
+		pointer-events: none;
+		z-index: 5;
+	}
+
+	.frame-highlight-left {
+		left: 0;
+		top: 80px;
+		bottom: 80px;
+		width: 2px;
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.15) 20%,
+			rgba(255, 255, 255, 0.08) 50%,
+			rgba(255, 255, 255, 0.15) 80%,
+			transparent 100%
+		);
+		border-radius: 1px;
+	}
+
+	.frame-highlight-right {
+		right: 0;
+		top: 80px;
+		bottom: 80px;
+		width: 2px;
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.08) 20%,
+			rgba(255, 255, 255, 0.03) 50%,
+			rgba(255, 255, 255, 0.08) 80%,
+			transparent 100%
+		);
+		border-radius: 1px;
+	}
+
+	.frame-highlight-top {
+		top: 0;
+		left: 80px;
+		right: 80px;
+		height: 2px;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.12) 30%,
+			rgba(255, 255, 255, 0.12) 70%,
+			transparent 100%
+		);
+		border-radius: 1px;
+	}
+
+	/* Side buttons */
+	.side-button {
+		position: absolute;
+		background: linear-gradient(
+			180deg,
+			#3a3a3e 0%,
+			#2a2a2e 50%,
+			#1a1a1e 100%
+		);
+		border-radius: 2px;
+		z-index: 10;
+	}
+
+	.silent-switch {
+		left: -2px;
+		top: 100px;
+		width: 3px;
+		height: 28px;
+	}
+
+	.volume-up {
+		left: -2px;
+		top: 145px;
+		width: 3px;
+		height: 45px;
+	}
+
+	.volume-down {
+		left: -2px;
+		top: 200px;
+		width: 3px;
+		height: 45px;
+	}
+
+	.power-button {
+		right: -2px;
+		top: 160px;
+		width: 3px;
+		height: 65px;
+	}
+
+	/* Screen bezel */
+	.screen-bezel {
+		position: relative;
+		background: #dbe8f4;
+		border-radius: 49px;
+		overflow: hidden;
+		aspect-ratio: 9 / 19.5;
+	}
+
+	/* Glass reflection */
+	.glass-reflection {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.1) 0%,
+			transparent 40%,
+			transparent 60%,
+			rgba(255, 255, 255, 0.03) 100%
+		);
+		pointer-events: none;
+		z-index: 100;
+		border-radius: 49px;
+	}
+
+	/* Dynamic Island */
+	.dynamic-island {
 		position: absolute;
 		top: 12px;
 		left: 50%;
 		transform: translateX(-50%);
-		width: 100px;
-		height: 28px;
+		width: 120px;
+		height: 34px;
 		background: #000;
-		border-radius: 0 0 16px 16px;
-		z-index: 10;
+		border-radius: 20px;
+		z-index: 50;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		padding: 0 10px;
+		gap: 6px;
+		box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.3);
 	}
 
+	.island-camera {
+		width: 10px;
+		height: 10px;
+		background: radial-gradient(
+			circle at 30% 30%,
+			#1a1a2e 0%,
+			#0a0a15 60%,
+			#000 100%
+		);
+		border-radius: 50%;
+		box-shadow:
+			inset 0 0 2px rgba(50, 50, 80, 0.5),
+			0 0 1px rgba(0, 0, 0, 0.5);
+	}
+
+	.island-sensor {
+		width: 6px;
+		height: 6px;
+		background: radial-gradient(
+			circle at 30% 30%,
+			#15151f 0%,
+			#0a0a12 100%
+		);
+		border-radius: 50%;
+	}
+
+	/* Status Bar */
+	.status-bar {
+		position: absolute;
+		top: 14px;
+		left: 24px;
+		right: 24px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		z-index: 40;
+		height: 20px;
+	}
+
+	.status-time {
+		font-size: 14px;
+		font-weight: 600;
+		color: #0f172a;
+		font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+		font-feature-settings: 'tnum';
+	}
+
+	.status-right {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+	}
+
+	.signal-bars {
+		display: flex;
+		align-items: flex-end;
+		gap: 1px;
+		height: 10px;
+	}
+
+	.signal-bars .bar {
+		width: 3px;
+		background: #0f172a;
+		border-radius: 1px;
+	}
+
+	.bar-1 { height: 3px; }
+	.bar-2 { height: 5px; }
+	.bar-3 { height: 7px; }
+	.bar-4 { height: 10px; }
+
+	.wifi-icon {
+		width: 14px;
+		height: 10px;
+		color: #0f172a;
+	}
+
+	.wifi-icon svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.battery {
+		display: flex;
+		align-items: center;
+	}
+
+	.battery-body {
+		width: 22px;
+		height: 11px;
+		border: 1.5px solid #0f172a;
+		border-radius: 3px;
+		padding: 1px;
+	}
+
+	.battery-level {
+		width: 80%;
+		height: 100%;
+		background: #0f172a;
+		border-radius: 1px;
+	}
+
+	.battery-cap {
+		width: 1.5px;
+		height: 5px;
+		background: #0f172a;
+		border-radius: 0 1px 1px 0;
+		margin-left: 0.5px;
+	}
+
+	/* Phone screen content */
 	.phone-screen {
-		background: #dbe8f4;
-		border-radius: 32px;
-		overflow: hidden;
-		aspect-ratio: 9 / 19;
 		display: flex;
 		flex-direction: column;
+		height: 100%;
+		padding-top: 50px;
 		position: relative;
+		overflow: hidden;
+	}
+
+	/* Background blobs - static for performance */
+	.screen-blobs {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+
+	.screen-blob {
+		position: absolute;
+		border-radius: 50%;
+		filter: blur(35px);
+		opacity: 0.35;
+	}
+
+	.screen-blob.blob-1 {
+		width: 140px;
+		height: 140px;
+		background: #0066ff;
+		top: -30px;
+		right: -40px;
+	}
+
+	.screen-blob.blob-2 {
+		width: 110px;
+		height: 110px;
+		background: #0ea5e9;
+		bottom: 20%;
+		left: -30px;
+	}
+
+	.screen-blob.blob-3 {
+		width: 90px;
+		height: 90px;
+		background: #6366f1;
+		bottom: -20px;
+		right: 20%;
 	}
 
 	/* Dashboard Header */
@@ -247,7 +631,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
-		padding: 48px 18px 12px;
+		padding: 8px 18px 12px;
 		position: relative;
 		z-index: 1;
 	}
@@ -282,6 +666,16 @@
 		color: white;
 		font-size: 14px;
 		font-weight: 700;
+	}
+
+	/* Content Area */
+	.content-area {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		position: relative;
+		z-index: 1;
+		overflow: hidden;
 	}
 
 	/* Record Section */
@@ -339,7 +733,6 @@
 		box-shadow: 0 8px 30px rgba(14, 165, 233, 0.3);
 	}
 
-	/* Cloud texture layers */
 	.cloud-layer {
 		position: absolute;
 		inset: 0;
@@ -391,7 +784,6 @@
 		opacity: 0.8;
 	}
 
-	/* Center glow */
 	.gradient-pulse {
 		position: absolute;
 		inset: 0;
@@ -423,16 +815,6 @@
 		color: #475569;
 		cursor: default;
 		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-	}
-
-	/* Content Area */
-	.content-area {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		position: relative;
-		z-index: 1;
-		overflow: hidden;
 	}
 
 	/* Documents Section */
@@ -607,12 +989,13 @@
 		flex-shrink: 0;
 	}
 
-	/* Bottom Nav - Glass pill design (exact replica of BottomNav) */
+	/* Bottom Nav */
 	.bottom-nav-wrapper {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
+		align-items: center;
 		padding: 12px;
-		padding-bottom: calc(12px + 8px);
+		padding-bottom: 8px;
 		position: relative;
 		z-index: 1;
 	}
@@ -637,6 +1020,7 @@
 		background: rgba(255, 255, 255, 0.7);
 		border-radius: 50%;
 		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
 	.nav-item {
@@ -652,6 +1036,7 @@
 		cursor: pointer;
 		border-radius: 50%;
 		z-index: 1;
+		transition: color 0.2s ease;
 	}
 
 	.nav-item:hover {
@@ -662,16 +1047,37 @@
 		color: #0066ff;
 	}
 
+	/* Home indicator */
+	.home-indicator {
+		width: 120px;
+		height: 4px;
+		background: rgba(0, 0, 0, 0.2);
+		border-radius: 2px;
+		margin-top: 8px;
+	}
+
 	/* Phone shadow */
 	.phone-shadow {
 		position: absolute;
-		bottom: -20px;
+		bottom: -30px;
 		left: 50%;
 		transform: translateX(-50%);
-		width: 80%;
-		height: 20px;
-		background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.2) 0%, transparent 70%);
-		filter: blur(10px);
+		width: 85%;
+		height: 50px;
+		background: radial-gradient(
+			ellipse at center,
+			rgba(0, 0, 0, 0.3) 0%,
+			rgba(0, 0, 0, 0.1) 50%,
+			transparent 70%
+		);
+		filter: blur(15px);
+		z-index: -1;
+		opacity: 0;
+		animation: fade-in 0.5s ease-out 0.8s forwards;
+	}
+
+	@keyframes fade-in {
+		to { opacity: 1; }
 	}
 
 	/* Floating notifications */
@@ -681,25 +1087,39 @@
 		align-items: center;
 		gap: 8px;
 		padding: 10px 16px;
-		background: #dbe8f4;
+		background: rgba(255, 255, 255, 0.95);
+		backdrop-filter: blur(10px);
 		border-radius: 12px;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+		box-shadow:
+			0 4px 20px rgba(0, 0, 0, 0.1),
+			0 0 0 1px rgba(0, 0, 0, 0.05);
 		font-size: 13px;
 		font-weight: 600;
 		color: #0f172a;
 		white-space: nowrap;
+		opacity: 0;
+		transform: translateX(20px);
 	}
 
 	.notification-success {
 		top: 15%;
-		right: -10px;
+		right: -15px;
 		color: #10b981;
+		animation: slide-in 0.4s ease-out 1.1s forwards;
 	}
 
 	.notification-sent {
 		bottom: 25%;
-		right: -15px;
+		right: -20px;
 		color: #0066ff;
+		animation: slide-in 0.4s ease-out 1.3s forwards;
+	}
+
+	@keyframes slide-in {
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
 	}
 
 	/* Responsive */
@@ -710,6 +1130,34 @@
 
 		.notification {
 			display: none;
+		}
+
+		.dynamic-island {
+			width: 100px;
+			height: 30px;
+		}
+	}
+
+	/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.phone-3d-wrapper {
+			animation: none;
+			transform: rotateY(8deg) rotateX(5deg);
+		}
+
+		.phone-shadow {
+			animation: none;
+			opacity: 1;
+		}
+
+		.notification {
+			animation: none;
+			opacity: 1;
+			transform: none;
+		}
+
+		.indicator {
+			transition: none;
 		}
 	}
 </style>
