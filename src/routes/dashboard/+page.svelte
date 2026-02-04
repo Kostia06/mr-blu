@@ -538,13 +538,19 @@
 	}
 
 	async function dismissPendingReview() {
+		// Save the ID before dismissing to avoid race conditions
+		const reviewId = pendingReview?.id;
 		pendingReviewDismissed = true;
-		// Also delete the pending review from the database
-		if (pendingReview?.id) {
+
+		// Delete the pending review from the database
+		if (reviewId) {
 			try {
-				await fetch(`/api/reviews/${pendingReview.id}`, {
+				const response = await fetch(`/api/reviews/${reviewId}`, {
 					method: 'DELETE'
 				});
+				if (!response.ok) {
+					console.error('Failed to delete pending review:', response.status);
+				}
 			} catch (error) {
 				console.error('Failed to delete pending review:', error);
 			}
