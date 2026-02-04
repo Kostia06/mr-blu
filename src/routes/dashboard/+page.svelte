@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
@@ -10,6 +10,7 @@
 	import FileText from 'lucide-svelte/icons/file-text';
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import { t } from '$lib/i18n';
+	import { toast } from '$lib/stores/toast';
 	import RecordButton from '$lib/components/RecordButtonMobile.svelte';
 	import { inputPreferences, type InputMode } from '$lib/stores/inputPreferences';
 	import { isRecordingMode as isRecordingModeStore } from '$lib/stores/appState';
@@ -540,20 +541,30 @@
 	async function dismissPendingReview() {
 		// Save the ID before dismissing to avoid race conditions
 		const reviewId = pendingReview?.id;
-		pendingReviewDismissed = true;
 
-		// Delete the pending review from the database
-		if (reviewId) {
-			try {
-				const response = await fetch(`/api/reviews/${reviewId}`, {
-					method: 'DELETE'
-				});
-				if (!response.ok) {
-					console.error('Failed to delete pending review:', response.status);
-				}
-			} catch (error) {
-				console.error('Failed to delete pending review:', error);
+		if (!reviewId) {
+			pendingReviewDismissed = true;
+			return;
+		}
+
+		// Delete the pending review from the database first
+		try {
+			const response = await fetch(`/api/reviews/${reviewId}`, {
+				method: 'DELETE'
+			});
+
+			if (response.ok) {
+				// Only dismiss after successful deletion
+				pendingReviewDismissed = true;
+				// Invalidate page data to ensure fresh state
+				await invalidateAll();
+			} else {
+				console.error('Failed to delete pending review:', response.status);
+				toast.error('Failed to delete draft');
 			}
+		} catch (error) {
+			console.error('Failed to delete pending review:', error);
+			toast.error('Failed to delete draft');
 		}
 	}
 
@@ -795,9 +806,10 @@
 			</div>
 			<button
 				class="pending-review-close"
-				onclick={(e) => {
+				onclick={async (e) => {
 					e.stopPropagation();
-					dismissPendingReview();
+					e.preventDefault();
+					await dismissPendingReview();
 				}}
 				aria-label="Dismiss"
 			>
