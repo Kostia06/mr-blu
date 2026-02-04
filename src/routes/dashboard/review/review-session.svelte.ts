@@ -55,6 +55,7 @@ export function createReviewSession() {
 		if (!reviewSessionId) return;
 
 		try {
+			// First mark as completed
 			await fetch(`/api/reviews/${reviewSessionId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
@@ -64,6 +65,13 @@ export function createReviewSession() {
 					createdDocumentType: documentType
 				})
 			});
+
+			// Then delete the session to prevent it showing in dashboard
+			await fetch(`/api/reviews/${reviewSessionId}`, {
+				method: 'DELETE'
+			});
+
+			reviewSessionId = null;
 		} catch (error) {
 			console.error('Complete review error:', error);
 		}

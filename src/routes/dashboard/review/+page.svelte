@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { t, locale } from '$lib/i18n';
 	import { toast } from '$lib/stores/toast';
@@ -502,7 +502,7 @@
 			// Handle rate limit error - redirect to dashboard with toast
 			if (response.status === 429) {
 				toast.error($t('error.rateLimit'), 6000);
-				goto('/dashboard');
+				goToDashboard();
 				return;
 			}
 
@@ -1256,6 +1256,12 @@
 		}).format(amount);
 	}
 
+	// Navigate to dashboard with data invalidation to ensure fresh state
+	async function goToDashboard() {
+		await invalidateAll();
+		goto('/dashboard');
+	}
+
 	function getActionDescription(action: ActionStep): string {
 		switch (action.type) {
 			case 'create_document': {
@@ -1455,7 +1461,7 @@
 				sessionStorage.removeItem('review_transcript');
 				await parseWithAI(savedTranscript);
 			} else {
-				goto('/dashboard');
+				goToDashboard();
 				return;
 			}
 		}
@@ -1466,7 +1472,7 @@
 
 <main class="review-page">
 	<!-- Header -->
-	<ReviewHeader onBack={() => goto('/dashboard')} />
+	<ReviewHeader onBack={() => goToDashboard()} />
 
 	{#if isParsing}
 		<!-- Parsing State - Step-based processing UI -->
@@ -1522,7 +1528,7 @@
 						? 's'
 						: ''} created successfully"
 					onViewDocuments={() => goto('/dashboard/documents')}
-					onNewRecording={() => goto('/dashboard')}
+					onNewRecording={() => goToDashboard()}
 				/>
 			{:else if transform.isSearchingTransformSource || isParsing}
 				<!-- Loading State -->
@@ -1555,7 +1561,7 @@
 					isSearching={transform.isSearchingManualClient}
 					onSelectClient={transform.retryTransformWithClient}
 					onSearch={transform.handleManualClientSearch}
-					onBack={() => goto('/dashboard')}
+					onBack={() => goToDashboard()}
 				/>
 			{:else if transform.transformSourceDoc}
 				<!-- Transform Review Component -->
@@ -1588,7 +1594,7 @@
 						sendFirst: transform.transformData?.schedule?.sendFirst ?? true
 					}}
 					onExecute={transform.handleExecuteTransform}
-					onBack={() => goto('/dashboard')}
+					onBack={() => goToDashboard()}
 					isExecuting={transform.isExecutingTransform}
 					error={transform.transformError}
 				/>
@@ -1598,7 +1604,7 @@
 					<AlertCircle size={32} />
 					<h3>{$t('review.somethingWentWrong')}</h3>
 					<p>{$t('review.unableToLoad')}</p>
-					<button class="btn primary" onclick={() => goto('/dashboard')}>
+					<button class="btn primary" onclick={() => goToDashboard()}>
 						{$t('common.back')}
 					</button>
 				</div>
@@ -1610,7 +1616,7 @@
 			documentId={savedDocumentId}
 			documentType={data.documentType}
 			onDownload={() => handleDownloadPDF()}
-			onNewRecording={() => goto('/dashboard')}
+			onNewRecording={() => goToDashboard()}
 		/>
 	{:else}
 		<!-- Main Content -->
