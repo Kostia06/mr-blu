@@ -955,25 +955,24 @@
 		background: rgba(245, 158, 11, 0.2);
 	}
 
-	/* Pending Review Card - Fixed above navbar, glassy white */
+	/* Pending Review Card - Top left under name, glassy white */
 	.pending-review-card {
 		position: fixed;
-		bottom: calc(var(--safe-area-bottom, 0px) + 90px);
-		left: 50%;
-		transform: translateX(-50%);
+		top: calc(var(--safe-area-top, 0px) + 110px);
+		left: var(--page-padding-x, 20px);
 		display: flex;
 		align-items: center;
 		gap: 10px;
-		padding: 10px 40px 10px 12px;
+		padding: 10px 36px 10px 12px;
 		background: var(--glass-white-70, rgba(255, 255, 255, 0.85));
 		backdrop-filter: blur(20px) saturate(150%);
 		-webkit-backdrop-filter: blur(20px) saturate(150%);
 		border: 1px solid rgba(255, 255, 255, 0.5);
-		border-radius: var(--radius-full, 50px);
+		border-radius: var(--radius-lg, 16px);
 		cursor: pointer;
 		transition: all var(--duration-fast) ease;
 		text-align: left;
-		max-width: 300px;
+		max-width: calc(100% - var(--page-padding-x, 20px) * 2);
 		width: auto;
 		z-index: calc(var(--z-fixed, 100) + 10);
 		box-shadow: var(--blu-shadow-md, 0 4px 16px rgba(0, 0, 0, 0.1));
@@ -981,7 +980,7 @@
 
 	.pending-review-card:hover {
 		background: rgba(255, 255, 255, 0.95);
-		transform: translateX(-50%) translateY(-2px);
+		transform: translateY(-2px);
 		box-shadow: var(--blu-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.15));
 	}
 
