@@ -959,29 +959,29 @@
 	.pending-review-card {
 		position: fixed;
 		top: calc(var(--safe-area-top, 0px) + 110px);
-		left: var(--page-padding-x, 20px);
+		left: 12px;
 		display: flex;
 		align-items: center;
 		gap: 10px;
 		padding: 10px 36px 10px 12px;
-		background: var(--glass-white-70, rgba(255, 255, 255, 0.85));
-		backdrop-filter: blur(20px) saturate(150%);
-		-webkit-backdrop-filter: blur(20px) saturate(150%);
-		border: 1px solid rgba(255, 255, 255, 0.5);
+		background: rgba(255, 255, 255, 0.45);
+		backdrop-filter: blur(24px) saturate(180%);
+		-webkit-backdrop-filter: blur(24px) saturate(180%);
+		border: 1px solid rgba(255, 255, 255, 0.6);
 		border-radius: var(--radius-lg, 16px);
 		cursor: pointer;
 		transition: all var(--duration-fast) ease;
 		text-align: left;
-		max-width: calc(100% - var(--page-padding-x, 20px) * 2);
+		max-width: calc(100% - 24px);
 		width: auto;
 		z-index: calc(var(--z-fixed, 100) + 10);
-		box-shadow: var(--blu-shadow-md, 0 4px 16px rgba(0, 0, 0, 0.1));
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 	}
 
 	.pending-review-card:hover {
-		background: rgba(255, 255, 255, 0.95);
+		background: rgba(255, 255, 255, 0.55);
 		transform: translateY(-2px);
-		box-shadow: var(--blu-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.15));
+		box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
 	}
 
 	.pending-review-icon {
