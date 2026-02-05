@@ -38,8 +38,10 @@ export function getCSP(): string {
 		// Default: only same origin
 		"default-src 'self'",
 
-		// Scripts: self + inline for Svelte (with nonce in production ideally)
-		dev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self' 'unsafe-inline'",
+		// Scripts: self + inline for Svelte + Cloudflare analytics/challenges
+		dev
+			? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+			: "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
 
 		// Styles: self + inline for Svelte component styles + Google Fonts
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -50,8 +52,8 @@ export function getCSP(): string {
 		// Fonts: self + Google Fonts
 		"font-src 'self' https://fonts.gstatic.com",
 
-		// Connect: API calls
-		"connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.deepgram.com wss://api.deepgram.com https://generativelanguage.googleapis.com https://api.resend.com",
+		// Connect: API calls + Cloudflare analytics
+		"connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.deepgram.com wss://api.deepgram.com https://generativelanguage.googleapis.com https://api.resend.com https://static.cloudflareinsights.com https://cloudflareinsights.com",
 
 		// Media: self
 		"media-src 'self' blob:",
