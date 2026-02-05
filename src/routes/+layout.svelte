@@ -22,6 +22,13 @@
 	});
 
 	onMount(() => {
+		// Hide the loading screen
+		const loader = document.getElementById('app-loading');
+		if (loader) {
+			loader.classList.add('hidden');
+			setTimeout(() => loader.remove(), 300);
+		}
+
 		const supabase = createClient();
 
 		const {

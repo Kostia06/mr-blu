@@ -118,71 +118,14 @@
 {/if}
 
 <style>
-	/* Blob Entrance Animations */
-	@keyframes blob1-entrance {
+	/* Entrance animation - ONLY uses transform and opacity (GPU-composited, no CLS) */
+	@keyframes blob-entrance {
 		0% {
-			top: 50%;
-			left: 50%;
-			right: auto;
-			transform: translate(-50%, -50%) scale(4);
-			opacity: 0.5;
+			transform: scale(0.8);
+			opacity: 0;
 		}
 		100% {
-			top: -200px;
-			left: auto;
-			right: -150px;
-			transform: translate(0, 0) scale(1);
-			opacity: var(--opacity, 0.35);
-		}
-	}
-
-	@keyframes blob2-entrance {
-		0% {
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%) scale(4);
-			opacity: 0.4;
-		}
-		100% {
-			top: 35%;
-			left: -200px;
-			transform: translate(0, 0) scale(1);
-			opacity: var(--opacity, 0.25);
-		}
-	}
-
-	@keyframes blob3-entrance {
-		0% {
-			bottom: auto;
-			top: 50%;
-			left: 50%;
-			right: auto;
-			transform: translate(-50%, -50%) scale(4);
-			opacity: 0.35;
-		}
-		100% {
-			top: auto;
-			bottom: 10%;
-			left: auto;
-			right: -100px;
-			transform: translate(0, 0) scale(1);
-			opacity: var(--opacity, 0.2);
-		}
-	}
-
-	@keyframes blob4-entrance {
-		0% {
-			bottom: auto;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%) scale(4);
-			opacity: 0.4;
-		}
-		100% {
-			top: auto;
-			bottom: -150px;
-			left: 15%;
-			transform: translate(0, 0) scale(1);
+			transform: scale(1);
 			opacity: var(--opacity, 0.25);
 		}
 	}
@@ -203,7 +146,8 @@
 		inset: 0;
 		pointer-events: none;
 		z-index: 0;
-		overflow: hidden;
+		overflow: clip;
+		contain: strict;
 	}
 
 	.variant-hero {
@@ -215,38 +159,25 @@
 		border-radius: 50%;
 		filter: blur(100px);
 		opacity: var(--opacity, 0.25);
-		animation-duration: 800ms;
-		animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
-		animation-fill-mode: forwards;
+		/* Use entrance animation that only animates transform/opacity */
+		animation: blob-entrance 600ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+		/* Start invisible, animation will fade in */
+		opacity: 0;
 	}
 
 	/* CSS-only mode for low-end devices - simple animation, no GSAP */
 	.css-only .blob {
-		animation-name: blob-drift-simple;
-		animation-duration: 20s;
-		animation-timing-function: ease-in-out;
-		animation-iteration-count: infinite;
-		animation-fill-mode: none;
+		animation: blob-drift-simple 20s ease-in-out infinite;
+		opacity: var(--opacity, 0.25);
 	}
 
-	.css-only .blob-1 {
-		top: -200px;
-		right: -150px;
-		animation-delay: 0s;
-	}
-
-	.css-only .blob-2 {
-		top: 35%;
-		left: -200px;
-		animation-delay: -5s;
-	}
-
-	/* Primary blob - Top right */
+	/* Primary blob - Top right - FIXED POSITION (no animation of layout props) */
 	.blob-1 {
 		width: 600px;
 		height: 600px;
+		top: -200px;
+		right: -150px;
 		background: linear-gradient(135deg, #0066ff 0%, #0ea5e9 100%);
-		animation-name: blob1-entrance;
 		animation-delay: 0ms;
 	}
 
@@ -254,8 +185,9 @@
 	.blob-2 {
 		width: 500px;
 		height: 500px;
+		top: 35%;
+		left: -200px;
 		background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-		animation-name: blob2-entrance;
 		animation-delay: 50ms;
 	}
 
@@ -263,8 +195,9 @@
 	.blob-3 {
 		width: 450px;
 		height: 450px;
+		bottom: 10%;
+		right: -100px;
 		background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
-		animation-name: blob3-entrance;
 		animation-delay: 100ms;
 	}
 
@@ -272,8 +205,9 @@
 	.blob-4 {
 		width: 400px;
 		height: 400px;
+		bottom: -150px;
+		left: 15%;
 		background: linear-gradient(135deg, #0066ff 0%, #3b82f6 100%);
-		animation-name: blob4-entrance;
 		animation-delay: 150ms;
 	}
 
@@ -331,24 +265,8 @@
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.blob {
-			will-change: auto;
 			animation: none;
-		}
-		.blob-1 {
-			top: -200px;
-			right: -150px;
-		}
-		.blob-2 {
-			top: 35%;
-			left: -200px;
-		}
-		.blob-3 {
-			bottom: 10%;
-			right: -100px;
-		}
-		.blob-4 {
-			bottom: -150px;
-			left: 15%;
+			opacity: var(--opacity, 0.25);
 		}
 	}
 </style>

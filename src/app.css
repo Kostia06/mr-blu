@@ -59,10 +59,56 @@ html {
 	-webkit-font-smoothing: antialiased;
 	-ms-overflow-style: none;
 	scrollbar-width: none;
+	scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
 }
 
 html::-webkit-scrollbar {
 	display: none;
+}
+
+/* ================================================
+   CLS PREVENTION
+   ================================================ */
+
+/* Prevent layout shift from scrollbar */
+html {
+	scrollbar-gutter: stable;
+}
+
+/* Prevent image layout shift */
+img, video, canvas, svg {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+/* Skeleton placeholder for loading states */
+.skeleton {
+	background: linear-gradient(90deg, #e5e7eb 25%, #d1d5db 50%, #e5e7eb 75%);
+	background-size: 200% 100%;
+	animation: shimmer 1.5s infinite;
+	border-radius: 8px;
+}
+
+.dark .skeleton {
+	background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+	background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+	0% { background-position: 200% 0; }
+	100% { background-position: -200% 0; }
+}
+
+/* Reserve space for bottom navigation on dashboard */
+.dashboard-content {
+	padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
 }
 
 body {
