@@ -51,12 +51,6 @@
 		position: relative;
 	}
 
-	@media (min-width: 1024px) {
-		.hero-headline-container {
-			text-align: left;
-		}
-	}
-
 	.hero-headline {
 		font-family: var(--font-display);
 		font-size: clamp(2.5rem, 8vw, 5rem);
@@ -84,21 +78,9 @@
 
 	.word.highlight {
 		background: linear-gradient(135deg, #0066ff 0%, #0ea5e9 50%, #6366f1 100%);
-		background-size: 200% 200%;
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
-		animation: gradient-shift 5s ease infinite;
-	}
-
-	@keyframes gradient-shift {
-		0%,
-		100% {
-			background-position: 0% 50%;
-		}
-		50% {
-			background-position: 100% 50%;
-		}
 	}
 
 	.word-space {
@@ -124,12 +106,6 @@
 	.visible .hero-subheadline {
 		opacity: 1;
 		transform: translateY(0);
-	}
-
-	@media (min-width: 1024px) {
-		.hero-subheadline {
-			margin: 0;
-		}
 	}
 
 	/* Reduced motion */

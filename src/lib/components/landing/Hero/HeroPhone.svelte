@@ -263,7 +263,7 @@
 	.hero-phone-container {
 		position: relative;
 		width: 100%;
-		max-width: 300px;
+		max-width: 240px;
 		margin: 0 auto;
 		overflow: visible;
 		perspective: 1000px;
@@ -271,19 +271,19 @@
 
 	@media (min-width: 480px) {
 		.hero-phone-container {
-			max-width: 340px;
+			max-width: 280px;
 		}
 	}
 
 	@media (min-width: 768px) {
 		.hero-phone-container {
-			max-width: 380px;
+			max-width: 320px;
 		}
 	}
 
 	@media (min-width: 1024px) {
 		.hero-phone-container {
-			max-width: 420px;
+			max-width: 350px;
 		}
 	}
 
@@ -309,93 +309,26 @@
 		}
 	}
 
-	/* iPhone Frame - Titanium finish */
+	/* iPhone Frame - Clean solid */
 	.iphone-frame {
 		position: relative;
-		background: linear-gradient(
-			145deg,
-			#2a2a2e 0%,
-			#1c1c1e 20%,
-			#0a0a0a 50%,
-			#1c1c1e 80%,
-			#2a2a2e 100%
-		);
+		background: #1c1c1e;
 		border-radius: 52px;
 		padding: 3px;
 		box-shadow:
-			/* Outer glow */
-			0 0 0 0.5px rgba(255, 255, 255, 0.1),
-			/* Main shadow */
-			0 25px 50px -12px rgba(0, 0, 0, 0.5),
-			0 12px 24px -8px rgba(0, 0, 0, 0.3),
-			/* Inner highlight */
-			inset 0 1px 1px rgba(255, 255, 255, 0.1),
-			inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+			0 25px 50px -12px rgba(0, 0, 0, 0.4),
+			0 12px 24px -8px rgba(0, 0, 0, 0.2);
 	}
 
-	/* Titanium edge highlights */
+	/* Frame highlights - hidden for clean look */
 	.frame-highlight {
-		position: absolute;
-		pointer-events: none;
-		z-index: 5;
-	}
-
-	.frame-highlight-left {
-		left: 0;
-		top: 80px;
-		bottom: 80px;
-		width: 2px;
-		background: linear-gradient(
-			180deg,
-			transparent 0%,
-			rgba(255, 255, 255, 0.15) 20%,
-			rgba(255, 255, 255, 0.08) 50%,
-			rgba(255, 255, 255, 0.15) 80%,
-			transparent 100%
-		);
-		border-radius: 1px;
-	}
-
-	.frame-highlight-right {
-		right: 0;
-		top: 80px;
-		bottom: 80px;
-		width: 2px;
-		background: linear-gradient(
-			180deg,
-			transparent 0%,
-			rgba(255, 255, 255, 0.08) 20%,
-			rgba(255, 255, 255, 0.03) 50%,
-			rgba(255, 255, 255, 0.08) 80%,
-			transparent 100%
-		);
-		border-radius: 1px;
-	}
-
-	.frame-highlight-top {
-		top: 0;
-		left: 80px;
-		right: 80px;
-		height: 2px;
-		background: linear-gradient(
-			90deg,
-			transparent 0%,
-			rgba(255, 255, 255, 0.12) 30%,
-			rgba(255, 255, 255, 0.12) 70%,
-			transparent 100%
-		);
-		border-radius: 1px;
+		display: none;
 	}
 
 	/* Side buttons */
 	.side-button {
 		position: absolute;
-		background: linear-gradient(
-			180deg,
-			#3a3a3e 0%,
-			#2a2a2e 50%,
-			#1a1a1e 100%
-		);
+		background: #2a2a2e;
 		border-radius: 2px;
 		z-index: 10;
 	}
@@ -437,20 +370,9 @@
 		aspect-ratio: 9 / 19.5;
 	}
 
-	/* Glass reflection */
+	/* Glass reflection - hidden for clean look */
 	.glass-reflection {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			135deg,
-			rgba(255, 255, 255, 0.1) 0%,
-			transparent 40%,
-			transparent 60%,
-			rgba(255, 255, 255, 0.03) 100%
-		);
-		pointer-events: none;
-		z-index: 100;
-		border-radius: 49px;
+		display: none;
 	}
 
 	/* Dynamic Island */
@@ -475,26 +397,14 @@
 	.island-camera {
 		width: 10px;
 		height: 10px;
-		background: radial-gradient(
-			circle at 30% 30%,
-			#1a1a2e 0%,
-			#0a0a15 60%,
-			#000 100%
-		);
+		background: #0a0a15;
 		border-radius: 50%;
-		box-shadow:
-			inset 0 0 2px rgba(50, 50, 80, 0.5),
-			0 0 1px rgba(0, 0, 0, 0.5);
 	}
 
 	.island-sensor {
 		width: 6px;
 		height: 6px;
-		background: radial-gradient(
-			circle at 30% 30%,
-			#15151f 0%,
-			#0a0a12 100%
-		);
+		background: #0a0a12;
 		border-radius: 50%;
 	}
 
@@ -663,7 +573,7 @@
 	.avatar {
 		width: 36px;
 		height: 36px;
-		background: linear-gradient(135deg, #0066ff 0%, #0ea5e9 100%);
+		background: #0066ff;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -707,17 +617,7 @@
 	}
 
 	.glow-ring {
-		position: absolute;
-		inset: -15px;
-		border-radius: 50%;
-		background: radial-gradient(
-			circle,
-			rgba(56, 189, 248, 0.15) 0%,
-			rgba(14, 165, 233, 0.08) 50%,
-			transparent 70%
-		);
-		opacity: 0.7;
-		pointer-events: none;
+		display: none;
 	}
 
 	.orb {
@@ -726,79 +626,36 @@
 		height: 100px;
 		border-radius: 50%;
 		overflow: hidden;
-		background: radial-gradient(
-			ellipse at 50% 40%,
-			#bae6fd 0%,
-			#7dd3fc 20%,
-			#38bdf8 40%,
-			#0ea5e9 60%,
-			#0284c7 80%,
-			#0369a1 100%
-		);
-		box-shadow: 0 8px 30px rgba(14, 165, 233, 0.3);
+		background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 30%, #7dd3fc 60%, #0284c7 100%);
+		box-shadow:
+			0 8px 30px rgba(14, 165, 233, 0.4),
+			inset 0 -4px 12px rgba(2, 132, 199, 0.3),
+			inset 0 4px 12px rgba(125, 211, 252, 0.4);
 	}
 
+	/* Cloud layers for depth effect */
 	.cloud-layer {
 		position: absolute;
 		inset: 0;
 		border-radius: 50%;
-		pointer-events: none;
+		opacity: 0.6;
 	}
 
 	.cloud-layer.layer-1 {
-		background:
-			radial-gradient(
-				ellipse 120% 100% at 30% 20%,
-				rgba(219, 232, 244, 0.7) 0%,
-				rgba(219, 232, 244, 0.3) 30%,
-				transparent 60%
-			),
-			radial-gradient(ellipse 80% 60% at 70% 80%, rgba(219, 232, 244, 0.4) 0%, transparent 50%);
-		opacity: 0.9;
+		background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 50%);
 	}
 
 	.cloud-layer.layer-2 {
-		background:
-			radial-gradient(ellipse 100% 80% at 60% 30%, rgba(224, 242, 254, 0.6) 0%, transparent 50%),
-			radial-gradient(ellipse 70% 90% at 20% 70%, rgba(186, 230, 253, 0.5) 0%, transparent 45%);
-		opacity: 0.8;
+		background: radial-gradient(circle at 70% 70%, rgba(2,132,199,0.3) 0%, transparent 40%);
 	}
 
 	.cloud-layer.layer-3 {
-		background:
-			radial-gradient(ellipse 60% 50% at 75% 25%, rgba(219, 232, 244, 0.5) 0%, transparent 40%),
-			radial-gradient(ellipse 50% 70% at 35% 60%, rgba(125, 211, 252, 0.4) 0%, transparent 50%);
-		opacity: 0.7;
+		background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.2) 0%, transparent 30%);
 	}
 
-	.ambient-light {
-		position: absolute;
-		top: 5%;
-		left: 15%;
-		width: 50%;
-		height: 35%;
-		background: radial-gradient(
-			ellipse,
-			rgba(219, 232, 244, 0.4) 0%,
-			rgba(219, 232, 244, 0.15) 40%,
-			transparent 70%
-		);
-		border-radius: 50%;
-		pointer-events: none;
-		transform: rotate(-10deg);
-		opacity: 0.8;
-	}
-
+	.ambient-light,
 	.gradient-pulse {
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(
-			ellipse at center,
-			rgba(186, 230, 253, 0.5) 0%,
-			rgba(56, 189, 248, 0.3) 40%,
-			transparent 70%
-		);
-		border-radius: 50%;
+		display: none;
 	}
 
 	.record-hint {
@@ -1061,24 +918,18 @@
 		margin-top: 8px;
 	}
 
-	/* Phone shadow */
+	/* Phone shadow - simplified */
 	.phone-shadow {
 		position: absolute;
 		bottom: -30px;
 		left: 50%;
 		transform: translateX(-50%);
-		width: 85%;
-		height: 50px;
-		background: radial-gradient(
-			ellipse at center,
-			rgba(0, 0, 0, 0.3) 0%,
-			rgba(0, 0, 0, 0.1) 50%,
-			transparent 70%
-		);
-		filter: blur(15px);
+		width: 80%;
+		height: 40px;
+		background: rgba(0, 0, 0, 0.15);
+		filter: blur(20px);
 		z-index: -1;
-		opacity: 0;
-		animation: fade-in 0.5s ease-out 0.8s forwards;
+		border-radius: 50%;
 	}
 
 	@keyframes fade-in {
@@ -1127,12 +978,8 @@
 		}
 	}
 
-	/* Responsive */
+	/* Responsive - hide notifications on smaller screens */
 	@media (max-width: 768px) {
-		.hero-phone-container {
-			max-width: 280px;
-		}
-
 		.notification {
 			display: none;
 		}
