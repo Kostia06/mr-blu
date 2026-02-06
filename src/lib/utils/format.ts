@@ -122,3 +122,152 @@ export function formatRateDisplay(item: LineItemForFormat): string {
 	const suffix = unitLabels[item.measurementType || 'unit'] || '';
 	return `${formatCurrency(rate)}${suffix}`;
 }
+
+// Document interface for grouping
+interface DocumentForGrouping {
+	id: string;
+	date: string;
+	[key: string]: unknown;
+}
+
+// Group documents by month for section headers
+export function groupDocumentsByMonth<T extends DocumentForGrouping>(
+	documents: T[],
+	locale: string = 'en'
+): Map<string, T[]> {
+	const groups = new Map<string, T[]>();
+
+	// Sort documents by date descending first
+	const sorted = [...documents].sort(
+		(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+	);
+
+	for (const doc of sorted) {
+		const date = new Date(doc.date);
+		// Format as "MONTH YEAR" in the user's locale
+		const monthKey = date.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+			month: 'long',
+			year: 'numeric'
+		});
+		const upperKey = monthKey.toUpperCase();
+
+		if (!groups.has(upperKey)) {
+			groups.set(upperKey, []);
+		}
+		groups.get(upperKey)!.push(doc);
+	}
+
+	return groups;
+}
+
+// Format exact date and time localized (e.g., "Jan 30, 2:30 PM" or "30 ene, 14:30")
+export function formatExactDateTime(
+	date: string | Date,
+	locale: string = 'en'
+): string {
+	const d = typeof date === 'string' ? new Date(date) : date;
+	const isSpanish = locale === 'es';
+
+	return d.toLocaleDateString(isSpanish ? 'es-ES' : 'en-US', {
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		hour12: !isSpanish
+	});
+}
+
+// Smart time format: relative for up to 3 days, then exact date/time
+export function formatSmartTime(
+	date: string | Date,
+	locale: string = 'en'
+): string {
+	const d = typeof date === 'string' ? new Date(date) : date;
+	const now = new Date();
+	const diffMs = now.getTime() - d.getTime();
+	const diffMins = Math.floor(diffMs / (1000 * 60));
+	const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+	const isSpanish = locale === 'es';
+
+	// Less than 1 minute
+	if (diffMins < 1) {
+		return isSpanish ? 'ahora' : 'now';
+	}
+
+	// Less than 1 hour
+	if (diffMins < 60) {
+		return isSpanish ? `hace ${diffMins}m` : `${diffMins}m ago`;
+	}
+
+	// Less than 24 hours
+	if (diffHours < 24) {
+		return isSpanish ? `hace ${diffHours}h` : `${diffHours}h ago`;
+	}
+
+	// Yesterday
+	if (diffDays === 1) {
+		return isSpanish ? 'ayer' : 'yesterday';
+	}
+
+	// 2-3 days ago
+	if (diffDays <= 3) {
+		return isSpanish ? `hace ${diffDays}d` : `${diffDays}d ago`;
+	}
+
+	// Older than 3 days - show exact date and time
+	return d.toLocaleDateString(isSpanish ? 'es-ES' : 'en-US', {
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		hour12: !isSpanish
+	});
+}
+
+// Localized relative time ("hace 2h", "yesterday", "30 Jan")
+export function formatRelativeTimeLocalized(
+	date: string | Date,
+	locale: string = 'en'
+): string {
+	const d = typeof date === 'string' ? new Date(date) : date;
+	const now = new Date();
+	const diffMs = now.getTime() - d.getTime();
+	const diffMins = Math.floor(diffMs / (1000 * 60));
+	const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+	const isSpanish = locale === 'es';
+
+	// Less than 1 minute
+	if (diffMins < 1) {
+		return isSpanish ? 'ahora' : 'now';
+	}
+
+	// Less than 1 hour
+	if (diffMins < 60) {
+		return isSpanish ? `hace ${diffMins}m` : `${diffMins}m ago`;
+	}
+
+	// Less than 24 hours
+	if (diffHours < 24) {
+		return isSpanish ? `hace ${diffHours}h` : `${diffHours}h ago`;
+	}
+
+	// Yesterday
+	if (diffDays === 1) {
+		return isSpanish ? 'ayer' : 'yesterday';
+	}
+
+	// Less than 7 days
+	if (diffDays < 7) {
+		return isSpanish ? `hace ${diffDays}d` : `${diffDays}d ago`;
+	}
+
+	// Older than 7 days - show short date
+	return d.toLocaleDateString(isSpanish ? 'es-ES' : 'en-US', {
+		day: 'numeric',
+		month: 'short'
+	});
+}

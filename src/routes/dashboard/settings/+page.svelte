@@ -178,6 +178,10 @@
 		padding: var(--space-3) var(--page-padding-x);
 		padding-top: calc(var(--space-3) + var(--safe-area-top, 0px));
 		background: transparent;
+		max-width: var(--page-max-width, 600px);
+		margin-left: auto;
+		margin-right: auto;
+		width: 100%;
 		transition:
 			transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
 			opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);

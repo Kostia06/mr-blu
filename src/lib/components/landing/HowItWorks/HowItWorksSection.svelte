@@ -80,7 +80,9 @@
 
 		<div class="steps-container">
 			{#each steps as step, i (step.step)}
-				<StepCard {...step} />
+				<div class="step-wrapper" style="--delay: {i * 150}ms">
+					<StepCard {...step} />
+				</div>
 				{#if i < steps.length - 1}
 					<StepConnector {animated} delay={0.4 + i * 0.3} />
 				{/if}
@@ -139,6 +141,30 @@
 			flex-direction: row;
 			justify-content: center;
 			gap: 0;
+		}
+	}
+
+	.step-wrapper {
+		animation: step-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		animation-delay: var(--delay, 0ms);
+		opacity: 0;
+	}
+
+	@keyframes step-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(30px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.step-wrapper {
+			animation: none;
+			opacity: 1;
 		}
 	}
 </style>

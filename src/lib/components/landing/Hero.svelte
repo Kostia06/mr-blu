@@ -166,7 +166,7 @@
 		min-height: 100vh;
 		display: flex;
 		flex-direction: column;
-		overflow: hidden;
+		overflow: visible;
 		padding-top: 100px; /* Account for navbar */
 	}
 
@@ -174,7 +174,8 @@
 		position: absolute;
 		inset: 0;
 		background: var(--blu-bg-dark);
-		overflow: hidden;
+		overflow: clip;
+		contain: content;
 	}
 
 	.gradient-orb {
@@ -474,7 +475,7 @@
 		height: 100%;
 		background: #0a1628;
 		border-radius: 36px;
-		overflow: hidden;
+		overflow: clip;
 	}
 
 	.phone-preview-home {

@@ -41,3 +41,27 @@ Mr_Blu_Core_Use_Case_Crossing_the_Chasm.pdf
 coverage/
 test-results/
 playwright-report/
+
+# Storybook
+storybook-static/
+*storybook.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Additional build artifacts
+dist/
+.cache/
+.turbo/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env overrides
+.env.local

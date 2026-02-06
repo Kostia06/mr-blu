@@ -61,6 +61,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 			type,
 			invoice_number,
 			client_name,
+			client_details,
 			line_items,
 			subtotal,
 			tax_rate,
@@ -75,16 +76,38 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 			return json({ error: 'Invalid table name', success: false }, { status: 400 });
 		}
 
-		// First verify the document belongs to this user
+		// First verify the document belongs to this user and get client_id
 		const { data: existing, error: checkError } = await supabase
 			.from(table)
-			.select('id')
+			.select('id, client_id')
 			.eq('id', documentId)
 			.eq('user_id', userId)
 			.single();
 
 		if (checkError || !existing) {
 			return json({ error: 'Document not found or unauthorized', success: false }, { status: 404 });
+		}
+
+		// Update client details in the clients table if provided
+		if (client_details && existing.client_id) {
+			const clientUpdates: Record<string, string | null> = {};
+			if (client_details.email !== undefined) clientUpdates.email = client_details.email;
+			if (client_details.phone !== undefined) clientUpdates.phone = client_details.phone;
+			if (client_details.address !== undefined) clientUpdates.address = client_details.address;
+			if (client_name !== undefined) clientUpdates.name = client_name;
+
+			if (Object.keys(clientUpdates).length > 0) {
+				const { error: clientUpdateError } = await supabase
+					.from('clients')
+					.update(clientUpdates)
+					.eq('id', existing.client_id)
+					.eq('user_id', userId);
+
+				if (clientUpdateError) {
+					console.error('Update client error:', clientUpdateError);
+					// Don't fail the whole request, just log the error
+				}
+			}
 		}
 
 		// Update the document with all provided fields
@@ -97,6 +120,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		if (invoice_number !== undefined) updateData.invoice_number = invoice_number;
 		// Update the title to reflect the client name
 		if (client_name !== undefined) updateData.title = `${type || 'Invoice'} for ${client_name}`;
+		// Note: 'client' column doesn't exist on invoices table - client data is in clients table via client_id
 		if (line_items !== undefined) updateData.line_items = line_items;
 		if (subtotal !== undefined) updateData.subtotal = subtotal;
 		if (tax_rate !== undefined) updateData.tax_rate = tax_rate;

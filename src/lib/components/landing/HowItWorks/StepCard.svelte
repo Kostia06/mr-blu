@@ -83,10 +83,10 @@
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		padding: 32px 24px;
+		padding: 40px 28px;
 		background: var(--white, #dbe8f4);
 		border: 1px solid var(--gray-200, #e2e8f0);
-		border-radius: 20px;
+		border-radius: 24px;
 		transition:
 			transform 0.15s ease-out,
 			box-shadow 0.4s ease,
@@ -95,14 +95,14 @@
 		will-change: transform;
 		overflow: visible;
 		width: 100%;
-		max-width: 320px;
+		max-width: 340px;
 	}
 
 	@media (min-width: 900px) {
 		.step-card {
-			padding: 40px 36px;
-			min-width: 260px;
-			max-width: 300px;
+			padding: 48px 40px;
+			min-width: 280px;
+			max-width: 320px;
 		}
 	}
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { browser } from '$app/environment';
@@ -13,10 +12,8 @@
 
 	let { session = null }: { session?: Session | null } = $props();
 
-	let hidden = $state(false);
 	let mobileMenuOpen = $state(false);
 	let currentLocale = $state('en');
-	let lastScrollY = 0;
 
 	// Subscribe to locale
 	$effect(() => {
@@ -28,30 +25,6 @@
 		const newLocale = currentLocale === 'en' ? 'es' : 'en';
 		setLocale(newLocale);
 	}
-
-	onMount(() => {
-		let ticking = false;
-
-		const handleScroll = () => {
-			if (ticking) return;
-			ticking = true;
-			requestAnimationFrame(() => {
-				const currentScrollY = window.scrollY;
-
-				if (currentScrollY > lastScrollY && currentScrollY > 100) {
-					hidden = true;
-				} else if (currentScrollY < lastScrollY || currentScrollY <= 50) {
-					hidden = false;
-				}
-
-				lastScrollY = currentScrollY;
-				ticking = false;
-			});
-		};
-
-		window.addEventListener('scroll', handleScroll, { passive: true });
-		return () => window.removeEventListener('scroll', handleScroll);
-	});
 
 	function toggleMobileMenu() {
 		mobileMenuOpen = !mobileMenuOpen;
@@ -70,7 +43,7 @@
 
 <a href="#main-content" class="skip-link">{$t('landing.nav.skipToContent')}</a>
 
-<header class="navbar" class:hidden>
+<header class="navbar">
 	<nav class="nav-container" aria-label="Main navigation">
 		<div class="nav-content">
 			<!-- Logo -->
@@ -193,31 +166,32 @@
 	/* Navbar */
 	.navbar {
 		position: fixed;
-		top: 16px;
-		left: 50%;
-		transform: translateX(-50%);
+		top: 0;
+		left: 0;
+		right: 0;
 		z-index: 50;
-		width: calc(100% - 32px);
-		max-width: 400px;
+		padding: 0 24px;
 	}
 
 	.nav-container {
 		width: 100%;
+		max-width: 1280px;
+		margin: 0 auto;
 	}
 
 	.nav-content {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 8px 8px 8px 14px;
-		background: rgba(219, 232, 244, 0.95);
-		border: 1px solid #e2e8f0;
-		border-radius: 100px;
-		transition:
-			background 0.3s ease,
-			border-color 0.3s ease,
-			box-shadow 0.3s ease;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+		padding: 20px 0;
+		background: transparent;
+		transition: padding 0.3s ease;
+	}
+
+	@media (min-width: 768px) {
+		.navbar {
+			padding: 0 40px;
+		}
 	}
 
 	/* Logo */
@@ -226,8 +200,8 @@
 	}
 
 	.logo-text {
-		font-size: 18px;
-		font-weight: 700;
+		font-size: 28px;
+		font-weight: 800;
 		color: var(--blu-primary, #0066ff);
 		letter-spacing: -0.5px;
 	}
@@ -236,19 +210,28 @@
 	.nav-actions {
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: 6px;
+		padding: 5px;
+		background: rgba(255, 255, 255, 0.6);
+		backdrop-filter: blur(24px) saturate(180%);
+		-webkit-backdrop-filter: blur(24px) saturate(180%);
+		border: 1px solid rgba(255, 255, 255, 0.7);
+		border-radius: 100px;
+		box-shadow:
+			0 4px 24px rgba(0, 0, 0, 0.08),
+			inset 0 1px 1px rgba(255, 255, 255, 0.6);
 	}
 
 	/* Language Toggle */
 	.lang-toggle {
 		display: flex;
 		align-items: center;
-		gap: 4px;
-		padding: 8px 12px;
+		gap: 5px;
+		padding: 10px 14px;
 		background: transparent;
 		border: none;
-		color: #64748b;
-		font-size: 12px;
+		color: var(--gray-600, #475569);
+		font-size: 13px;
 		font-weight: 600;
 		cursor: pointer;
 		border-radius: 100px;
@@ -256,32 +239,31 @@
 	}
 
 	.lang-toggle:hover {
-		color: #0f172a;
-		background: #f1f5f9;
+		color: var(--blu-primary, #0066ff);
+		background: rgba(0, 102, 255, 0.08);
 	}
 
 	.cta-button {
 		display: none;
 		align-items: center;
 		gap: 6px;
-		padding: 10px 16px;
-		background: var(--blu-primary);
+		padding: 10px 18px;
+		background: var(--blu-primary, #0066ff);
 		color: white;
-		font-size: 13px;
+		font-size: 14px;
 		font-weight: 600;
 		text-decoration: none;
 		border-radius: 100px;
-		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-		box-shadow: 0 2px 10px rgba(0, 102, 255, 0.2);
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 10px rgba(0, 102, 255, 0.25);
 	}
 
 	.cta-button:hover {
 		background: #0052cc;
-		transform: translateY(-2px);
-		box-shadow: 0 4px 20px rgba(0, 102, 255, 0.3);
+		box-shadow: 0 4px 16px rgba(0, 102, 255, 0.35);
 	}
 
-	@media (min-width: 400px) {
+	@media (min-width: 480px) {
 		.cta-button {
 			display: flex;
 		}
@@ -292,22 +274,21 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 44px;
-		height: 44px;
-		background: #f1f5f9;
+		width: 40px;
+		height: 40px;
+		background: transparent;
 		border: none;
-		color: #64748b;
+		color: var(--blu-primary, #0066ff);
 		cursor: pointer;
-		border-radius: 50%;
+		border-radius: 100px;
 		transition: all 0.2s ease;
 	}
 
 	.mobile-menu-btn:hover {
-		background: #e2e8f0;
-		color: #0f172a;
+		background: rgba(0, 102, 255, 0.08);
 	}
 
-	@media (min-width: 400px) {
+	@media (min-width: 480px) {
 		.mobile-menu-btn {
 			display: none;
 		}

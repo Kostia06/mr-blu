@@ -67,6 +67,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			id: doc.id,
 			type: (doc.document_type === 'estimate' ? 'estimate' : 'invoice') as 'estimate' | 'invoice',
 			documentType: (doc.document_type || 'invoice') as 'estimate' | 'invoice',
+			documentNumber: doc.invoice_number || null,
 			title: doc.title || doc.invoice_number || 'Untitled',
 			client: (doc.clients as any)?.name || 'Unknown Client',
 			clientEmail: (doc.clients as any)?.email || null,

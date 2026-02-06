@@ -6,7 +6,7 @@
 	interface Props {
 		id?: string;
 		class?: string;
-		background?: 'white' | 'gray' | 'gradient';
+		background?: 'white' | 'gray' | 'gradient' | 'dark';
 		padding?: 'default' | 'large' | 'none';
 		maxWidth?: 'default' | 'wide' | 'full';
 		reveal?: boolean;
@@ -56,7 +56,8 @@
 	const bgClasses = {
 		white: 'bg-white',
 		gray: 'bg-gray',
-		gradient: 'bg-gradient'
+		gradient: 'bg-gradient',
+		dark: 'bg-dark'
 	};
 
 	const paddingClasses = {
@@ -110,6 +111,10 @@
 
 	.bg-gradient {
 		background: linear-gradient(180deg, rgba(219, 232, 244, 0.85) 0%, rgba(248, 250, 252, 0.8) 100%);
+	}
+
+	.bg-dark {
+		background: #1D1D1F;
 	}
 
 	/* Padding */

@@ -251,7 +251,7 @@ export function createSendFlow(deps: {
 		if (!sendDocument || !sendData) return;
 
 		isSendingDocument = true;
-		sendErrorToast = null;
+		sendError = null;
 
 		const providedEmail = email.trim() || editableSendEmail.trim();
 		const providedPhone = phone.trim() || editableSendPhone.trim();

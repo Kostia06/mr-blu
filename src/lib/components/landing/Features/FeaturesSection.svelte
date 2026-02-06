@@ -5,9 +5,7 @@
 	import Zap from 'lucide-svelte/icons/zap';
 	import FileStack from 'lucide-svelte/icons/file-stack';
 	import Shield from 'lucide-svelte/icons/shield';
-	import Clock from 'lucide-svelte/icons/clock';
 	import FeatureCard from './FeatureCard.svelte';
-	import StatCard from './StatCard.svelte';
 	import SectionWrapper from '../shared/SectionWrapper.svelte';
 	import { t } from '$lib/i18n';
 
@@ -18,28 +16,24 @@
 			title: $t('landing.features.feature1Title'),
 			description: $t('landing.features.feature1Desc'),
 			icon: Mic,
-			size: 'large' as const,
 			accent: 'blue' as const
 		},
 		{
 			title: $t('landing.features.feature2Title'),
 			description: $t('landing.features.feature2Desc'),
 			icon: Zap,
-			size: 'normal' as const,
 			accent: 'cyan' as const
 		},
 		{
 			title: $t('landing.features.feature3Title'),
 			description: $t('landing.features.feature3Desc'),
 			icon: FileStack,
-			size: 'normal' as const,
 			accent: 'green' as const
 		},
 		{
 			title: $t('landing.features.feature4Title'),
 			description: $t('landing.features.feature4Desc'),
 			icon: Shield,
-			size: 'normal' as const,
 			accent: 'amber' as const
 		}
 	]);
@@ -85,35 +79,12 @@
 			</p>
 		</div>
 
-		<div class="bento-grid">
-			<!-- Voice-First (large) -->
-			<div class="bento-item bento-large">
-				<FeatureCard {...features[0]} />
-			</div>
-
-			<!-- Instant Processing -->
-			<div class="bento-item">
-				<FeatureCard {...features[1]} />
-			</div>
-
-			<!-- Multi-Doc -->
-			<div class="bento-item">
-				<FeatureCard {...features[2]} />
-			</div>
-
-			<!-- Security -->
-			<div class="bento-item">
-				<FeatureCard {...features[3]} />
-			</div>
-
-			<!-- Stat Card -->
-			<div class="bento-item">
-				<StatCard
-					value="5"
-					suffix={$t('landing.features.statSuffix')}
-					label={$t('landing.features.statLabel')}
-				/>
-			</div>
+		<div class="features-grid">
+			{#each features as feature, i (feature.title)}
+				<div class="feature-item" style="--delay: {i * 100}ms">
+					<FeatureCard {...feature} />
+				</div>
+			{/each}
 		</div>
 	</div>
 </SectionWrapper>
@@ -155,39 +126,44 @@
 		line-height: 1.6;
 	}
 
-	/* Bento Grid */
-	.bento-grid {
+	/* Features Grid - Clean 2x2 */
+	.features-grid {
 		display: grid;
 		grid-template-columns: 1fr;
-		gap: 20px;
+		gap: 24px;
+		max-width: 900px;
+		margin: 0 auto;
 	}
 
 	@media (min-width: 640px) {
-		.bento-grid {
+		.features-grid {
 			grid-template-columns: repeat(2, 1fr);
+			gap: 28px;
 		}
 	}
 
-	@media (min-width: 1024px) {
-		.bento-grid {
-			grid-template-columns: repeat(3, 1fr);
-			grid-template-rows: auto auto;
-		}
-
-		.bento-large {
-			grid-column: span 1;
-			grid-row: span 2;
-		}
-	}
-
-	.bento-item {
+	.feature-item {
 		opacity: 0;
+		animation: feature-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		animation-delay: var(--delay, 0ms);
+	}
+
+	@keyframes feature-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(24px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.bento-item {
+		.feature-item {
 			opacity: 1;
+			animation: none;
 		}
 	}
 </style>

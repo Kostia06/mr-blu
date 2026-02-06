@@ -65,7 +65,8 @@
 		position: relative;
 		min-height: 100vh;
 		background: var(--white, #dbe8f4);
-		overflow-x: hidden;
+		overflow-x: clip;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	main {

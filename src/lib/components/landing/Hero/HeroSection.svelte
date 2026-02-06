@@ -154,7 +154,14 @@
 
 	@media (min-width: 768px) {
 		.hero-container {
+			max-width: 700px;
 			gap: 50px;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.hero-container {
+			max-width: 800px;
 		}
 	}
 
@@ -380,6 +387,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		width: 100%;
 		order: -1; /* Always on top */
 		opacity: 0;
 		transform: translateY(24px);
