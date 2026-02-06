@@ -1,6 +1,7 @@
 // Send flow state + logic
 
 import { t } from '$lib/i18n';
+import { get } from 'svelte/store';
 import type { SendData, SourceDocument, LineItem } from './review-types';
 
 export function createSendFlow(deps: {
@@ -134,7 +135,7 @@ export function createSendFlow(deps: {
 			const tableName = sendDocument.type === 'contract' ? 'contracts' : 'invoices';
 			const response = await fetch(`/api/documents/${sendDocument.id}?table=${tableName}`);
 			if (!response.ok) {
-				showSendErrorToast(t.get('review.failedToLoad'));
+				showSendErrorToast(get(t)('review.failedToLoad'));
 				return;
 			}
 
@@ -165,7 +166,7 @@ export function createSendFlow(deps: {
 			}
 		} catch (error) {
 			console.error('Load document for editing error:', error);
-			showSendErrorToast(t.get('review.failedToLoad'));
+			showSendErrorToast(get(t)('review.failedToLoad'));
 		}
 	}
 
@@ -220,7 +221,7 @@ export function createSendFlow(deps: {
 			});
 
 			if (!response.ok) {
-				showSendErrorToast(t.get('review.failedToSave'));
+				showSendErrorToast(get(t)('review.failedToSave'));
 				return false;
 			}
 
@@ -234,7 +235,7 @@ export function createSendFlow(deps: {
 			return true;
 		} catch (error) {
 			console.error('Save send document error:', error);
-			showSendErrorToast(t.get('review.failedToSave'));
+			showSendErrorToast(get(t)('review.failedToSave'));
 			return false;
 		} finally {
 			isSavingSendDocument = false;
@@ -262,19 +263,19 @@ export function createSendFlow(deps: {
 			if (sendData.deliveryMethod === 'email') {
 				recipient.email = providedEmail || sendData.recipient?.email || sendClientInfo?.email;
 				if (!recipient.email) {
-					showSendErrorToast(t.get('review.enterEmail'));
+					showSendErrorToast(get(t)('review.enterEmail'));
 					isSendingDocument = false;
 					return;
 				}
 				if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient.email)) {
-					showSendErrorToast(t.get('review.enterValidEmail'));
+					showSendErrorToast(get(t)('review.enterValidEmail'));
 					isSendingDocument = false;
 					return;
 				}
 			} else {
 				recipient.phone = providedPhone || sendData.recipient?.phone || sendClientInfo?.phone;
 				if (!recipient.phone) {
-					showSendErrorToast(t.get('review.enterPhone'));
+					showSendErrorToast(get(t)('review.enterPhone'));
 					isSendingDocument = false;
 					return;
 				}
@@ -304,11 +305,11 @@ export function createSendFlow(deps: {
 			if (success) {
 				sendSuccess = true;
 			} else {
-				showSendErrorToast(t.get('review.failedToSend'));
+				showSendErrorToast(get(t)('review.failedToSend'));
 			}
 		} catch (error) {
 			console.error('Execute send document error:', error);
-			showSendErrorToast(t.get('review.errorSending'));
+			showSendErrorToast(get(t)('review.errorSending'));
 		} finally {
 			isSendingDocument = false;
 			isUpdatingClientInfo = false;

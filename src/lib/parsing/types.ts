@@ -125,6 +125,7 @@ export interface TemplateData {
 	// Metadata
 	date: string;
 	dueDate: string | null;
+	notes?: string | null;
 }
 
 // Validation errors

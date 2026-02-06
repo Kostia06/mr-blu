@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fly } from 'svelte/transition';
+	import { fly, scale } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
@@ -84,7 +84,7 @@
 							<span class="language-native">{lang.native}</span>
 						</div>
 						{#if currentLocale === lang.code}
-							<div class="language-check" in:fly={{ scale: 0.5, duration: 150 }}>
+							<div class="language-check" in:scale={{ start: 0.5, duration: 150 }}>
 								<Check size={14} strokeWidth={3} />
 							</div>
 						{/if}

@@ -3,8 +3,6 @@
 	import AlertCircle from 'lucide-svelte/icons/alert-circle';
 	import Info from 'lucide-svelte/icons/info';
 	import CheckCircle from 'lucide-svelte/icons/check-circle';
-	import type { Component } from 'svelte';
-
 	interface Props {
 		variant?: 'warning' | 'error' | 'info' | 'success';
 		title: string;
@@ -13,7 +11,8 @@
 
 	let { variant = 'warning', title, message }: Props = $props();
 
-	const icons: Record<string, Component> = {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const icons: Record<string, any> = {
 		warning: AlertTriangle,
 		error: AlertCircle,
 		info: Info,

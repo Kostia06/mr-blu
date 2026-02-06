@@ -1,4 +1,5 @@
-import { App, type PluginListenerHandle } from '@capacitor/app';
+import { App } from '@capacitor/app';
+import type { PluginListenerHandle } from '@capacitor/core';
 import { goto } from '$app/navigation';
 import { Capacitor } from '@capacitor/core';
 

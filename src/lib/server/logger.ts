@@ -39,7 +39,8 @@ async function log(entry: LogEntry): Promise<void> {
 	// Persist to DB (fire-and-forget, don't block the request)
 	try {
 		const client = getAdminClient();
-		await client.from('error_logs').insert({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		await (client.from('error_logs') as any).insert({
 			severity: entry.severity,
 			error_type: entry.error_type,
 			message: entry.message,

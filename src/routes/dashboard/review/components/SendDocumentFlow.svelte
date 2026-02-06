@@ -60,7 +60,7 @@
 		sendError: string | null;
 		sendSuccess: boolean;
 		onExecuteSend: (email: string, phone: string) => void;
-		onLoadDocumentForEditing: () => Promise<LineItem[]>;
+		onLoadDocumentForEditing: () => Promise<LineItem[] | void>;
 		onSaveDocumentChanges: (items: LineItem[], taxRate: number) => Promise<boolean>;
 	}
 
@@ -136,7 +136,7 @@
 	// Load document for editing
 	async function loadSendDocumentForEditing() {
 		const items = await onLoadDocumentForEditing();
-		sendDocumentItems = items;
+		if (items) sendDocumentItems = items;
 		isEditingSendDocument = true;
 	}
 

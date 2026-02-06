@@ -1924,8 +1924,14 @@ export const locale = writable<string>(getBrowserLanguage());
 
 // Translation function store
 export const t = derived(locale, ($locale) => {
-	return (key: string): string => {
-		return translations[$locale]?.[key] || translations['en']?.[key] || key;
+	return (key: string, params?: Record<string, string | number | null | undefined>): string => {
+		let value = translations[$locale]?.[key] || translations['en']?.[key] || key;
+		if (params) {
+			for (const [k, v] of Object.entries(params)) {
+				value = value.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v ?? ''));
+			}
+		}
+		return value;
 	};
 });
 

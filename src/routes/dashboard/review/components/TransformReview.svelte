@@ -15,9 +15,9 @@
 		type: 'invoice' | 'estimate';
 		number: string;
 		total: number;
-		clientId: string;
+		clientId?: string;
 		clientName: string;
-		clientEmail: string;
+		clientEmail?: string;
 		items: Array<{
 			id: string;
 			description: string;
@@ -25,14 +25,20 @@
 			rate: number;
 			total: number;
 		}>;
-		createdAt: Date;
+		createdAt?: Date;
 	}
 
 	interface Props {
 		sourceDocument: SourceDocument;
 		initialConversion?: { enabled: boolean; targetType: 'invoice' | 'estimate' };
-		onExecute: (config: TransformConfig) => void;
+		initialSplit?: any;
+		initialSchedule?: any;
+		isExecuting?: boolean;
+		error?: string | null;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		onExecute: (config: any) => void;
 		onBack: () => void;
+		[key: string]: any;
 	}
 
 	interface TransformConfig {

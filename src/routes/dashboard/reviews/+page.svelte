@@ -107,7 +107,7 @@
 		}
 	}
 
-	function getDocTypeIcon(type: string | null) {
+	function getDocTypeIcon(type: string | null | undefined) {
 		if (type === 'estimate') return Calculator;
 		if (type === 'contract') return FileText;
 		return Receipt;

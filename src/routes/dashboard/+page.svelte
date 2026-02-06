@@ -758,7 +758,6 @@
 							? translate('placeholder.typeRequest')
 							: translate('dashboard.wordsAppearHere')}
 						spellcheck="false"
-						autocorrect="off"
 						autocomplete="off"
 						data-gramm="false"
 						data-gramm_editor="false"

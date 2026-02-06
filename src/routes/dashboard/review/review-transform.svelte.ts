@@ -153,7 +153,7 @@ export function createTransformFlow() {
 				transformSuccess = true;
 				transformResult = {
 					jobId: result.job.id,
-					documentsCreated: result.generatedDocuments?.length || 0
+					documentsCreated: result.generatedDocument ? 1 : 0
 				};
 			} else {
 				transformError = result.error || 'Transform failed. Please try again.';

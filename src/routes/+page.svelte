@@ -7,7 +7,7 @@
 	import Footer from '$lib/components/landing/Footer.svelte';
 	import { t } from '$lib/i18n';
 
-	let { data } = $props();
+	let { data }: { data: Record<string, any> } = $props();
 </script>
 
 <svelte:head>
@@ -20,10 +20,10 @@
 	<!-- Global animated background blobs (same as dashboard) -->
 	<BackgroundBlobs intensity="subtle" />
 
-	<Navbar session={data.session} />
+	<Navbar session={data?.session ?? null} />
 
 	<main>
-		<HeroSection session={data.session} />
+		<HeroSection session={data?.session ?? null} />
 		<LazySection>
 			{#await import('$lib/components/landing/HowItWorks') then { HowItWorksSection }}
 				<HowItWorksSection />
@@ -41,7 +41,7 @@
 		</LazySection>
 		<LazySection>
 			{#await import('$lib/components/landing/CTA') then { CTASection }}
-				<CTASection session={data.session} />
+				<CTASection session={data?.session ?? null} />
 			{/await}
 		</LazySection>
 	</main>

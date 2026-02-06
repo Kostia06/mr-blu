@@ -34,7 +34,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({
 			success: true,
 			job: result.job,
-			generatedDocuments: result.generatedDocuments
+			generatedDocument: result.generatedDocument
 		});
 	} catch (error) {
 		const err = error instanceof Error ? error : new Error(String(error));

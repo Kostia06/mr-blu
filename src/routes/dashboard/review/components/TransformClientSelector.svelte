@@ -54,7 +54,7 @@
 		<Search size={18} class="search-icon" />
 		<input
 			type="text"
-			placeholder={t('placeholder.searchClients')}
+			placeholder={$t('placeholder.searchClients')}
 			bind:value={manualSearchQuery}
 			oninput={() => onSearch(manualSearchQuery)}
 		/>
@@ -113,7 +113,7 @@
 			{/each}
 		{:else}
 			<div class="empty-state">
-				<p>{t('review.noClientsFound')}</p>
+				<p>{$t('review.noClientsFound')}</p>
 			</div>
 		{/if}
 	</div>

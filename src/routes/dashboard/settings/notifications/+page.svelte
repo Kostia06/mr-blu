@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fly } from 'svelte/transition';
+	import { fly, scale } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { goto, invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -128,11 +128,11 @@
 		<h1 class="page-title">{$t('settings.notifications')}</h1>
 		<div class="header-status">
 			{#if saving}
-				<div class="status-indicator saving" in:fly={{ scale: 0.5, duration: 150 }}>
+				<div class="status-indicator saving" in:scale={{ start: 0.5, duration: 150 }}>
 					<Loader2 size={16} class="spin" />
 				</div>
 			{:else if saved}
-				<div class="status-indicator saved" in:fly={{ scale: 0.5, duration: 150 }}>
+				<div class="status-indicator saved" in:scale={{ start: 0.5, duration: 150 }}>
 					<Check size={16} strokeWidth={2.5} />
 				</div>
 			{:else}

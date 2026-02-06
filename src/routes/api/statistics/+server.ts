@@ -54,7 +54,8 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
 // Fallback manual calculation if database function isn't available
 async function calculateStatisticsManually(
-	supabase: ReturnType<typeof import('@supabase/supabase-js').createClient>,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	supabase: any,
 	userId: string,
 	period: StatisticsPeriod
 ) {
@@ -138,13 +139,13 @@ async function calculateStatisticsManually(
 				.gte('paid_at', formatDate(prevStartDate))
 				.lte('paid_at', formatDate(prevEndDate));
 
-			prevTotalEarned = prevPaid?.reduce((sum, inv) => sum + Number(inv.total), 0) || 0;
+			prevTotalEarned = prevPaid?.reduce((sum: number, inv: any) => sum + Number(inv.total), 0) || 0;
 		}
 
 		// Calculate totals
-		const totalEarned = paidInvoices?.reduce((sum, inv) => sum + Number(inv.total), 0) || 0;
-		const totalPending = pendingInvoices?.reduce((sum, inv) => sum + Number(inv.total), 0) || 0;
-		const totalOverdue = overdueInvoices?.reduce((sum, inv) => sum + Number(inv.total), 0) || 0;
+		const totalEarned = paidInvoices?.reduce((sum: number, inv: any) => sum + Number(inv.total), 0) || 0;
+		const totalPending = pendingInvoices?.reduce((sum: number, inv: any) => sum + Number(inv.total), 0) || 0;
+		const totalOverdue = overdueInvoices?.reduce((sum: number, inv: any) => sum + Number(inv.total), 0) || 0;
 		const paidCount = paidInvoices?.length || 0;
 
 		// Payment rate
@@ -154,7 +155,7 @@ async function calculateStatisticsManually(
 		// Average days to payment
 		let avgDaysToPayment = 0;
 		if (paidInvoices && paidInvoices.length > 0) {
-			const totalDays = paidInvoices.reduce((sum, inv) => {
+			const totalDays = paidInvoices.reduce((sum: number, inv: any) => {
 				if (inv.paid_at && inv.created_at) {
 					const days =
 						(new Date(inv.paid_at).getTime() - new Date(inv.created_at).getTime()) /
@@ -178,9 +179,9 @@ async function calculateStatisticsManually(
 			.gte('paid_at', formatDate(sixMonthsAgo));
 
 		const monthlyBreakdown = monthlyData
-			? Object.values(
+			? (Object.values(
 					monthlyData.reduce(
-						(acc: Record<string, { month: string; amount: number; count: number }>, inv) => {
+						(acc: Record<string, { month: string; amount: number; count: number }>, inv: any) => {
 							const month = inv.paid_at?.substring(0, 7) || '';
 							if (!acc[month]) {
 								acc[month] = { month, amount: 0, count: 0 };
@@ -191,7 +192,7 @@ async function calculateStatisticsManually(
 						},
 						{}
 					)
-				).sort((a, b) => a.month.localeCompare(b.month))
+				) as Array<{ month: string; amount: number; count: number }>).sort((a, b) => a.month.localeCompare(b.month))
 			: [];
 
 		// Get top clients
@@ -228,7 +229,7 @@ async function calculateStatisticsManually(
 			topClients = Object.values(clientTotals)
 				.map((c) => ({
 					...c,
-					name: clients?.find((cl) => cl.id === c.id)?.name || 'Unknown'
+					name: clients?.find((cl: any) => cl.id === c.id)?.name || 'Unknown'
 				}))
 				.sort((a, b) => b.total_amount - a.total_amount)
 				.slice(0, 5);
@@ -243,7 +244,7 @@ async function calculateStatisticsManually(
 			.gte('next_send_date', formatDate(now))
 			.lte('next_send_date', formatDate(endDate));
 
-		const projectedRecurring = activeRecurring?.reduce((sum, r) => sum + Number(r.total), 0) || 0;
+		const projectedRecurring = activeRecurring?.reduce((sum: number, r: any) => sum + Number(r.total), 0) || 0;
 
 		const statistics = {
 			period,

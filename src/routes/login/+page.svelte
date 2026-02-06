@@ -24,8 +24,8 @@
 		if (!errorKey) return null;
 
 		// Handle rate limit error with interpolation
-		if (errorKey === 'auth.tooManyAttempts' && form?.retryAfter) {
-			return $t('auth.tooManyAttempts').replace('{seconds}', String(form.retryAfter));
+		if (errorKey === 'auth.tooManyAttempts' && (form as any)?.retryAfter) {
+			return $t('auth.tooManyAttempts').replace('{seconds}', String((form as any).retryAfter));
 		}
 
 		// Translate the error key

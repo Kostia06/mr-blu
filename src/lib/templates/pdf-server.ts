@@ -3,6 +3,9 @@ import type { TemplateData } from '$lib/parsing';
 import { renderDocumentHTML } from './render';
 import type { DocumentSourceData } from './types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Fetcher = any;
+
 /**
  * Server-side PDF generation using Cloudflare Browser Rendering.
  * Renders the actual HTML template into a PDF via headless browser,

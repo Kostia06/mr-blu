@@ -36,7 +36,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 						defaultTaxConfig: null,
 						taxCalculationMode: 'exclusive',
 						taxRegistrationNumbers: null
-					} as UserTaxSettings
+					} as unknown as UserTaxSettings
 				});
 			}
 			throw error;

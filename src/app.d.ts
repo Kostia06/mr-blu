@@ -11,13 +11,13 @@ declare global {
 			getSession: () => Promise<Session | null>;
 		}
 		interface PageData {
-			session: Session | null;
-			user: User | null;
+			session?: Session | null;
+			user?: User | null;
 		}
 		interface Platform {
 			env: {
 				R2: R2Bucket;
-				MYBROWSER: Fetcher;
+				MYBROWSER: { fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response> };
 				OPENAI_API_KEY: string;
 				DEEPGRAM_API_KEY: string;
 				TWILIO_ACCOUNT_SID: string;

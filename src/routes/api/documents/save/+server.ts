@@ -38,7 +38,8 @@ interface TemplateDataInput {
 
 // Generate incremental document number for user
 async function generateDocumentNumber(
-	supabase: ReturnType<typeof import('@supabase/supabase-js').createClient>,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	supabase: any,
 	userId: string,
 	documentType: 'invoice' | 'estimate'
 ): Promise<string> {
