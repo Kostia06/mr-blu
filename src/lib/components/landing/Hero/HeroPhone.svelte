@@ -631,38 +631,85 @@
 		height: 100px;
 		border-radius: 50%;
 		overflow: hidden;
-		/* Safari: clip gradient layers within circular orb */
 		-webkit-mask-image: -webkit-radial-gradient(white, white);
-		background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 30%, #7dd3fc 60%, #0284c7 100%);
+		background: radial-gradient(
+			ellipse at 50% 40%,
+			#bae6fd 0%,
+			#7dd3fc 20%,
+			#38bdf8 40%,
+			#0ea5e9 60%,
+			#0284c7 80%,
+			#0369a1 100%
+		);
 		box-shadow:
-			0 8px 30px rgba(14, 165, 233, 0.4),
-			inset 0 -4px 12px rgba(2, 132, 199, 0.3),
-			inset 0 4px 12px rgba(125, 211, 252, 0.4);
+			0 8px 40px rgba(14, 165, 233, 0.35),
+			0 0 60px rgba(56, 189, 248, 0.2),
+			inset 0 0 40px rgba(186, 230, 253, 0.3);
 	}
 
-	/* Cloud layers for depth effect */
+	/* Cloud texture layers — matches dashboard RecordButtonMobile */
 	.cloud-layer {
 		position: absolute;
 		inset: 0;
 		border-radius: 50%;
-		opacity: 0.6;
+		pointer-events: none;
+		mix-blend-mode: soft-light;
 	}
 
 	.cloud-layer.layer-1 {
-		background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 50%);
+		background:
+			radial-gradient(
+				ellipse 120% 100% at 30% 20%,
+				rgba(219, 232, 244, 0.7) 0%,
+				rgba(219, 232, 244, 0.3) 30%,
+				transparent 60%
+			),
+			radial-gradient(ellipse 80% 60% at 70% 80%, rgba(219, 232, 244, 0.4) 0%, transparent 50%);
+		opacity: 0.9;
 	}
 
 	.cloud-layer.layer-2 {
-		background: radial-gradient(circle at 70% 70%, rgba(2,132,199,0.3) 0%, transparent 40%);
+		background:
+			radial-gradient(ellipse 100% 80% at 60% 30%, rgba(224, 242, 254, 0.6) 0%, transparent 50%),
+			radial-gradient(ellipse 70% 90% at 20% 70%, rgba(186, 230, 253, 0.5) 0%, transparent 45%);
+		opacity: 0.8;
 	}
 
 	.cloud-layer.layer-3 {
-		background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.2) 0%, transparent 30%);
+		background:
+			radial-gradient(ellipse 60% 50% at 75% 25%, rgba(219, 232, 244, 0.5) 0%, transparent 40%),
+			radial-gradient(ellipse 50% 70% at 35% 60%, rgba(125, 211, 252, 0.4) 0%, transparent 50%);
+		opacity: 0.7;
 	}
 
-	.ambient-light,
+	.ambient-light {
+		position: absolute;
+		top: 5%;
+		left: 15%;
+		width: 50%;
+		height: 35%;
+		background: radial-gradient(
+			ellipse,
+			rgba(219, 232, 244, 0.4) 0%,
+			rgba(219, 232, 244, 0.15) 40%,
+			transparent 70%
+		);
+		border-radius: 50%;
+		pointer-events: none;
+		transform: rotate(-10deg);
+		opacity: 0.8;
+	}
+
 	.gradient-pulse {
-		display: none;
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			ellipse at center,
+			rgba(186, 230, 253, 0.5) 0%,
+			rgba(56, 189, 248, 0.3) 40%,
+			transparent 70%
+		);
+		border-radius: 50%;
 	}
 
 	.record-hint {
