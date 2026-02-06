@@ -53,7 +53,6 @@
 	let analyser: AnalyserNode | null = null;
 	let animationFrame: number | null = null;
 	let audioLevel = $state(0);
-	let waveformData = $state<number[]>(Array(20).fill(0.1));
 
 	// Input mode from preferences store
 	let inputMode = $state<InputMode>('voice');
@@ -144,7 +143,6 @@
 	function animateAudioLevel() {
 		if (!analyser || !isRecordingActive) {
 			audioLevel = 0;
-			waveformData = Array(20).fill(0.1);
 			return;
 		}
 
@@ -158,14 +156,6 @@
 		const avg = sum / dataArray.length;
 		const targetLevel = Math.min(avg / 128, 1);
 		audioLevel = audioLevel * 0.7 + targetLevel * 0.3;
-
-		// Compute waveform bars from frequency data
-		waveformData = Array(20)
-			.fill(0)
-			.map((_, i) => {
-				const idx = Math.floor((i * dataArray.length) / 20);
-				return Math.max(0.1, dataArray[idx] / 255);
-			});
 
 		// Noise detection
 		noiseCheckCount++;
@@ -681,17 +671,6 @@
 						/>
 					</div>
 
-					<!-- Waveform visualization (active recording only) -->
-					{#if isRecordingActive}
-						<div class="waveform" in:fade={{ duration: 300 }}>
-							{#each waveformData as level}
-								<div
-									class="waveform-bar"
-									style="height: {Math.max(4, level * 40)}px"
-								></div>
-							{/each}
-						</div>
-					{/if}
 
 					<!-- Status text -->
 					{#if isRecordingActive}
@@ -1113,26 +1092,6 @@
 	.type-option:active {
 		transform: scale(0.98);
 	}
-
-	/* Waveform visualization */
-	.waveform {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 3px;
-		height: 44px;
-		margin-bottom: var(--space-3);
-	}
-
-	.waveform-bar {
-		width: 3px;
-		min-height: 4px;
-		max-height: 40px;
-		background: linear-gradient(180deg, var(--blu-primary, #0066ff) 0%, #5bc4f7 100%);
-		border-radius: 2px;
-		transition: height 0.06s ease-out;
-	}
-
 	/* ========== FLOATING TRANSCRIPT POPUP ========== */
 	.transcript-popup {
 		position: fixed;
