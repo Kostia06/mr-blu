@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fly } from 'svelte/transition';
+	import { fly, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { goto, invalidateAll } from '$app/navigation';
 	import FileText from 'lucide-svelte/icons/file-text';
@@ -8,22 +8,32 @@
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import Calculator from 'lucide-svelte/icons/calculator';
 	import X from 'lucide-svelte/icons/x';
-	import ArrowUpDown from 'lucide-svelte/icons/arrow-up-down';
 	import Mic from 'lucide-svelte/icons/mic';
-	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import Clock from 'lucide-svelte/icons/clock';
-	import Send from 'lucide-svelte/icons/send';
-	import { t } from '$lib/i18n';
-	import Pencil from 'lucide-svelte/icons/pencil';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import Pencil from 'lucide-svelte/icons/pencil';
+	import ChevronDown from 'lucide-svelte/icons/chevron-down';
+	import { onMount } from 'svelte';
+	import { t, locale } from '$lib/i18n';
 	import { pageTransition } from '$lib/stores/pageTransition';
 	import DeleteConfirmModal from '$lib/components/modals/DeleteConfirmModal.svelte';
 	import QuickSendModal from '$lib/components/modals/QuickSendModal.svelte';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import SwipeableCard from '$lib/components/gestures/SwipeableCard.svelte';
+	import DocumentListSkeleton from '$lib/components/documents/DocumentListSkeleton.svelte';
+	import { groupDocumentsByMonth, formatSmartTime } from '$lib/utils/format';
+
+	interface LineItem {
+		description?: string;
+		quantity?: number;
+		rate?: number;
+		total?: number;
+	}
 
 	interface Document {
 		id: string;
 		type: 'invoice' | 'estimate' | 'contract';
 		documentType: string;
+		documentNumber?: string;
 		title: string;
 		client: string;
 		clientEmail?: string | null;
@@ -33,6 +43,7 @@
 		sentAt: string | null;
 		amount?: number;
 		status: string;
+		lineItems?: LineItem[];
 	}
 
 	interface Summaries {
@@ -44,17 +55,60 @@
 
 	let { data } = $props();
 
+	// Desktop detection for showing action buttons instead of swipe
+	let isDesktop = $state(false);
+
+	onMount(() => {
+		const checkDesktop = () => {
+			isDesktop = window.innerWidth >= 768;
+		};
+		checkDesktop();
+		window.addEventListener('resize', checkDesktop);
+		return () => window.removeEventListener('resize', checkDesktop);
+	});
+
+	// Loading state for skeleton
+	let isLoading = $state(false);
+
 	// Modal states
 	let showDeleteModal = $state(false);
 	let showSendModal = $state(false);
 	let selectedDocument = $state<Document | null>(null);
 	let searchQuery = $state('');
-	let showFilters = $state(false);
 	let statusFilter = $state<string | null>(null);
-	let clientFilter = $state<string | null>(null);
 	let sortBy = $state<'date' | 'amount' | 'client' | 'status'>('date');
 	let sortOrder = $state<'asc' | 'desc'>('desc');
-	let showSortMenu = $state(false);
+
+	// Collapsible month sections
+	let collapsedMonths = $state<Set<string>>(new Set());
+
+	function toggleMonth(month: string) {
+		if (collapsedMonths.has(month)) {
+			collapsedMonths.delete(month);
+		} else {
+			collapsedMonths.add(month);
+		}
+		collapsedMonths = new Set(collapsedMonths); // Trigger reactivity
+	}
+
+	// Type filter using Tabs (synced with URL param via data)
+	let typeFilter = $derived(data.activeType || 'all');
+
+	// Tab options for type filter
+	const typeTabs = $derived([
+		{ id: 'all', label: $t('documents.allTab') },
+		{ id: 'invoice', label: $t('documents.invoicesTab') },
+		{ id: 'estimate', label: $t('documents.estimatesTab') }
+	]);
+
+	// Handle tab change
+	function handleTypeChange(tabId: string) {
+		if (tabId === 'all') {
+			goto('/dashboard/documents', { replaceState: true });
+		} else {
+			goto(`/dashboard/documents?type=${tabId}`, { replaceState: true });
+		}
+	}
 
 	// Smart search that parses natural language queries
 	function parseSearchQuery(query: string) {
@@ -65,29 +119,38 @@
 		let remainingQuery = query;
 
 		// Parse document type
-		if (lowerQuery.includes('estimate')) {
+		if (lowerQuery.includes('estimate') || lowerQuery.includes('presupuesto')) {
 			parsedType = 'estimate';
-			remainingQuery = remainingQuery.replace(/estimates?/gi, '').trim();
-		} else if (lowerQuery.includes('invoice')) {
+			remainingQuery = remainingQuery.replace(/estimates?|presupuestos?/gi, '').trim();
+		} else if (lowerQuery.includes('invoice') || lowerQuery.includes('factura')) {
 			parsedType = 'invoice';
-			remainingQuery = remainingQuery.replace(/invoices?/gi, '').trim();
-		} else if (lowerQuery.includes('contract')) {
+			remainingQuery = remainingQuery.replace(/invoices?|facturas?/gi, '').trim();
+		} else if (lowerQuery.includes('contract') || lowerQuery.includes('contrato')) {
 			parsedType = 'contract';
-			remainingQuery = remainingQuery.replace(/contracts?/gi, '').trim();
+			remainingQuery = remainingQuery.replace(/contracts?|contratos?/gi, '').trim();
 		}
 
 		// Parse status
-		const statusKeywords = ['draft', 'sent', 'paid', 'pending', 'overdue', 'signed'];
+		const statusKeywords = ['draft', 'sent', 'paid', 'pending', 'overdue', 'signed', 'borrador', 'enviado', 'pagado', 'pendiente', 'vencido', 'firmado'];
 		for (const status of statusKeywords) {
 			if (lowerQuery.includes(status)) {
-				parsedStatus = status;
+				// Map Spanish to English status
+				const statusMap: Record<string, string> = {
+					'borrador': 'draft',
+					'enviado': 'sent',
+					'pagado': 'paid',
+					'pendiente': 'pending',
+					'vencido': 'overdue',
+					'firmado': 'signed'
+				};
+				parsedStatus = statusMap[status] || status;
 				remainingQuery = remainingQuery.replace(new RegExp(status, 'gi'), '').trim();
 				break;
 			}
 		}
 
 		// Parse client
-		const clientPatterns = [/(?:to|for|from)\s+(\w+)/i, /client[:\s]+(\w+)/i];
+		const clientPatterns = [/(?:to|for|from|para|de)\s+(\w+)/i, /client[:\s]+(\w+)/i, /cliente[:\s]+(\w+)/i];
 		for (const pattern of clientPatterns) {
 			const match = remainingQuery.match(pattern);
 			if (match) {
@@ -99,7 +162,7 @@
 
 		// Clean up remaining query
 		remainingQuery = remainingQuery
-			.replace(/\b(sent|was|were|that|the|all|show|find|get)\b/gi, '')
+			.replace(/\b(sent|was|were|that|the|all|show|find|get|buscar|mostrar|todos|enviados?)\b/gi, '')
 			.trim();
 
 		return {
@@ -115,25 +178,66 @@
 
 		const filtered = data.documents.filter((doc: Document) => {
 			// Tab filter (unless search specifies type)
-			const effectiveType = parsed.type || (data.activeType !== 'all' ? data.activeType : null);
+			const effectiveType = parsed.type || (typeFilter !== 'all' ? typeFilter : null);
 			const matchesTab = !effectiveType || doc.type === effectiveType;
 
 			// Status filter (from dropdown or search)
 			const effectiveStatus = parsed.status || statusFilter;
 			const matchesStatus = !effectiveStatus || doc.status === effectiveStatus;
 
-			// Client filter (from dropdown or search)
-			const effectiveClient = parsed.client || clientFilter;
+			// Client filter from search
 			const matchesClient =
-				!effectiveClient || doc.client.toLowerCase().includes(effectiveClient.toLowerCase());
+				!parsed.client || doc.client.toLowerCase().includes(parsed.client.toLowerCase());
 
-			// Text search
-			const matchesText =
-				!parsed.textQuery ||
-				doc.title.toLowerCase().includes(parsed.textQuery.toLowerCase()) ||
-				doc.client.toLowerCase().includes(parsed.textQuery.toLowerCase());
+			// Comprehensive text search
+			if (parsed.textQuery) {
+				const query = parsed.textQuery.toLowerCase();
 
-			return matchesTab && matchesStatus && matchesClient && matchesText;
+				// Search by title
+				const matchesTitle = doc.title.toLowerCase().includes(query);
+
+				// Search by client name
+				const matchesClientText = doc.client.toLowerCase().includes(query);
+
+				// Search by document number (EST-2026-0001, INV-2026-0002, etc.)
+				const docNumber = getDocNumber(doc).toLowerCase();
+				const matchesDocNumber = docNumber.includes(query);
+
+				// Search by amount (e.g., "500", "$500", "6318")
+				const amountStr = doc.amount ? doc.amount.toString() : '';
+				const matchesAmount = amountStr.includes(query.replace(/[$,]/g, ''));
+
+				// Search by date (e.g., "january", "jan", "2026", "01/30")
+				const dateObj = new Date(doc.date);
+				const dateFormats = [
+					dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toLowerCase(),
+					dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toLowerCase(),
+					dateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toLowerCase(),
+					dateObj.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }).toLowerCase(),
+					dateObj.getFullYear().toString(),
+					(dateObj.getMonth() + 1).toString().padStart(2, '0'),
+					dateObj.getDate().toString()
+				];
+				const matchesDate = dateFormats.some((fmt) => fmt.includes(query));
+
+				// Search by line item descriptions
+				const matchesLineItems = doc.lineItems?.some(
+					(item) => item.description && item.description.toLowerCase().includes(query)
+				);
+
+				// Match if any search criteria matches
+				const matchesText =
+					matchesTitle ||
+					matchesClientText ||
+					matchesDocNumber ||
+					matchesAmount ||
+					matchesDate ||
+					matchesLineItems;
+
+				if (!matchesText) return false;
+			}
+
+			return matchesTab && matchesStatus && matchesClient;
 		});
 
 		// Sort the filtered results
@@ -157,16 +261,10 @@
 		});
 	});
 
-	function formatDate(dateString: string) {
-		const date = new Date(dateString);
-		// Show exact date and time
-		return date.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			hour: 'numeric',
-			minute: '2-digit'
-		});
-	}
+	// Grouped documents by month
+	const groupedDocs = $derived(() => {
+		return groupDocumentsByMonth(filteredDocs(), $locale);
+	});
 
 	function formatAmount(amount: number) {
 		return new Intl.NumberFormat('en-US', {
@@ -177,56 +275,23 @@
 		}).format(amount);
 	}
 
+	// Generate document number display
+	function getDocNumber(doc: Document): string {
+		if (doc.documentNumber) return doc.documentNumber;
+		const prefix = doc.type === 'invoice' ? 'INV' : doc.type === 'estimate' ? 'EST' : 'CON';
+		const year = new Date(doc.date).getFullYear();
+		// Use last 4 chars of ID
+		const suffix = doc.id.slice(-4).toUpperCase();
+		return `${prefix}-${year}-${suffix}`;
+	}
+
 	function clearFilters() {
 		statusFilter = null;
-		clientFilter = null;
 		searchQuery = '';
 	}
 
-	const hasActiveFilters = $derived(
-		statusFilter !== null || clientFilter !== null || searchQuery !== ''
-	);
+	const hasActiveFilters = $derived(statusFilter !== null || searchQuery !== '');
 
-	function setSort(field: 'date' | 'amount' | 'client' | 'status') {
-		if (sortBy === field) {
-			sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
-		} else {
-			sortBy = field;
-			sortOrder = 'desc';
-		}
-		showSortMenu = false;
-	}
-
-	const sortLabels = $derived({
-		date: $t('documents.sortDate'),
-		amount: $t('documents.sortAmount'),
-		client: $t('documents.sortClient'),
-		status: $t('documents.sortStatus')
-	});
-
-	// Document type filter options
-	const typeOptions = $derived([
-		{ key: 'all', label: $t('common.all'), count: data.documents.length },
-		{ key: 'invoice', label: $t('dashboard.invoices'), count: data.summaries.totalInvoices },
-		{ key: 'estimate', label: $t('documents.estimates'), count: data.summaries.totalEstimates },
-		{ key: 'contract', label: $t('documents.contracts'), count: data.summaries.totalContracts }
-	]);
-
-	let showTypeDropdown = $state(false);
-
-	const currentTypeLabel = $derived(() => {
-		const option = typeOptions.find((o) => o.key === data.activeType);
-		return option ? option.label : $t('common.all');
-	});
-
-	function selectType(type: string) {
-		showTypeDropdown = false;
-		if (type === 'all') {
-			goto('/dashboard/documents');
-		} else {
-			goto(`/dashboard/documents?type=${type}`);
-		}
-	}
 
 	// Swipe handlers
 	function openDeleteModal(doc: Document) {
@@ -258,43 +323,11 @@
 		// Refresh the page data to update status
 		invalidateAll();
 	}
-
-	// Format exact time for timestamps
-	function formatRelativeTime(dateString: string | null) {
-		if (!dateString) return '';
-		const date = new Date(dateString);
-		// Show exact date and time
-		return date.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			hour: 'numeric',
-			minute: '2-digit'
-		});
-	}
-
-	// Check if timestamps should be shown (has been modified or sent)
-	function hasTimestamps(doc: Document) {
-		return doc.updatedAt !== doc.createdAt || doc.sentAt;
-	}
-
-	// Expanded timestamps state
-	let expandedTimestamps = $state<Set<string>>(new Set());
-
-	function toggleTimestamps(docId: string, e: MouseEvent) {
-		e.preventDefault();
-		e.stopPropagation();
-		if (expandedTimestamps.has(docId)) {
-			expandedTimestamps.delete(docId);
-		} else {
-			expandedTimestamps.add(docId);
-		}
-		expandedTimestamps = new Set(expandedTimestamps);
-	}
 </script>
 
 <div class="documents-page">
-	<!-- Header -->
-	<header class="page-header">
+	<!-- Header (Settings style - centered title) -->
+	<header class="page-header" in:fly={{ y: -20, duration: 400, easing: cubicOut }}>
 		<button
 			class="back-btn"
 			onclick={() => pageTransition.navigate('/dashboard')}
@@ -328,104 +361,40 @@
 		{/if}
 	</div>
 
-	<!-- Filter Bar -->
-	<div class="filter-bar">
-		<!-- Type Dropdown -->
-		<div class="type-dropdown-wrapper">
-			<button
-				class="type-dropdown-btn"
-				class:active={data.activeType !== 'all'}
-				onclick={() => (showTypeDropdown = !showTypeDropdown)}
-			>
-				<FileText size={16} strokeWidth={1.5} />
-				<span>{currentTypeLabel()}</span>
-				<span class="chevron-icon" class:rotated={showTypeDropdown}>
-					<ChevronDown size={14} />
-				</span>
-			</button>
-			{#if showTypeDropdown}
-				<div class="type-dropdown-menu" in:fly={{ y: -8, duration: 150, easing: cubicOut }}>
-					{#each typeOptions as option}
-						<button
-							class="type-option"
-							class:active={data.activeType === option.key}
-							onclick={() => selectType(option.key)}
-						>
-							<span class="type-option-label">{option.label}</span>
-							<span class="type-option-count">{option.count}</span>
-						</button>
-					{/each}
-				</div>
-			{/if}
-		</div>
-
-		<!-- Status Filter -->
-		<div class="filter-dropdown-wrapper">
-			<button
-				class="filter-dropdown-btn"
-				class:active={statusFilter !== null}
-				onclick={() => (showFilters = !showFilters)}
-			>
-				<span>{statusFilter ? statusFilter : $t('documents.status')}</span>
-				<span class="chevron-icon" class:rotated={showFilters}>
-					<ChevronDown size={14} />
-				</span>
-			</button>
-			{#if showFilters}
-				<div class="filter-dropdown-menu" in:fly={{ y: -8, duration: 150, easing: cubicOut }}>
-					<button
-						class="filter-option"
-						class:active={statusFilter === null}
-						onclick={() => {
-							statusFilter = null;
-							showFilters = false;
-						}}
-					>
-						{$t('documents.allStatuses')}
-					</button>
-					{#each ['draft', 'sent', 'pending', 'paid', 'overdue', 'signed'] as status}
-						<button
-							class="filter-option"
-							class:active={statusFilter === status}
-							onclick={() => {
-								statusFilter = status;
-								showFilters = false;
-							}}
-						>
-							<span class="status-dot {status}"></span>
-							{$t(`documents.${status}`)}
-						</button>
-					{/each}
-				</div>
-			{/if}
-		</div>
-
-		{#if hasActiveFilters}
-			<button class="clear-btn" onclick={clearFilters}>
-				<X size={14} />
-			</button>
-		{/if}
+	<!-- Type Filter Tabs (iOS Segmented Control Style) -->
+	<div class="type-tabs-wrapper">
+		<Tabs
+			tabs={typeTabs}
+			bind:activeTab={typeFilter}
+			variant="pills"
+			fullWidth
+			size="sm"
+			onchange={handleTypeChange}
+		/>
 	</div>
+
 
 	<!-- Document List -->
 	<div class="content-scroll">
-		{#if filteredDocs().length === 0}
+		{#if isLoading}
+			<DocumentListSkeleton count={5} />
+		{:else if filteredDocs().length === 0}
 			<div class="empty-state">
 				<div class="empty-icon">
-					<FileText size={36} strokeWidth={1.5} />
+					<FileText size={48} strokeWidth={1.5} />
 				</div>
 				<h3 class="empty-title">
 					{#if hasActiveFilters}
-						{$t('documents.noMatch')}
+						{$t('documents.emptyFiltered')}
 					{:else}
-						{$t('documents.empty')}
+						{$t('documents.emptyTitle')}
 					{/if}
 				</h3>
 				<p class="empty-subtitle">
 					{#if hasActiveFilters}
 						{$t('documents.tryAdjusting')}
 					{:else}
-						{$t('documents.emptySubtitle')}
+						{$t('documents.emptyDescription')}
 					{/if}
 				</p>
 				{#if hasActiveFilters}
@@ -434,14 +403,14 @@
 						{$t('documents.clearFilters')}
 					</button>
 				{:else}
-					<a href="/dashboard" class="action-btn primary">
+					<button class="action-btn primary" onclick={() => goto('/dashboard')}>
 						<Mic size={18} strokeWidth={2} />
-						{$t('documents.new')}
-					</a>
+						{$t('documents.createDocument')}
+					</button>
 				{/if}
 			</div>
 		{:else}
-			<!-- Results header with count and sort -->
+			<!-- Results header with count -->
 			<div class="results-header">
 				<span class="results-count">
 					{filteredDocs().length === 1
@@ -451,132 +420,120 @@
 						<span class="filtered-label">({$t('documents.filtered')})</span>
 					{/if}
 				</span>
-				<div class="sort-dropdown-wrapper">
-					<button class="sort-btn" onclick={() => (showSortMenu = !showSortMenu)}>
-						<ArrowUpDown size={14} />
-						<span>{sortLabels[sortBy]}</span>
-						<span class="sort-order">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-					</button>
-					{#if showSortMenu}
-						<div class="sort-menu" in:fly={{ y: -5, duration: 150 }}>
-							{#each Object.entries(sortLabels) as [key, label]}
-								<button
-									class="sort-menu-item"
-									class:active={sortBy === key}
-									onclick={() => setSort(key as 'date' | 'amount' | 'client' | 'status')}
-								>
-									{label}
-									{#if sortBy === key}
-										<span class="sort-indicator">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-									{/if}
-								</button>
-							{/each}
-						</div>
-					{/if}
-				</div>
 			</div>
 
+			<!-- Grouped Document List -->
 			<div class="doc-list">
-				{#each filteredDocs() as doc, i}
-					<div
-						class="doc-card-wrapper"
-						in:fly={{ y: 20, duration: 300, delay: 50 + i * 30, easing: cubicOut }}
-					>
-							<a href="/dashboard/documents/{doc.id}?type={doc.type}" class="doc-card">
-								<div
-									class="doc-icon"
-									class:invoice={doc.type === 'invoice'}
-									class:estimate={doc.type === 'estimate'}
-								>
-									{#if doc.type === 'invoice'}
-										<Receipt size={20} strokeWidth={1.5} />
-									{:else if doc.type === 'estimate'}
-										<Calculator size={20} strokeWidth={1.5} />
-									{:else}
-										<FileText size={20} strokeWidth={1.5} />
-									{/if}
-								</div>
-								<div class="doc-info">
-									<span class="doc-title">{doc.title}</span>
-									<div class="doc-meta-row">
-										<span class="doc-meta">
-											{doc.client} · {formatDate(doc.date)}
-										</span>
-										{#if hasTimestamps(doc)}
-											<button
-												class="timestamps-toggle"
-												onclick={(e) => toggleTimestamps(doc.id, e)}
-												aria-label="Show timestamps"
-											>
-												<Clock size={12} />
-											</button>
-										{/if}
-									</div>
-									{#if expandedTimestamps.has(doc.id)}
-										<div class="doc-timestamps" transition:fly={{ y: -5, duration: 150 }}>
-											<span class="timestamp">
-												<span class="timestamp-label">{$t('timestamps.created')}:</span>
-												{formatRelativeTime(doc.createdAt)}
-											</span>
-											{#if doc.updatedAt !== doc.createdAt}
-												<span class="timestamp">
-													<span class="timestamp-label">{$t('timestamps.modified')}:</span>
-													{formatRelativeTime(doc.updatedAt)}
-												</span>
-											{/if}
-											{#if doc.sentAt}
-												<span class="timestamp sent">
-													<Send size={10} />
-													<span class="timestamp-label">{$t('timestamps.sent')}:</span>
-													{formatRelativeTime(doc.sentAt)}
-												</span>
-											{/if}
+				{#each [...groupedDocs().entries()] as [month, docs], groupIndex}
+					<div class="month-group" in:fly={{ y: 20, duration: 300, delay: groupIndex * 50, easing: cubicOut }}>
+						<!-- Clickable month header -->
+						<button class="month-header-btn" onclick={() => toggleMonth(month)}>
+							<span class="month-label">{month}</span>
+							<span class="month-count">{docs.length}</span>
+							<span class="month-chevron" class:collapsed={collapsedMonths.has(month)}>
+								<ChevronDown size={16} />
+							</span>
+						</button>
+
+						{#if !collapsedMonths.has(month)}
+						<div class="month-docs-container" transition:fly={{ y: -10, duration: 200 }}>
+							{#each docs as doc, i}
+								<div class="doc-card-wrapper">
+									{#if isDesktop}
+										<!-- Desktop: No swipe, show action buttons -->
+										<div class="doc-card">
+											<a href="/dashboard/documents/{doc.id}?type={doc.type}" class="doc-card-link">
+												<div
+													class="doc-icon"
+													class:invoice={doc.type === 'invoice'}
+													class:estimate={doc.type === 'estimate'}
+												>
+													{#if doc.type === 'invoice'}
+														<Receipt size={20} strokeWidth={1.5} />
+													{:else if doc.type === 'estimate'}
+														<Calculator size={20} strokeWidth={1.5} />
+													{:else}
+														<FileText size={20} strokeWidth={1.5} />
+													{/if}
+												</div>
+												<div class="doc-info">
+													<span class="doc-client">{doc.client}</span>
+													<span class="doc-subtitle">
+														{getDocNumber(doc)} · {formatSmartTime(doc.date, $locale)}
+													</span>
+												</div>
+											</a>
+											<div class="doc-actions">
+												<button
+													class="action-icon-btn edit"
+													onclick={() => goto(`/dashboard/documents/${doc.id}?type=${doc.type}&edit=true`)}
+													aria-label={$t('common.edit')}
+												>
+													<Pencil size={16} />
+												</button>
+												<button
+													class="action-icon-btn delete"
+													onclick={() => openDeleteModal(doc)}
+													aria-label={$t('common.delete')}
+												>
+													<Trash2 size={16} />
+												</button>
+											</div>
+											<div class="doc-end">
+												{#if (doc.type === 'invoice' || doc.type === 'estimate') && doc.amount}
+													<span class="doc-amount" class:estimate={doc.type === 'estimate'}>
+														{formatAmount(doc.amount)}
+													</span>
+												{/if}
+											</div>
 										</div>
-									{/if}
-								</div>
-								<div class="doc-end">
-									{#if (doc.type === 'invoice' || doc.type === 'estimate') && doc.amount}
-										<span class="doc-amount" class:estimate={doc.type === 'estimate'}
-											>{formatAmount(doc.amount)}</span
+									{:else}
+										<!-- Mobile: Swipeable card -->
+										<SwipeableCard
+											onSwipeLeft={() => openDeleteModal(doc)}
+											onSwipeRight={() => openSendModal(doc)}
+											rightDisabled={['sent', 'paid'].includes(doc.status)}
 										>
+											<a href="/dashboard/documents/{doc.id}?type={doc.type}" class="doc-card">
+												<div
+													class="doc-icon"
+													class:invoice={doc.type === 'invoice'}
+													class:estimate={doc.type === 'estimate'}
+												>
+													{#if doc.type === 'invoice'}
+														<Receipt size={20} strokeWidth={1.5} />
+													{:else if doc.type === 'estimate'}
+														<Calculator size={20} strokeWidth={1.5} />
+													{:else}
+														<FileText size={20} strokeWidth={1.5} />
+													{/if}
+												</div>
+												<div class="doc-info">
+													<span class="doc-client">{doc.client}</span>
+													<span class="doc-subtitle">
+														{getDocNumber(doc)} · {formatSmartTime(doc.date, $locale)}
+													</span>
+												</div>
+												<div class="doc-end">
+													{#if (doc.type === 'invoice' || doc.type === 'estimate') && doc.amount}
+														<span class="doc-amount" class:estimate={doc.type === 'estimate'}>
+															{formatAmount(doc.amount)}
+														</span>
+													{/if}
+												</div>
+											</a>
+										</SwipeableCard>
 									{/if}
-									<div class="doc-actions">
-									<button
-										class="action-icon-btn edit"
-										onclick={(e) => { e.preventDefault(); e.stopPropagation(); pageTransition.navigate(`/dashboard/documents/${doc.id}?type=${doc.type}&edit=true`); }}
-										aria-label="Edit"
-									>
-										<Pencil size={14} />
-									</button>
-									<button
-										class="action-icon-btn delete"
-										onclick={(e) => { e.preventDefault(); e.stopPropagation(); openDeleteModal(doc); }}
-										aria-label="Delete"
-									>
-										<Trash2 size={14} />
-									</button>
 								</div>
-								</div>
-							</a>
+							{/each}
+						</div>
+						{/if}
 					</div>
 				{/each}
 			</div>
 		{/if}
 	</div>
 </div>
-
-<!-- Close dropdowns when clicking outside -->
-{#if showSortMenu || showTypeDropdown || showFilters}
-	<button
-		class="overlay"
-		onclick={() => {
-			showSortMenu = false;
-			showTypeDropdown = false;
-			showFilters = false;
-		}}
-		aria-label={$t('aria.closeMenu')}
-	></button>
-{/if}
 
 <!-- Delete Confirmation Modal -->
 <DeleteConfirmModal
@@ -631,33 +588,38 @@
 		box-sizing: border-box;
 	}
 
-	/* Header */
+
+	/* Header (Settings style - centered title) */
 	.page-header {
 		display: flex;
 		align-items: center;
-		gap: 12px;
-		margin-bottom: 16px;
+		justify-content: space-between;
+		margin-bottom: 20px;
 		flex-shrink: 0;
+		max-width: var(--page-max-width, 600px);
+		margin-left: auto;
+		margin-right: auto;
+		width: 100%;
 	}
 
 	.back-btn {
-		width: 40px;
-		height: 40px;
+		width: var(--btn-height-md, 44px);
+		height: var(--btn-height-md, 44px);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(255, 255, 255, 0.5);
-		backdrop-filter: blur(20px);
-		-webkit-backdrop-filter: blur(20px);
+		background: var(--glass-white-50, rgba(255, 255, 255, 0.5));
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		border: none;
 		border-radius: var(--radius-button, 14px);
 		color: var(--gray-600, #475569);
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast, 0.15s) ease;
 	}
 
 	.back-btn:hover {
-		background: rgba(255, 255, 255, 0.7);
+		background: var(--glass-white-70, rgba(255, 255, 255, 0.7));
 		color: var(--gray-900, #0f172a);
 	}
 
@@ -666,9 +628,8 @@
 	}
 
 	.page-title {
-		flex: 1;
 		font-family: var(--font-display, system-ui);
-		font-size: 22px;
+		font-size: 18px;
 		font-weight: 700;
 		color: var(--gray-900, #0f172a);
 		margin: 0;
@@ -676,13 +637,16 @@
 	}
 
 	.header-spacer {
-		width: 40px;
+		width: 44px;
 	}
 
 	/* Search */
 	.search-wrapper {
 		position: relative;
 		width: 100%;
+		max-width: var(--page-max-width, 600px);
+		margin-left: auto;
+		margin-right: auto;
 		display: flex;
 		align-items: center;
 		margin-bottom: 12px;
@@ -739,159 +703,14 @@
 		color: var(--gray-900, #0f172a);
 	}
 
-	/* Filter Bar */
-	.filter-bar {
-		display: flex;
-		gap: 8px;
-		align-items: center;
-		margin-bottom: 16px;
+	/* Type Tabs */
+	.type-tabs-wrapper {
+		margin-bottom: 12px;
 		flex-shrink: 0;
-	}
-
-	.type-dropdown-wrapper,
-	.filter-dropdown-wrapper {
-		position: relative;
-	}
-
-	.type-dropdown-btn,
-	.filter-dropdown-btn {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 10px 14px;
-		background: rgba(255, 255, 255, 0.5);
-		backdrop-filter: blur(20px);
-		-webkit-backdrop-filter: blur(20px);
-		border: none;
-		border-radius: 100px;
-		color: var(--gray-700, #374151);
-		font-size: 14px;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		white-space: nowrap;
-	}
-
-	.type-dropdown-btn:hover,
-	.filter-dropdown-btn:hover {
-		background: rgba(255, 255, 255, 0.7);
-	}
-
-	.type-dropdown-btn.active,
-	.filter-dropdown-btn.active {
-		background: var(--blu-primary, #0066ff);
-		color: white;
-	}
-
-	.chevron-icon {
-		display: flex;
-		transition: transform 0.2s ease;
-	}
-
-	.chevron-icon.rotated {
-		transform: rotate(180deg);
-	}
-
-	.type-dropdown-menu,
-	.filter-dropdown-menu {
-		position: absolute;
-		top: calc(100% + 8px);
-		left: 0;
-		min-width: 180px;
-		background: rgba(255, 255, 255, 0.95);
-		backdrop-filter: blur(20px);
-		-webkit-backdrop-filter: blur(20px);
-		border-radius: var(--radius-button, 14px);
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-		overflow: hidden;
-		z-index: 100;
-	}
-
-	.type-option,
-	.filter-option {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
+		max-width: var(--page-max-width, 600px);
+		margin-left: auto;
+		margin-right: auto;
 		width: 100%;
-		padding: 12px 16px;
-		background: transparent;
-		border: none;
-		color: var(--gray-700, #374151);
-		font-size: 14px;
-		cursor: pointer;
-		transition: all 0.15s ease;
-		text-align: left;
-	}
-
-	.type-option:hover,
-	.filter-option:hover {
-		background: rgba(0, 102, 255, 0.05);
-	}
-
-	.type-option.active,
-	.filter-option.active {
-		background: rgba(0, 102, 255, 0.1);
-		color: var(--blu-primary, #0066ff);
-		font-weight: 500;
-	}
-
-	.type-option-count {
-		font-size: 12px;
-		color: var(--gray-400, #9ca3af);
-		font-weight: 500;
-	}
-
-	.type-option.active .type-option-count {
-		color: var(--blu-primary, #0066ff);
-	}
-
-	.status-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		margin-right: 4px;
-	}
-
-	.status-dot.draft {
-		background: var(--gray-400, #9ca3af);
-	}
-	.status-dot.sent {
-		background: var(--blu-primary, #0066ff);
-	}
-	.status-dot.pending {
-		background: var(--data-orange, #f59e0b);
-	}
-	.status-dot.paid {
-		background: var(--data-green, #10b981);
-	}
-	.status-dot.overdue {
-		background: var(--data-red, #ef4444);
-	}
-	.status-dot.signed {
-		background: var(--data-purple, #8b5cf6);
-	}
-
-	.filter-option {
-		justify-content: flex-start;
-	}
-
-	.clear-btn {
-		width: 36px;
-		height: 36px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: rgba(239, 68, 68, 0.1);
-		border: none;
-		border-radius: 50%;
-		color: var(--data-red, #ef4444);
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.clear-btn:hover {
-		background: rgba(239, 68, 68, 0.15);
 	}
 
 	/* Scrollable Content */
@@ -901,6 +720,15 @@
 		overflow-x: hidden;
 		-webkit-overflow-scrolling: touch;
 		padding-bottom: calc(100px + var(--safe-area-bottom, 0px));
+		max-width: var(--page-max-width, 600px);
+		width: 100%;
+		margin: 0 auto;
+		scrollbar-width: none; /* Firefox */
+		-ms-overflow-style: none; /* IE/Edge */
+	}
+
+	.content-scroll::-webkit-scrollbar {
+		display: none; /* Chrome, Safari, Opera */
 	}
 
 	/* Empty State */
@@ -914,8 +742,8 @@
 	}
 
 	.empty-icon {
-		width: 88px;
-		height: 88px;
+		width: 96px;
+		height: 96px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -996,115 +824,147 @@
 		color: var(--blu-primary, #0066ff);
 	}
 
-	.sort-dropdown-wrapper {
-		position: relative;
-	}
-
-	.sort-btn {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 8px 12px;
-		background: transparent;
-		border: none;
-		border-radius: var(--radius-input, 12px);
-		color: var(--gray-600, #475569);
-		font-size: 13px;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.sort-btn:hover {
-		background: rgba(255, 255, 255, 0.5);
-		color: var(--gray-900, #0f172a);
-	}
-
-	.sort-order {
-		font-size: 11px;
-		color: var(--gray-400, #94a3b8);
-	}
-
-	.sort-menu {
-		position: absolute;
-		top: calc(100% + 8px);
-		right: 0;
-		min-width: 140px;
-		background: rgba(255, 255, 255, 0.95);
-		backdrop-filter: blur(20px);
-		-webkit-backdrop-filter: blur(20px);
-		border: none;
-		border-radius: var(--radius-button, 14px);
-		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-		overflow: hidden;
-		z-index: 50;
-	}
-
-	.sort-menu-item {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		width: 100%;
-		padding: 12px 16px;
-		background: transparent;
-		border: none;
-		color: var(--gray-700, #334155);
-		font-size: 14px;
-		cursor: pointer;
-		transition: all 0.15s ease;
-		text-align: left;
-	}
-
-	.sort-menu-item:hover {
-		background: rgba(0, 102, 255, 0.05);
-	}
-
-	.sort-menu-item.active {
-		color: var(--blu-primary, #0066ff);
-		font-weight: 500;
-	}
-
-	.sort-indicator {
-		font-size: 12px;
-		color: var(--gray-400, #94a3b8);
-	}
-
-	.overlay {
-		position: fixed;
-		inset: 0;
-		background: transparent;
-		border: none;
-		z-index: 45;
-		cursor: default;
-	}
-
 	/* Document List */
 	.doc-list {
 		display: flex;
 		flex-direction: column;
-		gap: 0;
+		gap: 24px;
+	}
+
+	.month-group {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	/* Clickable month header */
+	.month-header-btn {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 4px;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		width: fit-content;
+		transition: opacity 0.15s ease;
+	}
+
+	.month-header-btn:hover {
+		opacity: 0.7;
+	}
+
+	.month-label {
+		font-size: 12px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--gray-500, #64748b);
+	}
+
+	.month-count {
+		font-size: 11px;
+		font-weight: 500;
+		color: var(--gray-400, #94a3b8);
+		background: rgba(148, 163, 184, 0.15);
+		padding: 2px 8px;
+		border-radius: 10px;
+	}
+
+	.month-chevron {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--gray-400, #94a3b8);
+		transition: transform 0.2s ease;
+	}
+
+	.month-chevron.collapsed {
+		transform: rotate(-90deg);
+	}
+
+	/* Glass container for documents - like settings sections */
+	.month-docs-container {
+		display: flex;
+		flex-direction: column;
+		background: rgba(255, 255, 255, 0.4);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		border: 1px solid rgba(255, 255, 255, 0.5);
+		border-radius: var(--radius-card, 20px);
+		overflow: hidden;
 	}
 
 	.doc-card-wrapper {
-		margin-bottom: 8px;
+		border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+	}
+
+	.doc-card-wrapper:last-child {
+		border-bottom: none;
 	}
 
 	.doc-card {
 		display: flex;
-		align-items: flex-start;
+		align-items: center;
 		gap: 14px;
-		padding: 16px;
-		background: rgba(255, 255, 255, 0.4);
-		backdrop-filter: blur(20px);
-		-webkit-backdrop-filter: blur(20px);
+		padding: 14px 16px;
+		background: transparent;
 		border: none;
-		border-radius: var(--radius-button, 14px);
 		text-decoration: none;
 		transition: all 0.2s ease;
 	}
 
 	.doc-card:hover {
-		background: rgba(255, 255, 255, 0.6);
+		background: rgba(255, 255, 255, 0.4);
+	}
+
+	/* Desktop: card contains link + action buttons */
+	.doc-card-link {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		flex: 1;
+		min-width: 0;
+		text-decoration: none;
+	}
+
+	/* Desktop action buttons */
+	.doc-actions {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-shrink: 0;
+	}
+
+	.action-icon-btn {
+		width: 36px;
+		height: 36px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--glass-white-50, rgba(255, 255, 255, 0.5));
+		border: none;
+		border-radius: 10px;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.action-icon-btn.edit {
+		color: var(--gray-500, #64748b);
+	}
+
+	.action-icon-btn.edit:hover {
+		background: rgba(0, 102, 255, 0.1);
+		color: var(--blu-primary, #0066ff);
+	}
+
+	.action-icon-btn.delete {
+		color: var(--gray-400, #94a3b8);
+	}
+
+	.action-icon-btn.delete:hover {
+		background: rgba(239, 68, 68, 0.1);
+		color: var(--data-red, #ef4444);
 	}
 
 	.doc-icon {
@@ -1113,20 +973,25 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(0, 102, 255, 0.08);
 		border-radius: var(--radius-button, 14px);
-		color: var(--blu-primary, #0066ff);
 		flex-shrink: 0;
 	}
 
+	/* Icon colors: Invoice = Green, Estimate = Blue */
 	.doc-icon.invoice {
-		background: rgba(16, 185, 129, 0.1);
-		color: var(--data-green, #10b981);
+		background: rgba(52, 199, 89, 0.12);
+		color: #34C759;
 	}
 
 	.doc-icon.estimate {
-		background: rgba(14, 165, 233, 0.1);
-		color: #0ea5e9;
+		background: rgba(0, 102, 255, 0.1);
+		color: #0066FF;
+	}
+
+	/* Default for contracts */
+	.doc-icon:not(.invoice):not(.estimate) {
+		background: rgba(0, 102, 255, 0.08);
+		color: var(--blu-primary, #0066ff);
 	}
 
 	.doc-info {
@@ -1135,11 +1000,10 @@
 		flex-direction: column;
 		gap: 4px;
 		min-width: 0;
-		align-self: center;
 	}
 
-	.doc-title {
-		font-size: 15px;
+	.doc-client {
+		font-size: 16px;
 		font-weight: 600;
 		color: var(--gray-900, #0f172a);
 		white-space: nowrap;
@@ -1147,128 +1011,32 @@
 		text-overflow: ellipsis;
 	}
 
-	.doc-meta-row {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-	}
-
-	.doc-meta {
+	.doc-subtitle {
 		font-size: 13px;
 		color: var(--gray-500, #64748b);
-	}
-
-	.timestamps-toggle {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 20px;
-		height: 20px;
-		padding: 0;
-		background: var(--gray-100, #f1f5f9);
-		border: none;
-		border-radius: 50%;
-		color: var(--gray-400, #9ca3af);
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.timestamps-toggle:hover {
-		background: var(--gray-200, #e2e8f0);
-		color: var(--gray-600, #475569);
-	}
-
-	.doc-timestamps {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		margin-top: 4px;
-	}
-
-	.timestamp {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-		font-size: 11px;
-		color: var(--gray-400, #9ca3af);
-		background: var(--gray-50, #f8fafc);
-		padding: 3px 8px;
-		border-radius: 6px;
-	}
-
-	.timestamp.sent {
-		color: var(--blu-primary, #0066ff);
-		background: rgba(0, 102, 255, 0.08);
-	}
-
-	.timestamp-label {
-		font-weight: 500;
 	}
 
 	.doc-end {
 		display: flex;
 		align-items: center;
-		gap: 10px;
 		flex-shrink: 0;
+		margin-left: auto;
 	}
 
 	.doc-amount {
-		font-size: 15px;
+		font-size: 16px;
 		font-weight: 600;
 		color: var(--data-green, #10b981);
 	}
 
-	.doc-amount.estimate {
-		color: #0ea5e9;
-	}
-
-
-	.doc-actions {
-		display: flex;
-		gap: 6px;
-	}
-
-	.action-icon-btn {
-		width: 32px;
-		height: 32px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border: none;
-		border-radius: 8px;
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.action-icon-btn.edit {
-		background: rgba(0, 102, 255, 0.08);
-		color: var(--blu-primary, #0066ff);
-	}
-
-	.action-icon-btn.edit:hover {
-		background: rgba(0, 102, 255, 0.15);
-	}
-
-	.action-icon-btn.delete {
-		background: rgba(239, 68, 68, 0.08);
-		color: #ef4444;
-	}
-
-	.action-icon-btn.delete:hover {
-		background: rgba(239, 68, 68, 0.15);
-	}
-
 	/* Mobile adjustments */
 	@media (max-width: 400px) {
-		.doc-end {
-			flex-direction: column;
-			align-items: flex-end;
-			gap: 6px;
+		.doc-client {
+			font-size: 15px;
 		}
 
 		.doc-amount {
-			font-size: 14px;
+			font-size: 15px;
 		}
 	}
-
 </style>

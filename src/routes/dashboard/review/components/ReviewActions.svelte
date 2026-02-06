@@ -439,7 +439,7 @@
 				{#each Object.entries(actionConfig) as [type, config]}
 					<button class="picker-option" onclick={() => onAddAction(type as ActionStep['type'])}>
 						<div class="picker-icon" style="color: {config.color}; background: {config.color}1a">
-							<svelte:component this={config.icon} size={18} />
+							<config.icon size={18} />
 						</div>
 						<span>{$t(config.labelKey)}</span>
 					</button>

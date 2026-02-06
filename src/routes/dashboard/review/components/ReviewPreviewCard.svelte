@@ -281,6 +281,15 @@
 										data.client.email = (e.target as HTMLInputElement).value || null;
 									}}
 									placeholder="email@example.com"
+									onblur={(e) => {
+										const newEmail = (e.target as HTMLInputElement).value?.trim();
+										if (newEmail && selectedClientId && onSaveClientInfo) {
+											onSaveClientInfo({
+												clientId: selectedClientId,
+												email: newEmail
+											});
+										}
+									}}
 									onkeydown={(e) => {
 										if (e.key === 'Enter' || e.key === 'Escape') {
 											if (editableClientName.trim()) {
@@ -1005,20 +1014,6 @@
 	.chip-match.medium {
 		background: rgba(245, 158, 11, 0.2);
 		color: #d97706;
-	}
-
-	.client-matched {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		padding: 2px 8px;
-		background: rgba(16, 185, 129, 0.12);
-		border-radius: 10px;
-		font-size: 10px;
-		font-weight: 600;
-		color: var(--data-green);
-		text-transform: uppercase;
-		letter-spacing: 0.03em;
 	}
 
 	:global(.spinning) {
