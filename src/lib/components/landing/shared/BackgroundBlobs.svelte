@@ -52,7 +52,8 @@
 
 		import('gsap').then(({ gsap }) => {
 			const blobs = [blob1Ref, blob2Ref, blob3Ref, blob4Ref].filter(Boolean);
-			const tweens: gsap.core.Tween[] = [];
+			// eslint-disable-next-line no-undef
+		const tweens: gsap.core.Tween[] = [];
 
 			// Simplified floating animation
 			blobs.forEach((blob, index) => {

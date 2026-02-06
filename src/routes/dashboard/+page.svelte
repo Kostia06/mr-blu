@@ -411,7 +411,7 @@
 			if (socket.readyState === WebSocket.OPEN) {
 				try {
 					socket.send(JSON.stringify({ type: 'CloseStream' }));
-				} catch (e) {}
+				} catch { /* ignore close errors */ }
 			}
 			socket.close();
 			socket = null;

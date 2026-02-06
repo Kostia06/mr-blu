@@ -30,11 +30,18 @@ export default ts.config(
 		rules: {
 			'@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
 			'@typescript-eslint/no-explicit-any': 'warn',
-			'no-console': ['warn', { allow: ['error', 'warn'] }]
+			'no-console': ['warn', { allow: ['error', 'warn'] }],
+			'svelte/no-navigation-without-resolve': 'warn',
+			'svelte/require-each-key': 'warn',
+			'svelte/no-at-html-tags': 'warn',
+			'svelte/no-unused-svelte-ignore': 'warn',
+			'svelte/no-useless-children-snippet': 'warn',
+			'svelte/prefer-svelte-reactivity': 'warn',
+			'no-case-declarations': 'warn'
 		}
 	},
     {
-		ignores: ['.svelte-kit/', 'build/', 'node_modules/', '.cloudflare/', '.wrangler/']
+		ignores: ['.svelte-kit/', 'build/', 'node_modules/', '.cloudflare/', '.wrangler/', 'ios/', 'android/', 'storybook-static/', '**/*.svelte.ts']
 	},
     storybook.configs["flat/recommended"]
 );

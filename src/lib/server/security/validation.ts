@@ -35,7 +35,7 @@ export function isValidPhone(phone: string): boolean {
 	if (!phone || typeof phone !== 'string') return false;
 
 	// Remove common separators for validation
-	const cleaned = phone.replace(/[\s\-\.\(\)]/g, '');
+	const cleaned = phone.replace(/[\s\-.()]/g, '');
 
 	// Should be digits only, optionally starting with +
 	const phoneRegex = /^\+?[0-9]{7,15}$/;
@@ -76,8 +76,10 @@ export function sanitizeString(
 
 	// Remove control characters (except newlines if allowed)
 	if (options.allowNewlines) {
+		// eslint-disable-next-line no-control-regex
 		sanitized = sanitized.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '');
 	} else {
+		// eslint-disable-next-line no-control-regex
 		sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, ' ');
 	}
 

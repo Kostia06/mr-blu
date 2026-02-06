@@ -40,7 +40,7 @@
 	}
 
 	$effect(() => {
-		activeTab;
+		void activeTab; // track reactive dependency
 		updateIndicator();
 	});
 

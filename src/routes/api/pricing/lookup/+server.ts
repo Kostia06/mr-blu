@@ -91,7 +91,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const normalizedMaterial = normalizeMaterial(material);
 
 		// Look up pricing memory - try exact match first
-		let { data: pricingData, error } = await supabase
+		const { data: pricingData, error } = await supabase
 			.from('pricing_memory')
 			.select('*')
 			.eq('user_id', userId)
