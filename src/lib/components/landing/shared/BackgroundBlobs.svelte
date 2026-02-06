@@ -149,8 +149,6 @@
 		z-index: 0;
 		overflow: clip;
 		contain: strict;
-		/* Safari: force compositing layer to properly clip blurred children */
-		-webkit-mask-image: -webkit-radial-gradient(white, white);
 	}
 
 	.variant-hero {
