@@ -101,9 +101,6 @@
 		text-align: center;
 		max-width: 700px;
 		margin: 0 auto;
-		overflow: hidden;
-		/* Safari: clip blurred gradient orbs */
-		-webkit-mask-image: -webkit-radial-gradient(white, white);
 	}
 
 	.cta-content {

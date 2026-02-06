@@ -151,7 +151,6 @@
 		contain: strict;
 		/* Safari: force compositing layer to properly clip blurred children */
 		-webkit-mask-image: -webkit-radial-gradient(white, white);
-		transform: translateZ(0);
 	}
 
 	.variant-hero {
