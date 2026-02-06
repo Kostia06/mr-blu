@@ -368,6 +368,9 @@
 		border-radius: 49px;
 		overflow: hidden;
 		aspect-ratio: 9 / 19.5;
+		/* Safari: force compositing layer to clip blurred blobs */
+		-webkit-mask-image: -webkit-radial-gradient(white, white);
+		transform: translateZ(0);
 	}
 
 	/* Glass reflection - hidden for clean look */
@@ -508,6 +511,8 @@
 		inset: 0;
 		pointer-events: none;
 		overflow: hidden;
+		/* Safari: clip blurred blobs within phone screen */
+		-webkit-mask-image: -webkit-radial-gradient(white, white);
 	}
 
 	.screen-blob {
@@ -626,6 +631,8 @@
 		height: 100px;
 		border-radius: 50%;
 		overflow: hidden;
+		/* Safari: clip gradient layers within circular orb */
+		-webkit-mask-image: -webkit-radial-gradient(white, white);
 		background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 30%, #7dd3fc 60%, #0284c7 100%);
 		box-shadow:
 			0 8px 30px rgba(14, 165, 233, 0.4),

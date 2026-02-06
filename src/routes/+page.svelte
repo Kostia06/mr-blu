@@ -74,6 +74,7 @@
 		z-index: 1;
 		animation: content-reveal 400ms ease-out 600ms forwards;
 		opacity: 0;
+		will-change: opacity, transform;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

@@ -65,3 +65,6 @@ yarn-error.log*
 
 # Local env overrides
 .env.local
+
+# Local documentation (auto-generated)
+/docs

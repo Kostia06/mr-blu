@@ -1,9 +1,4 @@
 <script lang="ts">
-	import { fly, fade } from 'svelte/transition';
-	import { cubicOut } from 'svelte/easing';
-	import { browser } from '$app/environment';
-	import Menu from 'lucide-svelte/icons/menu';
-	import X from 'lucide-svelte/icons/x';
 	import ArrowRight from 'lucide-svelte/icons/arrow-right';
 	import Globe from 'lucide-svelte/icons/globe';
 	import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
@@ -12,7 +7,6 @@
 
 	let { session = null }: { session?: Session | null } = $props();
 
-	let mobileMenuOpen = $state(false);
 	let currentLocale = $state('en');
 
 	// Subscribe to locale
@@ -24,20 +18,6 @@
 	function toggleLanguage() {
 		const newLocale = currentLocale === 'en' ? 'es' : 'en';
 		setLocale(newLocale);
-	}
-
-	function toggleMobileMenu() {
-		mobileMenuOpen = !mobileMenuOpen;
-		if (browser) {
-			document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
-		}
-	}
-
-	function closeMobileMenu() {
-		mobileMenuOpen = false;
-		if (browser) {
-			document.body.style.overflow = '';
-		}
 	}
 </script>
 
@@ -51,7 +31,7 @@
 				<span class="logo-text">mrblu</span>
 			</a>
 
-			<!-- Desktop CTA -->
+			<!-- Actions -->
 			<div class="nav-actions">
 				<!-- Language Toggle -->
 				<button class="lang-toggle" onclick={toggleLanguage} aria-label={$t('aria.switchLanguage')}>
@@ -70,78 +50,10 @@
 						<ArrowRight size={14} strokeWidth={2.5} />
 					</a>
 				{/if}
-
-				<!-- Mobile Menu Button -->
-				<button
-					class="mobile-menu-btn"
-					onclick={toggleMobileMenu}
-					aria-expanded={mobileMenuOpen}
-					aria-label={mobileMenuOpen ? $t('aria.closeMenu') : $t('aria.openMenu')}
-				>
-					<Menu size={20} strokeWidth={2} />
-				</button>
 			</div>
 		</div>
 	</nav>
 </header>
-
-<!-- Mobile Menu -->
-{#if mobileMenuOpen}
-	<div
-		class="mobile-overlay"
-		role="button"
-		tabindex="-1"
-		onclick={closeMobileMenu}
-		onkeydown={(e) => e.key === 'Escape' && closeMobileMenu()}
-		in:fade={{ duration: 200 }}
-		out:fade={{ duration: 150 }}
-	></div>
-
-	<div
-		class="mobile-sheet"
-		in:fly={{ y: -20, duration: 250, easing: cubicOut }}
-		out:fly={{ y: -20, duration: 150 }}
-	>
-		<div class="mobile-sheet-header">
-			<a href="/" class="mobile-logo" onclick={closeMobileMenu}>
-				<span class="logo-text">mrblu</span>
-			</a>
-			<button class="mobile-close" onclick={closeMobileMenu} aria-label={$t('aria.closeMenu')}>
-				<X size={20} strokeWidth={2} />
-			</button>
-		</div>
-
-		<nav class="mobile-nav">
-			<a href="#features" class="mobile-link" onclick={closeMobileMenu}
-				>{$t('landing.nav.features')}</a
-			>
-			<a href="#how-it-works" class="mobile-link" onclick={closeMobileMenu}
-				>{$t('landing.nav.howItWorks')}</a
-			>
-			<a href="#use-cases" class="mobile-link" onclick={closeMobileMenu}
-				>{$t('landing.nav.useCases')}</a
-			>
-		</nav>
-
-		<div class="mobile-footer">
-			<button class="mobile-lang-toggle" onclick={toggleLanguage}>
-				<Globe size={16} strokeWidth={2} />
-				<span>{currentLocale === 'en' ? 'Español' : 'English'}</span>
-			</button>
-			{#if session}
-				<a href="/dashboard" class="mobile-cta" onclick={closeMobileMenu}>
-					<LayoutDashboard size={16} strokeWidth={2.5} />
-					<span>{$t('landing.nav.goToDashboard')}</span>
-				</a>
-			{:else}
-				<a href="/login" class="mobile-cta">
-					<span>{$t('landing.nav.getStartedFree')}</span>
-					<ArrowRight size={16} strokeWidth={2.5} />
-				</a>
-			{/if}
-		</div>
-	</div>
-{/if}
 
 <style>
 	.skip-link {
@@ -244,7 +156,7 @@
 	}
 
 	.cta-button {
-		display: none;
+		display: flex;
 		align-items: center;
 		gap: 6px;
 		padding: 10px 18px;
@@ -261,165 +173,5 @@
 	.cta-button:hover {
 		background: #0052cc;
 		box-shadow: 0 4px 16px rgba(0, 102, 255, 0.35);
-	}
-
-	@media (min-width: 480px) {
-		.cta-button {
-			display: flex;
-		}
-	}
-
-	/* Mobile Menu Button */
-	.mobile-menu-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 40px;
-		height: 40px;
-		background: transparent;
-		border: none;
-		color: var(--blu-primary, #0066ff);
-		cursor: pointer;
-		border-radius: 100px;
-		transition: all 0.2s ease;
-	}
-
-	.mobile-menu-btn:hover {
-		background: rgba(0, 102, 255, 0.08);
-	}
-
-	@media (min-width: 480px) {
-		.mobile-menu-btn {
-			display: none;
-		}
-	}
-
-	/* Mobile Overlay */
-	.mobile-overlay {
-		position: fixed;
-		inset: 0;
-		z-index: 60;
-		background: rgba(0, 0, 0, 0.6);
-	}
-
-	/* Mobile Sheet */
-	.mobile-sheet {
-		position: fixed;
-		top: 16px;
-		left: 16px;
-		right: 16px;
-		z-index: 70;
-		background: rgba(219, 232, 244, 0.98);
-		backdrop-filter: blur(20px);
-		border: 1px solid #e2e8f0;
-		border-radius: 20px;
-		overflow: hidden;
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-	}
-
-	.mobile-sheet-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 14px 16px;
-		border-bottom: 1px solid #e2e8f0;
-	}
-
-	.mobile-logo {
-		text-decoration: none;
-	}
-
-	.mobile-close {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 44px;
-		height: 44px;
-		background: #f1f5f9;
-		border: none;
-		color: #64748b;
-		cursor: pointer;
-		border-radius: 50%;
-		transition: all 0.2s ease;
-	}
-
-	.mobile-close:hover {
-		color: #0f172a;
-		background: #e2e8f0;
-	}
-
-	/* Mobile Nav */
-	.mobile-nav {
-		padding: 12px 8px;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.mobile-link {
-		display: block;
-		padding: 14px 16px;
-		font-size: 15px;
-		font-weight: 500;
-		color: #64748b;
-		text-decoration: none;
-		border-radius: 12px;
-		transition: all 0.2s ease;
-	}
-
-	.mobile-link:hover {
-		color: #0f172a;
-		background: #f1f5f9;
-	}
-
-	/* Mobile Footer */
-	.mobile-footer {
-		padding: 12px 16px 16px;
-		border-top: 1px solid #e2e8f0;
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-
-	.mobile-lang-toggle {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-		width: 100%;
-		padding: 12px 16px;
-		background: #f1f5f9;
-		border: none;
-		color: #64748b;
-		font-size: 14px;
-		font-weight: 500;
-		cursor: pointer;
-		border-radius: 12px;
-		transition: all 0.2s ease;
-	}
-
-	.mobile-lang-toggle:hover {
-		background: #e2e8f0;
-		color: #0f172a;
-	}
-
-	.mobile-cta {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-		width: 100%;
-		padding: 14px 20px;
-		background: var(--blu-primary);
-		color: white;
-		font-size: 15px;
-		font-weight: 600;
-		text-decoration: none;
-		border-radius: 12px;
-		transition: all 0.2s ease;
-	}
-
-	.mobile-cta:hover {
-		background: #0052cc;
 	}
 </style>

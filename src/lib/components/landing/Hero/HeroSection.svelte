@@ -138,6 +138,8 @@
 		padding: 120px 24px 80px;
 		overflow-x: clip;
 		background: transparent;
+		/* Safari: properly clip overflow-x */
+		-webkit-mask-image: -webkit-radial-gradient(white, white);
 	}
 
 	.hero-container {

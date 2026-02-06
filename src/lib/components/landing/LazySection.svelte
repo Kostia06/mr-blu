@@ -35,5 +35,7 @@
 <style>
 	.lazy-section:not(.loaded) {
 		min-height: 60vh;
+		content-visibility: auto;
+		contain-intrinsic-size: auto 60vh;
 	}
 </style>
