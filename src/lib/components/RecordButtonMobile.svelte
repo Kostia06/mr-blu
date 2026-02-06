@@ -25,11 +25,20 @@
 	class:disabled={isDisabled}
 	{onclick}
 	disabled={isDisabled}
-	aria-label={isRecording ? (isPaused ? 'Resume recording' : 'Pause recording') : 'Start recording'}
+	aria-label={isRecording ? (isPaused ? 'Resume recording' : 'Stop recording') : 'Start recording'}
 >
 	<div class="record-btn-wrapper">
-		<div class="glow-ring" class:recording={isActive}></div>
-		<div class="orb" class:recording={isActive}>
+		<!-- Pulse rings (only when actively recording) -->
+		{#if isActive}
+			<div class="pulse-rings">
+				<div class="ring"></div>
+				<div class="ring delay-1"></div>
+				<div class="ring delay-2"></div>
+			</div>
+		{/if}
+
+		<div class="glow-ring" class:active={isActive}></div>
+		<div class="orb" class:active={isActive}>
 			<!-- Pulsing center glow -->
 			<div class="gradient-pulse"></div>
 			<!-- Cloud texture layers -->
@@ -38,17 +47,10 @@
 			<div class="cloud-layer layer-3"></div>
 			<div class="ambient-light"></div>
 
-			<!-- Icons -->
+			<!-- Stop square (only when actively recording) -->
 			{#if isActive}
-				<!-- Pause icon -->
 				<div class="icon-wrapper">
-					<div class="pause-bar"></div>
-					<div class="pause-bar"></div>
-				</div>
-			{:else if isPaused}
-				<!-- Play icon -->
-				<div class="icon-wrapper">
-					<div class="play-icon"></div>
+					<div class="stop-square"></div>
 				</div>
 			{/if}
 		</div>
@@ -89,6 +91,45 @@
 		justify-content: center;
 	}
 
+	/* Pulse rings that emanate outward during recording */
+	.pulse-rings {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	.ring {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 160px;
+		height: 160px;
+		border-radius: 50%;
+		border: 2px solid rgba(0, 102, 255, 0.12);
+		animation: pulse-out 3s ease-out infinite;
+	}
+
+	.ring.delay-1 {
+		animation-delay: 1s;
+	}
+	.ring.delay-2 {
+		animation-delay: 2s;
+	}
+
+	@keyframes pulse-out {
+		0% {
+			width: 160px;
+			height: 160px;
+			opacity: 0.4;
+		}
+		100% {
+			width: 260px;
+			height: 260px;
+			opacity: 0;
+		}
+	}
+
 	.glow-ring {
 		position: absolute;
 		inset: -15px;
@@ -105,14 +146,14 @@
 		animation: glowPulse 3s ease-in-out infinite;
 	}
 
-	.glow-ring.recording {
+	.glow-ring.active {
 		background: radial-gradient(
 			circle,
-			rgba(239, 68, 68, 0.2) 0%,
-			rgba(220, 38, 38, 0.1) 50%,
+			rgba(0, 102, 255, 0.2) 0%,
+			rgba(14, 165, 233, 0.12) 50%,
 			transparent 70%
 		);
-		animation: glowPulse 2s ease-in-out infinite;
+		animation: softGlow 2s ease-in-out infinite;
 	}
 
 	.orb {
@@ -137,23 +178,11 @@
 		animation:
 			orbFloat 6s ease-in-out infinite,
 			orbBreathe 4s ease-in-out infinite;
+		-webkit-mask-image: -webkit-radial-gradient(white, white);
 	}
 
-	.orb.recording {
-		background: radial-gradient(
-			ellipse at 50% 40%,
-			#fca5a5 0%,
-			#f87171 20%,
-			#ef4444 40%,
-			#dc2626 60%,
-			#b91c1c 80%,
-			#991b1b 100%
-		);
-		box-shadow:
-			0 8px 40px rgba(239, 68, 68, 0.35),
-			0 0 60px rgba(248, 113, 113, 0.2),
-			inset 0 0 40px rgba(254, 202, 202, 0.3);
-		animation: orbBreathe 2s ease-in-out infinite;
+	.orb.active {
+		animation: softBreathe 2s ease-in-out infinite;
 	}
 
 	/* Cloud texture layers */
@@ -226,39 +255,20 @@
 		border-radius: 50%;
 	}
 
-	.orb.recording .gradient-pulse {
-		background: radial-gradient(
-			ellipse at center,
-			rgba(254, 202, 202, 0.5) 0%,
-			rgba(248, 113, 113, 0.3) 40%,
-			transparent 70%
-		);
-	}
-
-	/* Icons */
+	/* Stop square icon */
 	.icon-wrapper {
 		position: absolute;
 		inset: 0;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 12px;
 	}
 
-	.pause-bar {
-		width: 16px;
-		height: 52px;
-		background: rgba(255, 255, 255, 0.95);
-		border-radius: 6px;
-	}
-
-	.play-icon {
-		width: 0;
-		height: 0;
-		border-left: 44px solid rgba(255, 255, 255, 0.95);
-		border-top: 28px solid transparent;
-		border-bottom: 28px solid transparent;
-		margin-left: 8px;
+	.stop-square {
+		width: 40px;
+		height: 40px;
+		background: rgba(255, 255, 255, 0.92);
+		border-radius: 10px;
 	}
 
 	/* Animations */
@@ -288,23 +298,31 @@
 		}
 	}
 
-	.orb.recording {
-		animation: orbBreatheRecording 2s ease-in-out infinite;
-	}
-
-	@keyframes orbBreatheRecording {
+	@keyframes softBreathe {
 		0%,
 		100% {
 			box-shadow:
-				0 8px 40px rgba(239, 68, 68, 0.35),
-				0 0 60px rgba(248, 113, 113, 0.2),
-				inset 0 0 40px rgba(254, 202, 202, 0.3);
+				0 8px 32px rgba(0, 102, 255, 0.3),
+				0 0 40px rgba(0, 102, 255, 0.1),
+				inset 0 0 40px rgba(186, 230, 253, 0.3);
 		}
 		50% {
 			box-shadow:
-				0 10px 50px rgba(239, 68, 68, 0.45),
-				0 0 70px rgba(248, 113, 113, 0.3),
-				inset 0 0 50px rgba(254, 202, 202, 0.4);
+				0 8px 32px rgba(0, 102, 255, 0.4),
+				0 0 60px rgba(0, 102, 255, 0.2),
+				inset 0 0 50px rgba(186, 230, 253, 0.35);
+		}
+	}
+
+	@keyframes softGlow {
+		0%,
+		100% {
+			opacity: 0.6;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.9;
+			transform: scale(1.04);
 		}
 	}
 
@@ -376,7 +394,12 @@
 		.orb,
 		.glow-ring,
 		.cloud-layer,
-		.gradient-pulse {
+		.gradient-pulse,
+		.ring {
+			animation: none;
+		}
+
+		.orb.active {
 			animation: none;
 		}
 	}

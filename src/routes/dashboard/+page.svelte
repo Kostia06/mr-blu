@@ -36,8 +36,6 @@
 	let error: string | null = $state(null);
 	let transcript = $state('');
 	let interimTranscript = $state('');
-	let recordingTime = $state(0);
-	let timerInterval: ReturnType<typeof setInterval> | null = null;
 	let mediaRecorder: MediaRecorder | null = null;
 	let mediaStream: MediaStream | null = null;
 
@@ -55,6 +53,7 @@
 	let analyser: AnalyserNode | null = null;
 	let animationFrame: number | null = null;
 	let audioLevel = $state(0);
+	let waveformData = $state<number[]>(Array(20).fill(0.1));
 
 	// Input mode from preferences store
 	let inputMode = $state<InputMode>('voice');
@@ -89,12 +88,6 @@
 		if (hour < 18) return translate('dashboard.goodAfternoon');
 		return translate('dashboard.goodEvening');
 	};
-
-	const timerDisplay = $derived(
-		`${Math.floor(recordingTime / 60)
-			.toString()
-			.padStart(2, '0')}:${(recordingTime % 60).toString().padStart(2, '0')}`
-	);
 
 	const isRecordingActive = $derived(currentState === 'recording');
 	const isPaused = $derived(currentState === 'paused');
@@ -151,6 +144,7 @@
 	function animateAudioLevel() {
 		if (!analyser || !isRecordingActive) {
 			audioLevel = 0;
+			waveformData = Array(20).fill(0.1);
 			return;
 		}
 
@@ -164,6 +158,14 @@
 		const avg = sum / dataArray.length;
 		const targetLevel = Math.min(avg / 128, 1);
 		audioLevel = audioLevel * 0.7 + targetLevel * 0.3;
+
+		// Compute waveform bars from frequency data
+		waveformData = Array(20)
+			.fill(0)
+			.map((_, i) => {
+				const idx = Math.floor((i * dataArray.length) / 20);
+				return Math.max(0.1, dataArray[idx] / 255);
+			});
 
 		// Noise detection
 		noiseCheckCount++;
@@ -263,7 +265,6 @@
 	async function startRecording() {
 		try {
 			currentState = 'recording';
-			recordingTime = 0;
 			transcript = '';
 			interimTranscript = '';
 			reconnectAttempts = 0;
@@ -339,9 +340,6 @@
 				handleSpeechToTextError();
 			}
 
-			timerInterval = setInterval(() => {
-				recordingTime++;
-			}, 1000);
 			animateAudioLevel();
 		} catch (err) {
 			if (err instanceof Error) {
@@ -362,10 +360,6 @@
 		if (keepaliveInterval) {
 			clearInterval(keepaliveInterval);
 			keepaliveInterval = null;
-		}
-		if (timerInterval) {
-			clearInterval(timerInterval);
-			timerInterval = null;
 		}
 		if (animationFrame) {
 			cancelAnimationFrame(animationFrame);
@@ -391,9 +385,6 @@
 					socket.send(JSON.stringify({ type: 'KeepAlive' }));
 			}, 8000);
 		}
-		timerInterval = setInterval(() => {
-			recordingTime++;
-		}, 1000);
 		currentState = 'recording';
 		animateAudioLevel();
 	}
@@ -426,10 +417,6 @@
 			audioContext = null;
 		}
 		analyser = null;
-		if (timerInterval) {
-			clearInterval(timerInterval);
-			timerInterval = null;
-		}
 		if (animationFrame) {
 			cancelAnimationFrame(animationFrame);
 			animationFrame = null;
@@ -452,7 +439,6 @@
 	function stopRecording() {
 		stopMediaResources();
 		currentState = 'idle';
-		recordingTime = 0;
 		transcript = '';
 		isNoisyEnvironment = false;
 		showNoisySuggestion = false;
@@ -530,7 +516,6 @@
 		inputMode = 'text';
 		currentState = 'paused';
 		transcript = '';
-		recordingTime = 0;
 	}
 
 	function dismissNameBanner() {
@@ -695,11 +680,24 @@
 							onclick={handleButtonAction}
 						/>
 					</div>
+
+					<!-- Waveform visualization (active recording only) -->
 					{#if isRecordingActive}
-						<div class="recording-status" in:fade={{ duration: 200 }}>
-							<span class="status-dot"></span>
-							<span class="status-text">{timerDisplay}</span>
+						<div class="waveform" in:fade={{ duration: 300 }}>
+							{#each waveformData as level}
+								<div
+									class="waveform-bar"
+									style="height: {Math.max(4, level * 40)}px"
+								></div>
+							{/each}
 						</div>
+					{/if}
+
+					<!-- Status text -->
+					{#if isRecordingActive}
+						<p class="record-hint" in:fade={{ duration: 200 }}>
+							{translate('recording.listening')}
+						</p>
 					{:else if isPaused}
 						<p class="record-hint" in:fade={{ duration: 200 }}>
 							{translate('dashboard.tapToResume')}
@@ -707,10 +705,13 @@
 					{:else}
 						<p class="record-hint">{translate('recording.tapToStart')}</p>
 					{/if}
-					<button class="type-option" onclick={startTypingMode}>
-						<Keyboard size={16} strokeWidth={2} />
-						<span>{translate('dashboard.orTypeInstead')}</span>
-					</button>
+
+					{#if !isRecordingActive}
+						<button class="type-option" onclick={startTypingMode}>
+							<Keyboard size={16} strokeWidth={2} />
+							<span>{translate('dashboard.orTypeInstead')}</span>
+						</button>
+					{/if}
 				</section>
 			</div>
 		</div>
@@ -728,10 +729,7 @@
 					<div class="popup-status">
 						{#if isRecordingActive}
 							<span class="popup-dot recording"></span>
-							<span class="popup-timer">{timerDisplay}</span>
-						{:else if isPaused}
-							<span class="popup-dot paused"></span>
-							<span class="popup-timer">{timerDisplay}</span>
+							<span class="popup-label">{translate('recording.listening')}</span>
 						{:else}
 							<span class="popup-label">{translate('recording.transcript')}</span>
 						{/if}
@@ -1116,39 +1114,23 @@
 		transform: scale(0.98);
 	}
 
-	/* Recording status indicator */
-	.recording-status {
+	/* Waveform visualization */
+	.waveform {
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
-		margin-bottom: var(--space-4);
+		justify-content: center;
+		gap: 3px;
+		height: 44px;
+		margin-bottom: var(--space-3);
 	}
 
-	.status-dot {
-		width: 10px;
-		height: 10px;
-		background: var(--data-red);
-		border-radius: var(--radius-full);
-		animation: status-pulse 1.2s ease-in-out infinite;
-	}
-
-	@keyframes status-pulse {
-		0%,
-		100% {
-			transform: scale(1);
-			opacity: 1;
-		}
-		50% {
-			transform: scale(1.2);
-			opacity: 0.7;
-		}
-	}
-
-	.status-text {
-		font-family: var(--font-mono);
-		font-size: var(--text-base);
-		font-weight: var(--font-semibold);
-		color: var(--data-red);
+	.waveform-bar {
+		width: 3px;
+		min-height: 4px;
+		max-height: 40px;
+		background: linear-gradient(180deg, var(--blu-primary, #0066ff) 0%, #5bc4f7 100%);
+		border-radius: 2px;
+		transition: height 0.06s ease-out;
 	}
 
 	/* ========== FLOATING TRANSCRIPT POPUP ========== */
@@ -1201,19 +1183,18 @@
 	}
 
 	.popup-dot.recording {
-		background: var(--data-red);
-		animation: status-pulse 1.2s ease-in-out infinite;
+		background: var(--blu-primary, #0066ff);
+		animation: dot-breathe 2s ease-in-out infinite;
 	}
 
-	.popup-dot.paused {
-		background: var(--data-yellow);
-	}
-
-	.popup-timer {
-		font-family: var(--font-mono);
-		font-size: var(--text-sm);
-		font-weight: var(--font-semibold);
-		color: var(--gray-700);
+	@keyframes dot-breathe {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.4;
+		}
 	}
 
 	.popup-label {
@@ -1483,7 +1464,6 @@
 			transition: none;
 		}
 
-		.status-dot,
 		.popup-dot.recording,
 		.step.active .step-dot,
 		.processing-ring,
@@ -1548,14 +1528,6 @@
 			border-radius: 14px;
 		}
 
-		/* Recording status */
-		.recording-status {
-			gap: 6px;
-		}
-
-		.status-text {
-			font-size: 15px;
-		}
 	}
 
 	/* Very small screens */
@@ -1564,10 +1536,6 @@
 			left: 8px;
 			right: 8px;
 			bottom: calc(8px + var(--safe-area-bottom, 0px));
-		}
-
-		.popup-timer {
-			font-size: 13px;
 		}
 
 		.popup-textarea {
