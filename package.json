@@ -1,6 +1,5 @@
 {
 	"name": "mr-blu-svelte",
-	"private": true,
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
@@ -76,7 +75,7 @@
 		"@capacitor/cli": "^8.0.2",
 		"@capacitor/core": "^8.0.2",
 		"@capacitor/ios": "^8.0.2",
-		"@kos/pdf-gen": "file:../pdf-gen",
+		"@kostia06/pdf-gen": "^1.0.0",
 		"@supabase/ssr": "^0.8.0",
 		"@supabase/supabase-js": "^2.89.0",
 		"@sveltejs/adapter-static": "^3.0.10",

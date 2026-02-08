@@ -4,7 +4,7 @@
  * Matches the invoice template's visual style with estimate-specific labels.
  */
 
-import type { PDFTemplate } from '@kos/pdf-gen';
+import type { PDFTemplate } from '@kostia06/pdf-gen';
 import type { DocumentSourceData } from './types';
 import type { MeasurementType } from '$lib/parsing/types';
 import {

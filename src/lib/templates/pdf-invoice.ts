@@ -4,7 +4,7 @@
  * The html() method produces inline-styled HTML that renders identically to the web preview.
  */
 
-import type { PDFTemplate } from '@kos/pdf-gen';
+import type { PDFTemplate } from '@kostia06/pdf-gen';
 import type { DocumentSourceData } from './types';
 import type { MeasurementType } from '$lib/parsing/types';
 import {
