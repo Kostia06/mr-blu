@@ -2,20 +2,21 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/i18n';
 
-	// Create reactive words array from translations
-	const translatedWords = $derived([
-		{ text: $t('landing.hero.word1') },
-		{ text: $t('landing.hero.word2'), highlight: true },
-		{ text: $t('landing.hero.word3') }
-	]);
-
 	let {
-		words = translatedWords
+		words: wordsProp
 	}: {
 		words?: { text: string; highlight?: boolean }[];
 	} = $props();
 
-	// Use derived for reactive translation
+	// Reactive: use prop if provided, otherwise derive from translations
+	const words = $derived(
+		wordsProp ?? [
+			{ text: $t('landing.hero.word1') },
+			{ text: $t('landing.hero.word2'), highlight: true },
+			{ text: $t('landing.hero.word3') }
+		]
+	);
+
 	const subheadline = $derived($t('landing.hero.subheadline'));
 
 	let visible = $state(false);
