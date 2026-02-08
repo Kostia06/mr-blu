@@ -54,19 +54,37 @@ export function prepareTemplateData(
 	const { forPdf = false } = options;
 
 	// Format line items
-	const lineItems: TemplateLineItem[] = doc.lineItems.map((item) => ({
-		description: item.description,
-		qtyDisplay: formatQtyDisplay({
+	const lineItems: TemplateLineItem[] = doc.lineItems.map((item) => {
+		const qtyDisplay = formatQtyDisplay({
 			quantity: item.quantity,
 			measurementType: item.measurementType,
 			dimensions: item.dimensions
-		}),
-		rateDisplay: formatRateDisp({
+		});
+		const rateDisplay = formatRateDisp({
 			rate: item.rate,
 			measurementType: item.measurementType
-		}),
-		totalFormatted: formatCurrency(item.total)
-	}));
+		});
+
+		// Build mobile subtext: "156 sqft @ $57.00/sqft"
+		// Skip for simple qty=1 unit items (no useful info to show)
+		const qty = item.quantity ?? 1;
+		const unit = item.unit || 'unit';
+		const mt = item.measurementType;
+		const isSimple = qty === 1 && (!mt || mt === 'unit') && unit === 'unit';
+		const isServiceJob = mt === 'service' || mt === 'job';
+		let qtySubtext = '';
+		if (!isSimple && !isServiceJob) {
+			qtySubtext = `${qtyDisplay} @ ${rateDisplay}`;
+		}
+
+		return {
+			description: item.description,
+			qtyDisplay,
+			rateDisplay,
+			totalFormatted: formatCurrency(item.total),
+			qtySubtext
+		};
+	});
 
 	// Determine if business name should be shown (only if different from name)
 	const showBusinessName = Boolean(
@@ -145,11 +163,17 @@ export function renderTemplate(template: string, data: RenderedTemplateData): st
 		return data.lineItems
 			.map((item) => {
 				let itemHtml = content;
+				// Handle qtySubtext conditional section
+				itemHtml = itemHtml.replace(
+					/\{\{#qtySubtext\}\}([\s\S]*?)\{\{\/qtySubtext\}\}/g,
+					(_: string, inner: string) => (item.qtySubtext ? inner : '')
+				);
 				// Replace item-level variables
 				itemHtml = itemHtml.replace(/\{\{description\}\}/g, escapeHtml(item.description));
 				itemHtml = itemHtml.replace(/\{\{qtyDisplay\}\}/g, escapeHtml(item.qtyDisplay));
 				itemHtml = itemHtml.replace(/\{\{rateDisplay\}\}/g, escapeHtml(item.rateDisplay));
 				itemHtml = itemHtml.replace(/\{\{totalFormatted\}\}/g, escapeHtml(item.totalFormatted));
+				itemHtml = itemHtml.replace(/\{\{qtySubtext\}\}/g, escapeHtml(item.qtySubtext));
 				return itemHtml;
 			})
 			.join('');

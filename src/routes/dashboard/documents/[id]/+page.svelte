@@ -23,6 +23,7 @@
 	import DocumentTemplate from '$lib/components/DocumentTemplate.svelte';
 	import type { DocumentData } from '$lib/components/DocumentTemplate.svelte';
 	import { t } from '$lib/i18n';
+	import { toast } from '$lib/stores/toast';
 
 	let { data } = $props();
 
@@ -371,6 +372,7 @@
 			if (response.ok && result.success) {
 				sendSuccess = true;
 				showEmailModal = false;
+				toast.success($t('docDetail.emailSuccess'));
 				setTimeout(() => {
 					sendSuccess = false;
 				}, 3000);

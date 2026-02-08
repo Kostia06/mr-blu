@@ -220,6 +220,11 @@ body {
     font-weight: 600;
 }
 
+/* Quantity subtext: hidden on desktop, shown on mobile when Qty/Rate columns are hidden */
+.qty-subtext {
+    display: none;
+}
+
 .items-table td.qty-col,
 .items-table td.rate-col {
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
@@ -412,6 +417,14 @@ body {
         width: auto;
     }
 
+    .document-template:not(.for-pdf) .qty-subtext {
+        display: block;
+        font-size: 11px;
+        font-weight: 400;
+        color: #6b7280;
+        margin-top: 2px;
+    }
+
     .document-template:not(.for-pdf) .total-col {
         width: 35%;
     }
@@ -487,7 +500,7 @@ body {
             <tbody>
                 {{#lineItems}}
                 <tr>
-                    <td class="desc-col">{{description}}</td>
+                    <td class="desc-col">{{description}}{{#qtySubtext}}<span class="qty-subtext">{{qtySubtext}}</span>{{/qtySubtext}}</td>
                     <td class="qty-col">{{qtyDisplay}}</td>
                     <td class="rate-col">{{rateDisplay}}</td>
                     <td class="total-col">{{totalFormatted}}</td>

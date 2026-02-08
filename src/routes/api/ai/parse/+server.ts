@@ -74,7 +74,11 @@ DETERMINE INTENT:
 4. "document_send" - SEND existing doc ("send Jackson's estimate", "email the invoice")
 5. "document_transform" - CONVERT type ("turn estimate into invoice")
 
-Convert spoken numbers: "5k"→5000, "five hundred"→500
+Convert ALL spoken/written numbers to digits:
+- "five hundred"→500, "5k"→5000, "two thousand"→2000
+- "eight thousand 892"→8892, "two thousand 100"→2100, "five 100"→500
+- "twenty five hundred"→2500, "fifteen thousand"→15000
+- ALWAYS output numbers as digits, never as words
 
 RESPOND WITH VALID JSON ONLY:
 
