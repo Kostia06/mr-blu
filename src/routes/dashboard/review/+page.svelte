@@ -1034,8 +1034,9 @@
 			},
 			items: data.items.map((item) => {
 				let dims: string | undefined;
-				if (typeof item.dimensions === 'string') {
-					dims = item.dimensions.includes('undefined') ? undefined : item.dimensions;
+				const rawDims = item.dimensions as unknown;
+				if (typeof rawDims === 'string') {
+					dims = rawDims.includes('undefined') ? undefined : rawDims;
 				} else if (item.dimensions?.width && item.dimensions?.length) {
 					dims = `${item.dimensions.width} × ${item.dimensions.length} ${item.dimensions.unit || 'ft'}`;
 				}

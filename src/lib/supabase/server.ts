@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY } from '$env/static/public';
 import { dev } from '$app/environment';
 import type { Cookies } from '@sveltejs/kit';
 
@@ -7,7 +7,7 @@ import type { Cookies } from '@sveltejs/kit';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 export function createClient(cookies: Cookies) {
-	return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+	return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY, {
 		cookies: {
 			getAll: () => cookies.getAll(),
 			setAll: (cookiesToSet) => {
