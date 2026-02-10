@@ -105,6 +105,7 @@ export function prepareTemplateData(
 		fromAddress: doc.from.address || '',
 		fromEmail: doc.from.email || '',
 		fromPhone: doc.from.phone || '',
+		fromWebsite: doc.from.website || '',
 
 		// Bill To (recipient)
 		clientName: doc.client.name || 'Unknown Client',
@@ -181,6 +182,7 @@ export function renderTemplate(template: string, data: RenderedTemplateData): st
 		'fromAddress',
 		'fromEmail',
 		'fromPhone',
+		'fromWebsite',
 		'clientAddress',
 		'clientEmail',
 		'clientPhone',
@@ -216,6 +218,7 @@ export function renderTemplate(template: string, data: RenderedTemplateData): st
 		'fromAddress',
 		'fromEmail',
 		'fromPhone',
+		'fromWebsite',
 		'clientName',
 		'clientAddress',
 		'clientEmail',

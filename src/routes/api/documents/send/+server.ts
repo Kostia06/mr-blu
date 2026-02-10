@@ -90,7 +90,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 			// Get sender info first (needed for subject and PDF)
 			const { data: profile } = await supabase
 				.from('profiles')
-				.select('full_name, business_name, email, phone, address, business_address')
+				.select('full_name, business_name, email, phone, address, business_address, website')
 				.eq('id', session.user.id)
 				.single();
 
@@ -158,7 +158,8 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 						address: fullAddress || null,
 						city: null,
 						phone: profile?.phone || userMeta?.phone || null,
-						email: profile?.email || session.user.email || null
+						email: profile?.email || session.user.email || null,
+						website: profile?.website || biz?.website || null
 					},
 					items: (data?.line_items || []).map((item: Record<string, unknown>, i: number) => {
 						let dims: string | undefined;

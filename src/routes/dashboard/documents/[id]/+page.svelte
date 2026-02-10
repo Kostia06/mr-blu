@@ -111,7 +111,8 @@
 			businessName: data.profile?.business_name || undefined,
 			email: data.profile?.email || undefined,
 			phone: data.profile?.phone || undefined,
-			address: data.profile?.address || undefined
+			address: data.profile?.address || undefined,
+			website: data.profile?.website || undefined
 		},
 		lineItems: (doc.line_items || []).map((item: any) => {
 			let dims: string | undefined;

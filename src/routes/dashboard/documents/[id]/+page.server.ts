@@ -13,17 +13,33 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	// Fetch user profile for "From" section
 	const { data: profile } = await locals.supabase
 		.from('profiles')
-		.select('full_name, business_name, email, phone, address')
+		.select('full_name, business_name, email, phone, address, website')
 		.eq('id', session.user.id)
 		.single();
 
-	// Fallback: derive full name from user_metadata if profile.full_name is empty
-	if (profile && !profile.full_name) {
+	// Fallback: derive fields from user_metadata if profile is missing them
+	if (profile) {
 		const meta = session.user.user_metadata;
-		if (meta?.first_name && meta?.last_name) {
-			profile.full_name = `${meta.first_name} ${meta.last_name}`;
-		} else if (meta?.first_name || meta?.last_name) {
-			profile.full_name = meta.first_name || meta.last_name;
+
+		if (!profile.full_name) {
+			if (meta?.first_name && meta?.last_name) {
+				profile.full_name = `${meta.first_name} ${meta.last_name}`;
+			} else if (meta?.first_name || meta?.last_name) {
+				profile.full_name = meta.first_name || meta.last_name;
+			}
+		}
+
+		if (!profile.business_name && meta?.business?.name) {
+			profile.business_name = meta.business.name;
+		}
+
+		if (!profile.address && meta?.business) {
+			const b = meta.business;
+			profile.address = [b.address, b.city, b.state, b.zip].filter(Boolean).join(', ');
+		}
+
+		if (!profile.website && meta?.business?.website) {
+			profile.website = meta.business.website;
 		}
 	}
 

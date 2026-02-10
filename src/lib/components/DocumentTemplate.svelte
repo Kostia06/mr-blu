@@ -22,6 +22,7 @@
 			email?: string;
 			phone?: string;
 			address?: string;
+			website?: string;
 		};
 		lineItems: Array<{
 			description: string;
@@ -61,7 +62,8 @@
 			businessName: document.from.businessName,
 			email: document.from.email,
 			phone: document.from.phone,
-			address: document.from.address
+			address: document.from.address,
+			website: document.from.website
 		},
 		lineItems: document.lineItems.map((item) => ({
 			description: item.description,

@@ -24,6 +24,7 @@ export interface EstimateData {
 	businessEmail?: string;
 	businessPhone?: string;
 	businessAddress?: string;
+	businessWebsite?: string;
 	clientName: string;
 	clientEmail?: string;
 	clientPhone?: string;
@@ -113,6 +114,7 @@ export const estimateTemplate: PDFTemplate<EstimateData> = {
 			${data.businessEmail ? `<p style="font-size: 11px; color: #1a1a1a;">${escapeHtml(data.businessEmail)}</p>` : ''}
 			${data.businessPhone ? `<p style="font-size: 11px; color: #1a1a1a;">${escapeHtml(data.businessPhone)}</p>` : ''}
 			${data.businessAddress ? `<p style="font-size: 11px; color: #1a1a1a;">${escapeHtml(data.businessAddress)}</p>` : ''}
+			${data.businessWebsite ? `<p style="font-size: 11px; color: #1a1a1a;">${escapeHtml(data.businessWebsite)}</p>` : ''}
 		</div>
 		<div>
 			<p style="font-size: 9px; color: #6b7280; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">Prepared For</p>
@@ -192,6 +194,7 @@ export function mapSourceToEstimate(source: DocumentSourceData): EstimateData {
 		businessEmail: source.from.email || undefined,
 		businessPhone: source.from.phone || undefined,
 		businessAddress: source.from.address || undefined,
+		businessWebsite: source.from.website || undefined,
 		clientName: source.client.name,
 		clientEmail: source.client.email || undefined,
 		clientPhone: source.client.phone || undefined,

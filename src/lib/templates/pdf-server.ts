@@ -56,7 +56,8 @@ export async function generatePDFServer(
 			businessName: data.from.businessName,
 			email: data.from.email,
 			phone: data.from.phone,
-			address: data.from.address
+			address: data.from.address,
+			website: data.from.website
 		},
 		lineItems: data.items.map((item) => ({
 			description: item.description,

@@ -102,6 +102,7 @@ export interface TemplateData {
 		city: string | null;
 		phone: string | null;
 		email: string | null;
+		website: string | null;
 	};
 
 	// Line items

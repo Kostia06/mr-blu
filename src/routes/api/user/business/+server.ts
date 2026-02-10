@@ -31,12 +31,19 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 			return json({ error: updateError.message }, { status: 400 });
 		}
 
+		// Compose full address for templates
+		const fullAddress = [business.address, business.city, business.state, business.zip]
+			.filter(Boolean)
+			.join(', ');
+
 		// Also update the profiles table if it exists
 		const { error: profileError } = await locals.supabase.from('profiles').upsert(
 			{
 				id: session.user.id,
 				business_name: business.name || null,
 				business_address: business.address || null,
+				address: fullAddress || null,
+				website: business.website || null,
 				updated_at: new Date().toISOString()
 			},
 			{ onConflict: 'id' }

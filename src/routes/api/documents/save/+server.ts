@@ -19,6 +19,7 @@ interface TemplateDataInput {
 		city?: string | null;
 		phone?: string | null;
 		email?: string | null;
+		website?: string | null;
 	};
 	items: Array<{
 		id: string;

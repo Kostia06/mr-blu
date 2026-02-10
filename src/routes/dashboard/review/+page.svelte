@@ -101,7 +101,8 @@
 						businessName: p.business_name || '',
 						address: fullAddress,
 						phone: p.phone || '',
-						email: p.email || ''
+						email: p.email || '',
+						website: p.website || biz?.website || ''
 					};
 				}
 			}
@@ -267,7 +268,8 @@
 		businessName: '',
 		address: '',
 		phone: '',
-		email: ''
+		email: '',
+		website: ''
 	});
 
 	let data = $state<ParsedData>({
@@ -1030,7 +1032,8 @@
 				address: businessInfo.address || null,
 				city: null,
 				phone: businessInfo.phone || null,
-				email: businessInfo.email || null
+				email: businessInfo.email || null,
+				website: businessInfo.website || null
 			},
 			items: data.items.map((item) => {
 				let dims: string | undefined;
@@ -1077,7 +1080,8 @@
 					businessName: tpl.from.businessName,
 					email: tpl.from.email,
 					phone: tpl.from.phone,
-					address: tpl.from.address
+					address: tpl.from.address,
+					website: tpl.from.website
 				},
 				lineItems: tpl.items.map(
 					(item: {

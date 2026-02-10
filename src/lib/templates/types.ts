@@ -24,6 +24,7 @@ export interface DocumentSourceData {
 		email?: string | null;
 		phone?: string | null;
 		address?: string | null;
+		website?: string | null;
 	};
 	lineItems: Array<{
 		description: string;
@@ -79,6 +80,7 @@ export interface RenderedTemplateData {
 	fromAddress: string;
 	fromEmail: string;
 	fromPhone: string;
+	fromWebsite: string;
 
 	// Bill To (recipient)
 	clientName: string;

@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 		// Fetch from profiles table
 		const { data: profile, error } = await locals.supabase
 			.from('profiles')
-			.select('full_name, business_name, email, phone, address, business_address')
+			.select('full_name, business_name, email, phone, address, business_address, website')
 			.eq('id', session.user.id)
 			.single();
 
@@ -31,7 +31,8 @@ export const GET: RequestHandler = async ({ locals }) => {
 				business_name: profile?.business_name || biz?.name || null,
 				email: profile?.email || userData.email || null,
 				phone: profile?.phone || userData.user_metadata?.phone || null,
-				address: profile?.business_address || profile?.address || biz?.address || null
+				address: profile?.business_address || profile?.address || biz?.address || null,
+				website: profile?.website || biz?.website || null
 			}
 		});
 	} catch (error) {

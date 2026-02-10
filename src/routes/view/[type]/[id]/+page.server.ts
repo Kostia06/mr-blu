@@ -30,6 +30,7 @@ interface DocumentData {
 		email?: string;
 		phone?: string;
 		address?: string;
+		website?: string;
 	};
 	lineItems: Array<{
 		description: string;
@@ -112,7 +113,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	// Fetch the owner's profile for "from" info
 	const { data: profile } = await supabase
 		.from('profiles')
-		.select('full_name, business_name, email, phone, address')
+		.select('full_name, business_name, email, phone, address, website')
 		.eq('id', doc.user_id)
 		.single();
 
@@ -143,10 +144,22 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		},
 		from: {
 			name: profile?.full_name || userFullName || null,
-			businessName: profile?.business_name || '',
+			businessName: profile?.business_name || userMeta?.business?.name || '',
 			email: userEmail,
 			phone: userPhone,
-			address: profile?.address
+			address:
+				profile?.address ||
+				(userMeta?.business
+					? [
+							userMeta.business.address,
+							userMeta.business.city,
+							userMeta.business.state,
+							userMeta.business.zip
+						]
+							.filter(Boolean)
+							.join(', ')
+					: undefined),
+			website: profile?.website || userMeta?.business?.website || undefined
 		},
 		lineItems: (doc.line_items || []).map((item: Record<string, unknown>) => {
 			// Handle dimensions - convert old object format to string if needed
