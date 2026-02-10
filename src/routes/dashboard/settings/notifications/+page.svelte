@@ -4,11 +4,11 @@
 	import { goto, invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
+	import Check from 'lucide-svelte/icons/check';
 	import Receipt from 'lucide-svelte/icons/receipt';
 	import FileText from 'lucide-svelte/icons/file-text';
-	import BarChart3 from 'lucide-svelte/icons/bar-chart-3';
 	import Loader2 from 'lucide-svelte/icons/loader-2';
-	import Check from 'lucide-svelte/icons/check';
+	import Mail from 'lucide-svelte/icons/mail';
 	import BellRing from 'lucide-svelte/icons/bell-ring';
 	import Info from 'lucide-svelte/icons/info';
 	import { FormSection } from '$lib/components/forms';
@@ -16,16 +16,14 @@
 
 	interface NotificationPreferences {
 		emailOnInvoiceSent: boolean;
-		emailOnInvoicePaid: boolean;
 		emailOnEstimateSent: boolean;
-		emailWeeklySummary: boolean;
+		emailConfirmation: boolean;
 	}
 
 	let preferences = $state<NotificationPreferences>({
 		emailOnInvoiceSent: true,
-		emailOnInvoicePaid: true,
 		emailOnEstimateSent: true,
-		emailWeeklySummary: false
+		emailConfirmation: true
 	});
 
 	let loading = $state(true);
@@ -82,37 +80,26 @@
 		savePreferences();
 	}
 
-	const notificationOptions: {
-		key: keyof NotificationPreferences;
-		icon: typeof Receipt;
-		label: string;
-		desc: string;
-	}[] = [
+	const notificationOptions = $derived([
 		{
-			key: 'emailOnInvoiceSent',
+			key: 'emailOnInvoiceSent' as keyof NotificationPreferences,
 			icon: Receipt,
-			label: 'Invoice Sent',
-			desc: 'Get notified when an invoice is sent to a client'
+			label: $t('settings.notifInvoiceSent'),
+			desc: $t('settings.notifInvoiceSentDesc')
 		},
 		{
-			key: 'emailOnInvoicePaid',
-			icon: Check,
-			label: 'Invoice Paid',
-			desc: 'Get notified when a client pays an invoice'
-		},
-		{
-			key: 'emailOnEstimateSent',
+			key: 'emailOnEstimateSent' as keyof NotificationPreferences,
 			icon: FileText,
-			label: 'Estimate Sent',
-			desc: 'Get notified when an estimate is sent to a client'
+			label: $t('settings.notifEstimateSent'),
+			desc: $t('settings.notifEstimateSentDesc')
 		},
 		{
-			key: 'emailWeeklySummary',
-			icon: BarChart3,
-			label: 'Weekly Summary',
-			desc: 'Receive a weekly summary of your activity'
+			key: 'emailConfirmation' as keyof NotificationPreferences,
+			icon: Mail,
+			label: $t('settings.notifConfirmation'),
+			desc: $t('settings.notifConfirmationDesc')
 		}
-	];
+	]);
 </script>
 
 <main class="notifications-page">
@@ -152,18 +139,17 @@
 			</div>
 			<p class="preview-label">
 				{#if loading}
-					Loading...
+					{$t('common.loading')}
 				{:else if enabledCount === 0}
-					All notifications disabled
+					{$t('settings.notifAllDisabled')}
 				{:else}
-					{enabledCount} notification{enabledCount !== 1 ? 's' : ''} enabled
+					{$t('settings.notifEnabledCount', { count: enabledCount })}
 				{/if}
 			</p>
 		</section>
 
 		{#if loading}
 			<div class="loading-state">
-				<div class="skeleton-card"></div>
 				<div class="skeleton-card"></div>
 				<div class="skeleton-card"></div>
 				<div class="skeleton-card"></div>
@@ -209,7 +195,7 @@
 		<!-- Info Note -->
 		<div class="info-note">
 			<Info size={18} strokeWidth={1.5} />
-			<p>Changes are saved automatically when you toggle a setting.</p>
+			<p>{$t('settings.notifAutoSave')}</p>
 		</div>
 	</div>
 </main>

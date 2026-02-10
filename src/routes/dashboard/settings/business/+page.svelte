@@ -2,6 +2,7 @@
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { goto, invalidate } from '$app/navigation';
+	import { page } from '$app/stores';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import Check from 'lucide-svelte/icons/check';
 	import Loader2 from 'lucide-svelte/icons/loader-2';
@@ -39,6 +40,12 @@
 			website = business.website || '';
 			initialized = true;
 		}
+	});
+
+	const backUrl = $derived.by(() => {
+		if ($page.url.searchParams.get('from') !== 'review') return '/dashboard/settings';
+		const sessionId = $page.url.searchParams.get('session');
+		return sessionId ? `/dashboard/review?session=${sessionId}` : '/dashboard/review';
 	});
 
 	let saving = $state(false);
@@ -92,7 +99,7 @@
 	<header class="page-header" in:fly={{ y: -20, duration: 400, easing: cubicOut }}>
 		<button
 			class="back-btn"
-			onclick={() => goto('/dashboard/settings')}
+			onclick={() => goto(backUrl)}
 			aria-label={$t('common.backToSettings')}
 		>
 			<ChevronLeft size={22} strokeWidth={2} />

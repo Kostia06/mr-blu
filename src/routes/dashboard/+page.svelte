@@ -2,6 +2,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
+	import { PENDING_REVIEW_PREVIEW_LENGTH } from '$lib/constants';
 	import { cubicOut } from 'svelte/easing';
 	import Sparkles from 'lucide-svelte/icons/sparkles';
 	import X from 'lucide-svelte/icons/x';
@@ -14,14 +15,13 @@
 	import RecordButton from '$lib/components/RecordButtonMobile.svelte';
 	import { inputPreferences, type InputMode } from '$lib/stores/inputPreferences';
 	import { isRecordingMode as isRecordingModeStore } from '$lib/stores/appState';
+	import { createVoiceRecording } from '$lib/stores/voiceRecording.svelte';
 
 	let { data } = $props();
 
 	// Check for existing review session from server data (persistent across browser restarts)
 	const pendingReview = $derived(data.pendingReview);
 	let pendingReviewDismissed = $state(false);
-
-	type State = 'idle' | 'recording' | 'paused' | 'processing';
 
 	// Get user from session (use $derived for reactivity)
 	const user = $derived(data.session?.user);
@@ -31,44 +31,15 @@
 	const firstName = $derived(fullName.split(' ')[0] || '');
 	const hasName = $derived(firstName.length > 0);
 
-	// Recording state
-	let currentState = $state<State>('idle');
-	let error: string | null = $state(null);
-	let transcript = $state('');
-	let interimTranscript = $state('');
-	let mediaRecorder: MediaRecorder | null = null;
-	let mediaStream: MediaStream | null = null;
-
-	// Deepgram WebSocket
-	let socket: WebSocket | null = null;
-	let deepgramApiKey: string | null = null;
-	let reconnectAttempts = 0;
-	let maxReconnectAttempts = 3;
-	let keepaliveInterval: ReturnType<typeof setInterval> | null = null;
-	let audioBuffer: Blob[] = [];
-	let isSocketReady = false;
-
-	// Audio visualization
-	let audioContext: AudioContext | null = null;
-	let analyser: AnalyserNode | null = null;
-	let animationFrame: number | null = null;
-	let audioLevel = $state(0);
+	// Voice recording composable
+	const voice = createVoiceRecording();
 
 	// Input mode from preferences store
 	let inputMode = $state<InputMode>('voice');
 	let prefsUnsubscribe: (() => void) | null = null;
 
-	// Noise detection
-	let isNoisyEnvironment = $state(false);
-	let showNoisySuggestion = $state(false);
-
-	// Transcript expansion state
 	// svelte-ignore non_reactive_update
 	let transcriptTextarea: HTMLTextAreaElement | null = null;
-	let noiseCheckCount = $state(0);
-	let highNoiseCount = $state(0);
-	const NOISE_THRESHOLD = 0.35;
-	const NOISE_SUGGESTION_THRESHOLD = 5;
 
 	// Name banner dismissal state
 	let nameBannerDismissed = $state(false);
@@ -88,12 +59,18 @@
 		return translate('dashboard.goodEvening');
 	};
 
-	const isRecordingActive = $derived(currentState === 'recording');
+	// Derived state from voice composable (template-friendly aliases)
+	const currentState = $derived(voice.currentState);
+	const transcript = $derived(voice.transcript);
+	const interimTranscript = $derived(voice.interimTranscript);
+	const displayTranscript = $derived(voice.displayTranscript);
+	const audioLevel = $derived(voice.audioLevel);
+	const error = $derived(voice.error);
+	const isRecordingActive = $derived(voice.isRecordingActive);
+	const isNoisyEnvironment = $derived(voice.isNoisyEnvironment);
+	const showNoisySuggestion = $derived(voice.showNoisySuggestion);
 	const isPaused = $derived(currentState === 'paused');
 	const isProcessing = $derived(currentState === 'processing');
-	const displayTranscript = $derived(
-		transcript + (interimTranscript ? ' ' + interimTranscript : '')
-	);
 	const canGenerate = $derived(
 		transcript.trim().length > 0 && currentState !== 'recording' && currentState !== 'processing'
 	);
@@ -107,345 +84,22 @@
 
 	// Auto-scroll transcript textarea when content changes during recording
 	$effect(() => {
-		// Track displayTranscript changes
 		const _ = displayTranscript;
 		if (transcriptTextarea && isRecordingActive) {
-			// Scroll to bottom to show latest transcription
 			transcriptTextarea.scrollTop = transcriptTextarea.scrollHeight;
 		}
 	});
 
-	// Use automatic multi-language detection for better UX
-	// Deepgram's nova-2 model handles Spanish, English, and other languages automatically
-	function getDeepgramLanguage(): string {
-		return 'multi';
-	}
-
-	async function fetchDeepgramKey(retries = 2): Promise<boolean> {
-		for (let i = 0; i <= retries; i++) {
-			try {
-				const response = await fetch('/api/deepgram/token');
-				if (response.ok) {
-					const data = await response.json();
-					if (data.apiKey) {
-						deepgramApiKey = data.apiKey;
-						return true;
-					}
-				}
-				if (i < retries) await new Promise((r) => setTimeout(r, 500 * (i + 1)));
-			} catch (err) {
-				if (i < retries) await new Promise((r) => setTimeout(r, 500 * (i + 1)));
-			}
-		}
-		return false;
-	}
-
-	function animateAudioLevel() {
-		if (!analyser || !isRecordingActive) {
-			audioLevel = 0;
-			return;
-		}
-
-		const dataArray = new Uint8Array(analyser.frequencyBinCount);
-		analyser.getByteFrequencyData(dataArray);
-
-		let sum = 0;
-		for (let i = 0; i < dataArray.length; i++) {
-			sum += dataArray[i];
-		}
-		const avg = sum / dataArray.length;
-		const targetLevel = Math.min(avg / 128, 1);
-		audioLevel = audioLevel * 0.7 + targetLevel * 0.3;
-
-		// Noise detection
-		noiseCheckCount++;
-		if (noiseCheckCount >= 10) {
-			noiseCheckCount = 0;
-			if (audioLevel > NOISE_THRESHOLD && !transcript.trim()) {
-				highNoiseCount++;
-				if (highNoiseCount >= NOISE_SUGGESTION_THRESHOLD && !showNoisySuggestion) {
-					isNoisyEnvironment = true;
-					showNoisySuggestion = true;
-				}
-			} else if (audioLevel < NOISE_THRESHOLD * 0.5) {
-				highNoiseCount = Math.max(0, highNoiseCount - 1);
-			}
-		}
-
-		animationFrame = requestAnimationFrame(animateAudioLevel);
-	}
-
-	function handleSpeechToTextError() {
-		// Stop recording resources but keep transcript
-		stopMediaResources();
-
-		// Switch to text mode and show error
-		inputMode = 'text';
-		currentState = 'paused';
-		error = translate('errors.speechToTextUnavailable');
-	}
-
-	function connectDeepgram() {
-		if (!deepgramApiKey || !mediaRecorder) return;
-
-		const lang = getDeepgramLanguage();
-		const wsUrl = `wss://api.deepgram.com/v1/listen?model=nova-2&language=${lang}&smart_format=true&punctuate=true&interim_results=true&endpointing=200&vad_events=true`;
-
-		try {
-			socket = new WebSocket(wsUrl, ['token', deepgramApiKey]);
-			isSocketReady = false;
-
-			socket.onopen = () => {
-				isSocketReady = true;
-				reconnectAttempts = 0;
-
-				while (audioBuffer.length > 0) {
-					const bufferedData = audioBuffer.shift();
-					if (bufferedData && socket?.readyState === WebSocket.OPEN) {
-						socket.send(bufferedData);
-					}
-				}
-
-				if (keepaliveInterval) clearInterval(keepaliveInterval);
-				keepaliveInterval = setInterval(() => {
-					if (socket?.readyState === WebSocket.OPEN) {
-						socket.send(JSON.stringify({ type: 'KeepAlive' }));
-					}
-				}, 8000);
-			};
-
-			socket.onmessage = (event) => {
-				try {
-					const data = JSON.parse(event.data);
-					const result = data.channel?.alternatives?.[0]?.transcript;
-					if (result) {
-						if (data.is_final) {
-							transcript = transcript ? transcript + ' ' + result : result;
-							interimTranscript = '';
-						} else {
-							interimTranscript = result;
-						}
-					}
-				} catch (err) {
-					console.error('Error parsing Deepgram response:', err);
-				}
-			};
-
-			socket.onerror = () => {
-				isSocketReady = false;
-			};
-			socket.onclose = (event) => {
-				isSocketReady = false;
-				if (keepaliveInterval) {
-					clearInterval(keepaliveInterval);
-					keepaliveInterval = null;
-				}
-				if (currentState === 'recording' && reconnectAttempts < maxReconnectAttempts) {
-					reconnectAttempts++;
-					setTimeout(connectDeepgram, 500 * reconnectAttempts);
-				} else if (reconnectAttempts >= maxReconnectAttempts && currentState === 'recording') {
-					handleSpeechToTextError();
-				}
-			};
-		} catch (err) {
-			handleSpeechToTextError();
-		}
-	}
-
-	async function startRecording() {
-		try {
-			currentState = 'recording';
-			transcript = '';
-			interimTranscript = '';
-			reconnectAttempts = 0;
-			audioBuffer = [];
-			isSocketReady = false;
-			error = '';
-
-			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-				throw new Error('MediaDevices API not available.');
-			}
-
-			mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-			try {
-				audioContext = new AudioContext();
-				if (audioContext.state === 'suspended') await audioContext.resume();
-				const source = audioContext.createMediaStreamSource(mediaStream);
-				analyser = audioContext.createAnalyser();
-				analyser.fftSize = 256;
-				analyser.smoothingTimeConstant = 0.8;
-				source.connect(analyser);
-			} catch (audioErr) {
-				// Continue without visualization
-			}
-
-			// Try to create MediaRecorder with best available MIME type
-			const mimeTypes = [
-				'audio/webm;codecs=opus',
-				'audio/webm',
-				'audio/mp4',
-				'audio/ogg;codecs=opus',
-				'' // Empty string = browser default
-			];
-
-			let recorderCreated = false;
-			for (const mimeType of mimeTypes) {
-				if (recorderCreated) break;
-				try {
-					if (
-						mimeType &&
-						typeof MediaRecorder.isTypeSupported === 'function' &&
-						!MediaRecorder.isTypeSupported(mimeType)
-					) {
-						continue;
-					}
-					const options = mimeType ? { mimeType } : undefined;
-					mediaRecorder = new MediaRecorder(mediaStream, options);
-					recorderCreated = true;
-				} catch {
-					// Try next MIME type
-				}
-			}
-
-			// MediaRecorder is optional - continue without it if creation fails
-			// Deepgram will still work via direct streaming
-			if (mediaRecorder) {
-				mediaRecorder.ondataavailable = (e) => {
-					if (e.data.size > 0) {
-						if (socket?.readyState === WebSocket.OPEN && isSocketReady) {
-							socket.send(e.data);
-						} else if (deepgramApiKey) {
-							audioBuffer.push(e.data);
-							if (audioBuffer.length > 50) audioBuffer.shift();
-						}
-					}
-				};
-				mediaRecorder.start(100);
-			}
-
-			if (deepgramApiKey) {
-				connectDeepgram();
-			} else {
-				handleSpeechToTextError();
-			}
-
-			animateAudioLevel();
-		} catch (err) {
-			if (err instanceof Error) {
-				error = `Microphone error: ${err.message}`;
-			} else {
-				error = 'Microphone error';
-			}
-			if (mediaStream) {
-				mediaStream.getTracks().forEach((track) => track.stop());
-				mediaStream = null;
-			}
-			currentState = 'idle';
-		}
-	}
-
-	function pauseRecording() {
-		if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.pause();
-		if (keepaliveInterval) {
-			clearInterval(keepaliveInterval);
-			keepaliveInterval = null;
-		}
-		if (animationFrame) {
-			cancelAnimationFrame(animationFrame);
-			animationFrame = null;
-		}
-		audioLevel = 0;
-
-		// Save any interim transcript before clearing (text that Deepgram hadn't finalized yet)
-		if (interimTranscript.trim()) {
-			transcript = transcript
-				? transcript + ' ' + interimTranscript.trim()
-				: interimTranscript.trim();
-		}
-		interimTranscript = '';
-		currentState = 'paused';
-	}
-
-	function resumeRecording() {
-		if (mediaRecorder && mediaRecorder.state === 'paused') mediaRecorder.resume();
-		if (socket?.readyState === WebSocket.OPEN && !keepaliveInterval) {
-			keepaliveInterval = setInterval(() => {
-				if (socket?.readyState === WebSocket.OPEN)
-					socket.send(JSON.stringify({ type: 'KeepAlive' }));
-			}, 8000);
-		}
-		currentState = 'recording';
-		animateAudioLevel();
-	}
-
-	// Helper to stop media resources without clearing transcript/state
-	function stopMediaResources() {
-		if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-		mediaRecorder = null;
-
-		if (keepaliveInterval) {
-			clearInterval(keepaliveInterval);
-			keepaliveInterval = null;
-		}
-		if (socket) {
-			if (socket.readyState === WebSocket.OPEN) {
-				try {
-					socket.send(JSON.stringify({ type: 'CloseStream' }));
-				} catch { /* ignore close errors */ }
-			}
-			socket.close();
-			socket = null;
-		}
-
-		if (mediaStream) {
-			mediaStream.getTracks().forEach((track) => track.stop());
-			mediaStream = null;
-		}
-		if (audioContext) {
-			audioContext.close();
-			audioContext = null;
-		}
-		analyser = null;
-		if (animationFrame) {
-			cancelAnimationFrame(animationFrame);
-			animationFrame = null;
-		}
-
-		audioLevel = 0;
-
-		// Save any interim transcript before clearing
-		if (interimTranscript.trim()) {
-			transcript = transcript
-				? transcript + ' ' + interimTranscript.trim()
-				: interimTranscript.trim();
-		}
-		interimTranscript = '';
-		isSocketReady = false;
-		audioBuffer = [];
-		reconnectAttempts = 0;
-	}
-
-	function stopRecording() {
-		stopMediaResources();
-		currentState = 'idle';
-		transcript = '';
-		isNoisyEnvironment = false;
-		showNoisySuggestion = false;
-		noiseCheckCount = 0;
-		highNoiseCount = 0;
-	}
-
 	function handleButtonAction() {
 		if (currentState === 'idle') {
-			startRecording();
+			voice.startRecording(translate);
 		} else if (currentState === 'recording') {
-			pauseRecording();
+			voice.pauseRecording();
 		} else if (currentState === 'paused') {
-			if (!mediaRecorder) {
-				startRecording();
+			if (!voice.hasMediaRecorder) {
+				voice.startRecording(translate);
 			} else {
-				resumeRecording();
+				voice.resumeRecording();
 			}
 		}
 	}
@@ -454,8 +108,8 @@
 		if (!transcript.trim()) return;
 
 		const savedTranscript = transcript.trim();
-		stopMediaResources();
-		currentState = 'processing';
+		voice.stopMediaResources();
+		voice.setCurrentState('processing');
 
 		// Clear any existing pending review when starting a new one
 		if (pendingReview?.id) {
@@ -470,42 +124,35 @@
 		try {
 			sessionStorage.setItem('review_transcript', savedTranscript);
 			goto('/dashboard/review');
-		} catch (err) {
-			error = 'Failed to generate document';
-			currentState = 'idle';
+		} catch {
+			voice.setError('Failed to generate document');
+			voice.setCurrentState('idle');
 		}
 	}
 
 	function handleTranscriptChange(e: Event) {
 		const target = e.target as HTMLTextAreaElement;
-		transcript = target.value;
-	}
-
-	function dismissNoisySuggestion() {
-		showNoisySuggestion = false;
+		voice.setTranscript(target.value);
 	}
 
 	function switchToTypingMode() {
 		if (currentState === 'recording') {
-			stopMediaResources();
+			voice.stopMediaResources();
 		}
 		inputMode = 'text';
-		showNoisySuggestion = false;
-		isNoisyEnvironment = false;
-		highNoiseCount = 0;
-		noiseCheckCount = 0;
-		currentState = 'paused';
+		voice.resetNoiseState();
+		voice.setCurrentState('paused');
 	}
 
 	function switchToVoiceMode() {
 		inputMode = 'voice';
-		currentState = 'paused';
+		voice.setCurrentState('paused');
 	}
 
 	function startTypingMode() {
 		inputMode = 'text';
-		currentState = 'paused';
-		transcript = '';
+		voice.setCurrentState('paused');
+		voice.setTranscript('');
 	}
 
 	function dismissNameBanner() {
@@ -514,7 +161,6 @@
 	}
 
 	async function dismissPendingReview() {
-		// Save the ID before dismissing to avoid race conditions
 		const reviewId = pendingReview?.id;
 
 		if (!reviewId) {
@@ -522,16 +168,13 @@
 			return;
 		}
 
-		// Delete the pending review from the database first
 		try {
 			const response = await fetch(`/api/reviews/${reviewId}`, {
 				method: 'DELETE'
 			});
 
 			if (response.ok) {
-				// Only dismiss after successful deletion
 				pendingReviewDismissed = true;
-				// Invalidate page data to ensure fresh state
 				await invalidateAll();
 			} else {
 				console.error('Failed to delete pending review:', response.status);
@@ -549,16 +192,13 @@
 		}
 	}
 
-	// Get a summary for the pending review card
 	function getPendingReviewSummary(): string {
 		if (!pendingReview) return '';
-		// Try to get client name from parsed data
 		const clientName = pendingReview.parsed_data?.client?.name;
 		if (clientName) return clientName;
-		// Fall back to summary or transcript preview
 		if (pendingReview.summary) return pendingReview.summary;
 		if (pendingReview.original_transcript) {
-			return pendingReview.original_transcript.slice(0, 50) + '...';
+			return pendingReview.original_transcript.slice(0, PENDING_REVIEW_PREVIEW_LENGTH) + '...';
 		}
 		return translate('dashboard.unfinishedDoc');
 	}
@@ -569,14 +209,13 @@
 			inputMode = prefs.mode;
 		});
 
-		// Load name banner dismissal state
 		nameBannerDismissed = localStorage.getItem('nameBannerDismissed') === 'true';
 
-		await fetchDeepgramKey();
+		await voice.fetchDeepgramKey();
 	});
 
 	onDestroy(() => {
-		stopRecording();
+		voice.stopRecording();
 		prefsUnsubscribe?.();
 	});
 </script>
@@ -716,7 +355,7 @@
 					<div class="popup-actions">
 						<button
 							class="popup-close-btn"
-							onclick={stopRecording}
+							onclick={voice.stopRecording}
 							aria-label={translate('common.cancel')}
 						>
 							<X size={16} strokeWidth={2} />

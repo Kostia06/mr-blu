@@ -77,7 +77,7 @@ export function formatQuantityDisplay(item: LineItemForFormat): string {
 	const qty = item.quantity ?? 0;
 
 	// Area with dimensions: "24 × 90 ft = 2,160 sqft"
-	if (item.dimensions && item.measurementType === 'sqft') {
+	if (item.dimensions && !item.dimensions.includes('undefined') && item.measurementType === 'sqft') {
 		return `${item.dimensions} = ${formatNumber(qty)} sqft`;
 	}
 

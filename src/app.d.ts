@@ -18,7 +18,6 @@ declare global {
 			env: {
 				R2: R2Bucket;
 				MYBROWSER: { fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response> };
-				OPENAI_API_KEY: string;
 				DEEPGRAM_API_KEY: string;
 				TWILIO_ACCOUNT_SID: string;
 				TWILIO_AUTH_TOKEN: string;

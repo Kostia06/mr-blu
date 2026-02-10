@@ -1,30 +1,16 @@
 import puppeteer from '@cloudflare/puppeteer';
 import type { TemplateData } from '$lib/parsing';
 import type { DocumentSourceData } from './types';
-import { invoiceTemplate, mapSourceToInvoice } from './pdf-invoice';
-import { estimateTemplate, mapSourceToEstimate } from './pdf-estimate';
+import { renderDocumentHTML } from './render';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Fetcher = any;
 
 /**
  * Server-side PDF generation using Cloudflare Browser Rendering.
- * Uses pdf-gen PDFTemplate html() methods for document rendering,
+ * Uses the unified document template with forPdf mode,
  * then @cloudflare/puppeteer to convert HTML → PDF.
  */
-
-function renderHTML(sourceData: DocumentSourceData): string {
-	const docType = sourceData.documentType.toUpperCase();
-
-	if (docType === 'ESTIMATE') {
-		const data = mapSourceToEstimate(sourceData);
-		return estimateTemplate.html!(data);
-	}
-
-	// Default to invoice for all other types
-	const data = mapSourceToInvoice(sourceData);
-	return invoiceTemplate.html!(data);
-}
 
 /**
  * Generate PDF from DocumentSourceData (used by download endpoint)
@@ -33,7 +19,7 @@ export async function generatePDFFromSource(
 	sourceData: DocumentSourceData,
 	browserBinding: Fetcher
 ): Promise<ArrayBuffer> {
-	const html = renderHTML(sourceData);
+	const html = renderDocumentHTML(sourceData, { forPdf: true });
 
 	const browser = await puppeteer.launch(browserBinding);
 	try {

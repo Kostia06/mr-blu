@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 		// Fetch from profiles table
 		const { data: profile, error } = await locals.supabase
 			.from('profiles')
-			.select('full_name, business_name, email, phone, address')
+			.select('full_name, business_name, email, phone, address, business_address')
 			.eq('id', session.user.id)
 			.single();
 
@@ -24,13 +24,14 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 		// Fallback to auth user data if profile not found
 		const userData = session.user;
+		const biz = userData.user_metadata?.business;
 		return json({
 			profile: {
 				full_name: profile?.full_name || userData.user_metadata?.full_name || null,
-				business_name: profile?.business_name || userData.user_metadata?.business_name || null,
+				business_name: profile?.business_name || biz?.name || null,
 				email: profile?.email || userData.email || null,
 				phone: profile?.phone || userData.user_metadata?.phone || null,
-				address: profile?.address || null
+				address: profile?.business_address || profile?.address || biz?.address || null
 			}
 		});
 	} catch (error) {

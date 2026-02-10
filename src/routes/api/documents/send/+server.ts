@@ -2,7 +2,6 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import { Resend } from 'resend';
 import { RESEND_API_KEY, EMAIL_FROM_DOMAIN } from '$env/static/private';
 import { logger } from '$lib/server/logger';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import {
 	rateLimiters,
 	rateLimitResponse,
@@ -12,149 +11,16 @@ import {
 } from '$lib/server/security';
 import { generatePDFServer } from '$lib/templates/pdf-server';
 import type { TemplateData } from '$lib/parsing/types';
-import {
-	formatCurrency as formatCurrencyBase,
-	formatDate as formatDateBase
-} from '$lib/utils/format';
+import { generateDocumentEmail, generateNotificationEmail } from '$lib/server/email-templates';
 
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 // Get the app URL from environment
 const getAppUrl = () => {
-	// Use EMAIL_FROM_DOMAIN if set (production)
 	if (EMAIL_FROM_DOMAIN) {
 		return `https://${EMAIL_FROM_DOMAIN}`;
 	}
-	// Default to localhost for development
 	return 'http://localhost:5173';
-};
-
-// Email-specific formatting wrappers
-const formatCurrency = (amount: number) => formatCurrencyBase(amount, true);
-const formatDate = (dateStr: string | null) => formatDateBase(dateStr, 'long');
-
-// Generate minimalist email HTML (spam-safe, prominent total)
-const generateEmailHtml = (
-	documentType: string,
-	documentNumber: string,
-	recipientName: string,
-	viewUrl: string,
-	senderName?: string,
-	total?: number,
-	dueDate?: string | null,
-	senderDetails?: { email?: string | null; phone?: string | null; address?: string | null }
-) => {
-	const typeLabel = documentType === 'invoice' ? 'Invoice' : 'Estimate';
-	const firstName = recipientName ? recipientName.split(' ')[0] : '';
-
-	return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc;">
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
-<tr>
-<td style="padding: 32px 16px;">
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 480px; margin: 0 auto;">
-
-<!-- Simple header - who sent this document -->
-<tr>
-<td style="padding-bottom: 24px; border-bottom: 1px solid #e2e8f0; margin-bottom: 20px;">
-<p style="margin: 0 0 8px; color: #1e293b; font-size: 18px; font-weight: 600;">
-This is sent from your contractor<br>${senderName || ''}
-</p>
-<p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6;">
-${senderDetails?.email || ''}${senderDetails?.email && senderDetails?.phone ? ' • ' : ''}${senderDetails?.phone || ''}${senderDetails?.address ? `<br>${senderDetails.address}` : ''}
-</p>
-</td>
-</tr>
-
-<!-- Main content card -->
-<tr>
-<td style="background-color: #DBE8F4; border-radius: 16px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-
-<!-- Total highlight box -->
-${
-	total !== undefined
-		? `
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 24px;">
-<tr>
-<td style="background-color: #f8fafc; border-radius: 12px; padding: 20px; text-align: center;">
-<p style="margin: 0 0 4px; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Total ${documentType === 'invoice' ? 'Due' : 'Amount'}</p>
-<p style="margin: 0; color: #0f172a; font-size: 32px; font-weight: 700;">${formatCurrency(total)}</p>
-${dueDate ? `<p style="margin: 8px 0 0; color: #64748b; font-size: 13px;">Due by ${formatDate(dueDate)}</p>` : ''}
-</td>
-</tr>
-</table>
-`
-		: ''
-}
-
-<!-- CTA Button -->
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-<tr>
-<td style="text-align: center;">
-<a href="${viewUrl}" target="_blank" style="display: inline-block; background-color: #0066FF; color: #DBE8F4; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600;">
-View ${typeLabel}
-</a>
-</td>
-</tr>
-</table>
-
-</td>
-</tr>
-
-<!-- Footer -->
-<tr>
-<td style="padding-top: 24px; text-align: center;">
-<p style="margin: 0; color: #94a3b8; font-size: 12px;">Powered by mrblu</p>
-</td>
-</tr>
-
-</table>
-</td>
-</tr>
-</table>
-</body>
-</html>`;
-};
-
-// Generate plain text version (for spam compliance)
-const generatePlainText = (
-	documentType: string,
-	documentNumber: string,
-	recipientName: string,
-	viewUrl: string,
-	senderName?: string,
-	total?: number,
-	dueDate?: string | null,
-	senderDetails?: { email?: string | null; phone?: string | null; address?: string | null }
-) => {
-	const typeLabel = documentType === 'invoice' ? 'Invoice' : 'Estimate';
-	const firstName = recipientName ? recipientName.split(' ')[0] : '';
-
-	let text = `This is sent from your contractor ${senderName || ''}\n`;
-	if (senderDetails?.email) text += `${senderDetails.email}`;
-	if (senderDetails?.email && senderDetails?.phone) text += ` • `;
-	if (senderDetails?.phone) text += `${senderDetails.phone}`;
-	text += '\n';
-	if (senderDetails?.address) text += `${senderDetails.address}\n`;
-	text += '\n---\n\n';
-
-	if (total !== undefined) {
-		text += `Total ${documentType === 'invoice' ? 'Due' : 'Amount'}: ${formatCurrency(total)}\n`;
-		if (dueDate) {
-			text += `Due by: ${formatDate(dueDate)}\n`;
-		}
-		text += '\n';
-	}
-
-	text += `View your ${typeLabel.toLowerCase()}: ${viewUrl}\n\n`;
-	text += `---\nPowered by mrblu`;
-
-	return text;
 };
 
 export const POST: RequestHandler = async ({ request, locals, platform }) => {
@@ -224,7 +90,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 			// Get sender info first (needed for subject and PDF)
 			const { data: profile } = await supabase
 				.from('profiles')
-				.select('full_name, business_name, email, phone, address')
+				.select('full_name, business_name, email, phone, address, business_address')
 				.eq('id', session.user.id)
 				.single();
 
@@ -235,6 +101,15 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 					? `${userMeta.first_name} ${userMeta.last_name}`
 					: userMeta?.first_name || userMeta?.last_name || null;
 			const senderName = profile?.full_name || userFullName || profile?.business_name || undefined;
+
+			// Build full address from profile + user metadata
+			const biz = userMeta?.business;
+			const fullAddress = [
+				profile?.business_address || profile?.address || biz?.address,
+				[biz?.city, biz?.state, biz?.zip].filter(Boolean).join(', ')
+			]
+				.filter(Boolean)
+				.join('\n');
 
 			let documentNumber: string;
 			let subject: string;
@@ -280,26 +155,32 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 					from: {
 						name: profile?.full_name || userFullName || null,
 						businessName: profile?.business_name || '',
-						address: profile?.address || null,
+						address: fullAddress || null,
 						city: null,
 						phone: profile?.phone || userMeta?.phone || null,
 						email: profile?.email || session.user.email || null
 					},
-					items: (data?.line_items || []).map((item: Record<string, unknown>, i: number) => ({
-						id: `item-${i}`,
-						description: String(item.description || ''),
-						quantity: Number(item.quantity) || undefined,
-						unit: String(item.unit || ''),
-						rate: Number(item.rate) || undefined,
-						total: Number(item.total) || 0,
-						dimensions: item.dimensions
-							? {
-									width: (item.dimensions as Record<string, unknown>).width as number | null,
-									length: (item.dimensions as Record<string, unknown>).length as number | null,
-									unit: (item.dimensions as Record<string, unknown>).unit as string | null
-								}
-							: null
-					})),
+					items: (data?.line_items || []).map((item: Record<string, unknown>, i: number) => {
+						let dims: string | undefined;
+						if (typeof item.dimensions === 'string') {
+							dims = item.dimensions;
+						} else if (item.dimensions && typeof item.dimensions === 'object') {
+							const d = item.dimensions as Record<string, unknown>;
+							if (d.width && d.length) {
+								dims = `${d.width} × ${d.length} ${d.unit || 'ft'}`;
+							}
+						}
+						return {
+							id: `item-${i}`,
+							description: String(item.description || ''),
+							quantity: Number(item.quantity) || undefined,
+							unit: String(item.unit || ''),
+							rate: Number(item.rate) || undefined,
+							total: Number(item.total) || 0,
+							measurementType: (item.measurementType as string) || undefined,
+							dimensions: dims
+						};
+					}),
 					subtotal: Number(data?.subtotal) || 0,
 					gstRate: Number(data?.tax_rate) / 100 || 0,
 					gstAmount: Number(data?.tax_amount) || 0,
@@ -342,35 +223,23 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 
 			const viewUrl = `${appUrl}/view/${documentType}/${documentId}?token=${shareToken}`;
 
-			// Prepare sender details for email
-			const senderDetails = {
-				email: profile?.email || null,
-				phone: profile?.phone || null,
-				address: profile?.address || null
-			};
-
 			// Generate email HTML and plain text
-			const emailHtml = generateEmailHtml(
+			const { html: emailHtml, text: emailText } = generateDocumentEmail({
 				documentType,
 				documentNumber,
 				recipientName,
 				viewUrl,
 				senderName,
-				documentTotal,
-				documentDueDate,
-				senderDetails
-			);
-
-			const emailText = generatePlainText(
-				documentType,
-				documentNumber,
-				recipientName,
-				viewUrl,
-				senderName,
-				documentTotal,
-				documentDueDate,
-				senderDetails
-			);
+				total: documentTotal,
+				dueDate: documentDueDate,
+				sender: {
+					businessName: profile?.business_name || null,
+					email: profile?.email || null,
+					phone: profile?.phone || null,
+					address: fullAddress || null,
+					website: biz?.website || null
+				}
+			});
 
 			// Determine from address
 			const fromDomain = EMAIL_FROM_DOMAIN || 'mrblu.com';
@@ -448,84 +317,24 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 			try {
 				const { data: userData } = await supabase.auth.getUser();
 				const notificationPrefs = userData?.user?.user_metadata?.notification_preferences;
-				const shouldNotify =
-					documentType === 'invoice'
-						? notificationPrefs?.emailOnInvoiceSent !== false
-						: documentType === 'estimate'
-							? notificationPrefs?.emailOnEstimateSent !== false
-							: false;
+				const shouldNotify = notificationPrefs?.emailConfirmation !== false;
 
 				if (shouldNotify && userData?.user?.email) {
-					// Use same format as sent email but with "Sent successfully to..." header
-					const userNotificationHtml = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc;">
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
-<tr>
-<td style="padding: 32px 16px;">
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 480px; margin: 0 auto;">
-
-<!-- Success header -->
-<tr>
-<td style="padding-bottom: 24px; border-bottom: 1px solid #e2e8f0; margin-bottom: 20px;">
-<p style="margin: 0 0 8px; color: #22c55e; font-size: 18px; font-weight: 600;">
-Sent successfully to ${recipient.email}
-</p>
-<p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6;">
-${typeLabel} ${documentNumber}${documentTotal ? ` • ${formatCurrency(documentTotal)}` : ''}
-</p>
-</td>
-</tr>
-
-<!-- Main content card -->
-<tr>
-<td style="background-color: #DBE8F4; border-radius: 16px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-
-<p style="margin: 0 0 16px; color: #1e293b; font-size: 16px;">
-Your ${typeLabel.toLowerCase()} has been delivered.
-</p>
-
-<p style="margin: 0 0 24px; color: #475569; font-size: 15px; line-height: 1.5;">
-${recipientName ? `${recipientName} can` : 'The recipient can'} view and download the document using the link in the email.
-</p>
-
-<!-- View link -->
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-<tr>
-<td style="text-align: center;">
-<a href="${viewUrl}" target="_blank" style="display: inline-block; background-color: #0066FF; color: #DBE8F4; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600;">
-View ${typeLabel}
-</a>
-</td>
-</tr>
-</table>
-
-</td>
-</tr>
-
-<!-- Footer -->
-<tr>
-<td style="padding-top: 24px; text-align: center;">
-<p style="margin: 0; color: #94a3b8; font-size: 12px;">Powered by mrblu</p>
-</td>
-</tr>
-
-</table>
-</td>
-</tr>
-</table>
-</body>
-</html>`;
+					const { html: notifHtml, text: notifText } = generateNotificationEmail({
+						documentType,
+						documentNumber,
+						recipientEmail: recipient.email,
+						recipientName,
+						viewUrl,
+						total: documentTotal
+					});
 
 					await resend.emails.send({
 						from: fromAddress,
 						to: [userData.user.email],
 						subject: `${typeLabels[documentType]} ${documentNumber} sent to ${recipient.email}`,
-						html: userNotificationHtml
+						html: notifHtml,
+						text: notifText
 					});
 				}
 			} catch (notifyError) {

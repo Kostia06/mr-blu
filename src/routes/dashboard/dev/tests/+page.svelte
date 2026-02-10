@@ -5,25 +5,19 @@
 	import { browser } from '$app/environment';
 	import { onMount, onDestroy } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { SCROLL_DOWN_THRESHOLD, SCROLL_UP_THRESHOLD, SCROLL_HEADER_MIN_Y } from '$lib/constants';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
-	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import Check from 'lucide-svelte/icons/check';
-	import X from 'lucide-svelte/icons/x';
-	import Play from 'lucide-svelte/icons/play';
-	import Download from 'lucide-svelte/icons/download';
-	import Copy from 'lucide-svelte/icons/copy';
 	import Search from 'lucide-svelte/icons/search';
-	import Clock from 'lucide-svelte/icons/clock';
-	import AlertTriangle from 'lucide-svelte/icons/alert-triangle';
 	import Loader2 from 'lucide-svelte/icons/loader-2';
-	import FlaskConical from 'lucide-svelte/icons/flask-conical';
 	import CheckCircle2 from 'lucide-svelte/icons/check-circle-2';
 	import XCircle from 'lucide-svelte/icons/x-circle';
 	import FileJson from 'lucide-svelte/icons/file-json';
 	import FileText from 'lucide-svelte/icons/file-text';
 	import Clipboard from 'lucide-svelte/icons/clipboard';
-	import ArrowUpDown from 'lucide-svelte/icons/arrow-up-down';
-	import Zap from 'lucide-svelte/icons/zap';
+	import Clock from 'lucide-svelte/icons/clock';
+	import AlertTriangle from 'lucide-svelte/icons/alert-triangle';
+	import { StatsSection, FiltersSection, TestResultRow } from './components';
 	import { allTestCases } from '$lib/testing/test-cases';
 	import type {
 		AITestCase,
@@ -46,9 +40,9 @@
 			requestAnimationFrame(() => {
 				const delta = currentScrollY - lastScrollY;
 
-				if (delta > 8 && currentScrollY > 60) {
+				if (delta > SCROLL_DOWN_THRESHOLD && currentScrollY > SCROLL_HEADER_MIN_Y) {
 					headerHidden = true;
-				} else if (delta < -5 || currentScrollY <= 60) {
+				} else if (delta < -SCROLL_UP_THRESHOLD || currentScrollY <= SCROLL_HEADER_MIN_Y) {
 					headerHidden = false;
 				}
 
@@ -655,237 +649,39 @@
 
 	<div class="page-content" in:fly={{ y: 20, duration: 500, delay: 100, easing: cubicOut }}>
 		<!-- Stats Cards -->
-		<section class="stats-section">
-			{#if statsLoading}
-				<div class="stats-loading">
-					<Loader2 size={24} class="spinner" />
-					<span>Loading statistics...</span>
-				</div>
-			{:else if statsError}
-				<div class="stats-error">
-					<AlertTriangle size={20} />
-					<span>{statsError}</span>
-					<button onclick={fetchStats}>Retry</button>
-				</div>
-			{:else if stats}
-				<div class="stats-grid">
-					<div class="stat-card primary">
-						<div class="stat-icon">
-							<FlaskConical size={20} strokeWidth={1.5} />
-						</div>
-						<div class="stat-info">
-							<span class="stat-value">{stats.total}</span>
-							<span class="stat-label">Total Tests</span>
-						</div>
-					</div>
-
-					<div class="stat-card">
-						<div class="stat-content">
-							<span class="stat-mini-label">By Category</span>
-							<div class="stat-breakdown">
-								{#each Object.entries(stats.byCategory).slice(0, 4) as [cat, count] (cat)}
-									<div class="breakdown-item">
-										<span class="breakdown-label">{formatCategory(cat).slice(0, 10)}</span>
-										<span class="breakdown-value">{count}</span>
-									</div>
-								{/each}
-							</div>
-						</div>
-					</div>
-
-					<div class="stat-card">
-						<div class="stat-content">
-							<span class="stat-mini-label">By Priority</span>
-							<div class="stat-breakdown priorities">
-								<div class="breakdown-item critical">
-									<span class="breakdown-label">Critical</span>
-									<span class="breakdown-value">{stats.byPriority.critical}</span>
-								</div>
-								<div class="breakdown-item high">
-									<span class="breakdown-label">High</span>
-									<span class="breakdown-value">{stats.byPriority.high}</span>
-								</div>
-								<div class="breakdown-item medium">
-									<span class="breakdown-label">Medium</span>
-									<span class="breakdown-value">{stats.byPriority.medium}</span>
-								</div>
-								<div class="breakdown-item low">
-									<span class="breakdown-label">Low</span>
-									<span class="breakdown-value">{stats.byPriority.low}</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			{/if}
-		</section>
+		<StatsSection
+			{stats}
+			loading={statsLoading}
+			error={statsError}
+			onretry={fetchStats}
+			{formatCategory}
+		/>
 
 		<!-- Filter Controls -->
-		<section class="filters-section">
-			<h2 class="section-title">Filters</h2>
-
-			<!-- Search -->
-			<div class="search-wrapper">
-				<Search size={18} class="search-icon" />
-				<input
-					type="text"
-					placeholder="Search by ID or description..."
-					bind:value={searchQuery}
-					class="search-input"
-				/>
-			</div>
-
-			<!-- Category Filters -->
-			<div class="filter-group">
-				<div class="filter-header">
-					<span class="filter-label">Categories</span>
-					<button class="toggle-all-btn" onclick={toggleAllCategories}>
-						{selectedCategories.size === categories.length ? 'Deselect All' : 'Select All'}
-					</button>
-				</div>
-				<div class="checkbox-grid">
-					{#each categories as category (category)}
-						<label class="checkbox-item">
-							<input
-								type="checkbox"
-								checked={selectedCategories.has(category)}
-								onchange={() => toggleCategory(category)}
-							/>
-							<span class="checkbox-label">{formatCategory(category)}</span>
-						</label>
-					{/each}
-				</div>
-			</div>
-
-			<!-- Priority Filters -->
-			<div class="filter-group">
-				<div class="filter-header">
-					<span class="filter-label">Priorities</span>
-					<button class="toggle-all-btn" onclick={toggleAllPriorities}>
-						{selectedPriorities.size === priorities.length ? 'Deselect All' : 'Select All'}
-					</button>
-				</div>
-				<div class="checkbox-row">
-					{#each priorities as priority (priority)}
-						<label class="checkbox-item priority {getPriorityClass(priority)}">
-							<input
-								type="checkbox"
-								checked={selectedPriorities.has(priority)}
-								onchange={() => togglePriority(priority)}
-							/>
-							<span class="checkbox-label">{priority}</span>
-						</label>
-					{/each}
-				</div>
-			</div>
-
-			<!-- Execution Configuration -->
-			<div class="config-row">
-				<div class="filter-group config-half">
-					<div class="filter-header">
-						<span class="filter-label">Test Timeout</span>
-						<span class="timeout-value">{testTimeout}s</span>
-					</div>
-					<div class="timeout-slider-wrapper">
-						<span class="timeout-min">{minTimeout}s</span>
-						<input
-							type="range"
-							min={minTimeout}
-							max={maxTimeout}
-							step="5"
-							bind:value={testTimeout}
-							class="timeout-slider"
-						/>
-						<span class="timeout-max">{maxTimeout}s</span>
-					</div>
-				</div>
-
-				<div class="filter-group config-half">
-					<div class="filter-header">
-						<span class="filter-label">Parallel Tests</span>
-						<span class="timeout-value">{maxConcurrent} concurrent</span>
-					</div>
-					<div class="timeout-slider-wrapper">
-						<span class="timeout-min">{minConcurrent}</span>
-						<input
-							type="range"
-							min={minConcurrent}
-							max={maxConcurrentLimit}
-							step="1"
-							bind:value={maxConcurrent}
-							class="timeout-slider concurrent"
-						/>
-						<span class="timeout-max">{maxConcurrentLimit}</span>
-					</div>
-				</div>
-			</div>
-
-			<!-- Sort Options -->
-			<div class="filter-group">
-				<div class="filter-header">
-					<span class="filter-label">Sort Results</span>
-				</div>
-				<div class="sort-options">
-					<button
-						class="sort-btn"
-						class:active={sortBy === 'default'}
-						onclick={() => (sortBy = 'default')}
-					>
-						Default
-					</button>
-					<button
-						class="sort-btn"
-						class:active={sortBy === 'status'}
-						onclick={() => (sortBy = 'status')}
-					>
-						<XCircle size={14} />
-						Failed First
-					</button>
-					<button
-						class="sort-btn"
-						class:active={sortBy === 'duration'}
-						onclick={() => (sortBy = 'duration')}
-					>
-						<Clock size={14} />
-						Slowest First
-					</button>
-					<button
-						class="sort-btn"
-						class:active={sortBy === 'category'}
-						onclick={() => (sortBy = 'category')}
-					>
-						<ArrowUpDown size={14} />
-						By Category
-					</button>
-				</div>
-			</div>
-
-			<!-- Action Buttons -->
-			<div class="action-buttons">
-				<button
-					class="run-btn secondary"
-					onclick={() => runTests(false)}
-					disabled={isRunning || filteredTests.length === 0}
-				>
-					{#if isRunning}
-						<Loader2 size={18} class="spinner" />
-						<span>Running...</span>
-					{:else}
-						<Play size={18} />
-						<span>Run Selected ({filteredTests.length})</span>
-					{/if}
-				</button>
-				<button class="run-btn primary" onclick={() => runTests(true)} disabled={isRunning}>
-					{#if isRunning}
-						<Loader2 size={18} class="spinner" />
-						<span>Running...</span>
-					{:else}
-						<Play size={18} />
-						<span>Run All Tests</span>
-					{/if}
-				</button>
-			</div>
-		</section>
+		<FiltersSection
+			{categories}
+			{priorities}
+			{selectedCategories}
+			{selectedPriorities}
+			bind:searchQuery
+			bind:testTimeout
+			bind:maxConcurrent
+			{minTimeout}
+			{maxTimeout}
+			{minConcurrent}
+			{maxConcurrentLimit}
+			bind:sortBy
+			{isRunning}
+			filteredTestCount={filteredTests.length}
+			{formatCategory}
+			{getPriorityClass}
+			ontogglecategory={toggleCategory}
+			ontogglepriority={togglePriority}
+			ontoggleallcategories={toggleAllCategories}
+			ontoggleallpriorities={toggleAllPriorities}
+			onrunselected={() => runTests(false)}
+			onrunall={() => runTests(true)}
+		/>
 
 		<!-- Progress Indicator -->
 		{#if isRunning}
@@ -999,184 +795,18 @@
 
 				<div class="table-body">
 					{#each filteredTests as test, i (test.id)}
-						{@const result = getTestResult(test.id)}
-						{@const streamResult = getStreamingResult(test.id)}
-						{@const displayResult = result || streamResult}
-						<div
-							class="test-row"
-							class:passed={displayResult?.passed}
-							class:failed={displayResult && !displayResult.passed}
-							class:running={isRunning && !displayResult}
-							class:expanded={expandedTestId === test.id}
-							in:fly={{ y: 10, duration: 200, delay: Math.min(i * 20, 300) }}
-						>
-							<button
-								class="test-row-main"
-								onclick={() => toggleTestDetails(test.id)}
-								aria-expanded={expandedTestId === test.id}
-							>
-								<span class="col-status">
-									{#if displayResult}
-										{#if displayResult.passed}
-											<span class="status-icon success">
-												<Check size={16} strokeWidth={3} />
-											</span>
-										{:else}
-											<span class="status-icon failure">
-												<X size={16} strokeWidth={3} />
-											</span>
-										{/if}
-									{:else if isRunning}
-										<span class="status-icon running">
-											<Loader2 size={16} class="spinner" />
-										</span>
-									{:else}
-										<span class="status-icon pending">
-											<span class="pending-dot"></span>
-										</span>
-									{/if}
-								</span>
-								<span class="col-id">{test.id}</span>
-								<span class="col-category">{formatCategory(test.category)}</span>
-								<span class="col-description">{test.description}</span>
-								<span class="col-priority">
-									<span class="priority-badge {getPriorityClass(test.priority)}">
-										{test.priority}
-									</span>
-								</span>
-								<span class="col-duration">
-									{#if displayResult}
-										{formatDuration(displayResult.duration)}
-									{:else}
-										-
-									{/if}
-								</span>
-								<span class="col-expand">
-									<ChevronDown
-										size={16}
-										class="expand-icon"
-										style="transform: rotate({expandedTestId === test.id ? 180 : 0}deg)"
-									/>
-								</span>
-							</button>
-
-							{#if expandedTestId === test.id}
-								<div class="test-details" in:slide={{ duration: 200 }}>
-									<div class="detail-section">
-										<h4 class="detail-label">Input Transcription</h4>
-										<p class="detail-value transcript">"{test.input}"</p>
-									</div>
-
-									<div class="detail-section">
-										<h4 class="detail-label">Expected Data</h4>
-										<pre class="detail-code">{JSON.stringify(test.expectedData, null, 2)}</pre>
-									</div>
-
-									{#if result}
-										<!-- Full result from completed test report -->
-										<div class="detail-section">
-											<h4 class="detail-label">Actual Response</h4>
-											<pre class="detail-code">{JSON.stringify(
-													result.actualResponse,
-													null,
-													2
-												)}</pre>
-										</div>
-
-										<div class="detail-section">
-											<h4 class="detail-label">Validation Results</h4>
-											<div class="validation-list">
-												{#each result.validationResults as validation, vi (vi)}
-													<div
-														class="validation-item"
-														class:passed={validation.passed}
-														class:failed={!validation.passed}
-													>
-														{#if validation.passed}
-															<Check size={14} strokeWidth={3} />
-														{:else}
-															<X size={14} strokeWidth={3} />
-														{/if}
-														<span class="validation-message">{validation.message}</span>
-													</div>
-												{/each}
-											</div>
-										</div>
-
-										{#if result.error}
-											<div class="detail-section error">
-												<h4 class="detail-label">Error</h4>
-												<p class="detail-value error-text">{result.error}</p>
-											</div>
-										{/if}
-									{:else if streamResult}
-										<!-- Streaming result during test run -->
-										<div class="detail-section">
-											<h4 class="detail-label">Result</h4>
-											<div
-												class="stream-result-summary"
-												class:passed={streamResult.passed}
-												class:failed={!streamResult.passed}
-											>
-												{#if streamResult.passed}
-													<CheckCircle2 size={20} />
-													<span>Test Passed in {formatDuration(streamResult.duration)}</span>
-												{:else}
-													<XCircle size={20} />
-													<span>Test Failed in {formatDuration(streamResult.duration)}</span>
-												{/if}
-											</div>
-										</div>
-
-										{#if streamResult.validationResults.length > 0}
-											<div class="detail-section">
-												<h4 class="detail-label">Validation Results</h4>
-												<div class="validation-list">
-													{#each streamResult.validationResults as validation, vi (vi)}
-														<div
-															class="validation-item"
-															class:passed={validation.passed}
-															class:failed={!validation.passed}
-														>
-															{#if validation.passed}
-																<Check size={14} strokeWidth={3} />
-															{:else}
-																<X size={14} strokeWidth={3} />
-															{/if}
-															<span class="validation-message">{validation.message}</span>
-														</div>
-													{/each}
-												</div>
-											</div>
-										{/if}
-
-										{#if streamResult.error}
-											<div class="detail-section error">
-												<h4 class="detail-label">Error</h4>
-												<p class="detail-value error-text">{streamResult.error}</p>
-											</div>
-										{/if}
-									{:else}
-										<!-- No result yet - show validation rules -->
-										<div class="detail-section">
-											<h4 class="detail-label">Validation Rules</h4>
-											<div class="validation-list pending">
-												{#each test.validationRules as rule, ri (ri)}
-													<div class="validation-item pending">
-														<span class="pending-dot small"></span>
-														<span class="validation-message">
-															{rule.field}
-															{rule.operator}
-															{rule.value !== undefined ? JSON.stringify(rule.value) : ''}
-														</span>
-													</div>
-												{/each}
-											</div>
-										</div>
-									{/if}
-								</div>
-							{/if}
-						</div>
+						<TestResultRow
+							{test}
+							index={i}
+							result={getTestResult(test.id)}
+							streamResult={getStreamingResult(test.id)}
+							{isRunning}
+							isExpanded={expandedTestId === test.id}
+							ontoggle={() => toggleTestDetails(test.id)}
+							{formatCategory}
+							{getPriorityClass}
+							{formatDuration}
+						/>
 					{/each}
 				</div>
 			</div>

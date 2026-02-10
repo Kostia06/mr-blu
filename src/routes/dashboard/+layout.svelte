@@ -1,14 +1,25 @@
 <script lang="ts">
 	import BottomNav from '$lib/components/BottomNav.svelte';
 	import FeedbackButton from '$lib/components/FeedbackButton.svelte';
+	import Toast from '$lib/components/ui/Toast.svelte';
 	import { TutorialProvider } from '$lib/tutorial';
 	import { page } from '$app/stores';
 	import Loader2 from 'lucide-svelte/icons/loader-2';
 	import { onMount } from 'svelte';
 	import { pageTransition } from '$lib/stores/pageTransition';
 	import { performanceStore } from '$lib/utils/performance';
+	import { toast } from '$lib/stores/toast';
 
 	let { children } = $props();
+
+	// Subscribe to toast store
+	let toasts = $state<{ id: string; type: 'success' | 'error' | 'info'; message: string }[]>([]);
+	$effect(() => {
+		const unsub = toast.subscribe((v) => {
+			toasts = v;
+		});
+		return unsub;
+	});
 
 	// Reactive performance quality
 	let quality = $state<'high' | 'medium' | 'low' | 'minimal'>('high');
@@ -90,6 +101,11 @@
 
 		<!-- Tutorial System -->
 		<TutorialProvider />
+
+		<!-- Toast Notifications -->
+		{#if toasts.length > 0}
+			<Toast {toasts} onDismiss={toast.dismiss} />
+		{/if}
 	</div>
 {/if}
 

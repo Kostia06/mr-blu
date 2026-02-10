@@ -3,16 +3,14 @@ import type { RequestHandler } from './$types';
 
 export interface NotificationPreferences {
 	emailOnInvoiceSent: boolean;
-	emailOnInvoicePaid: boolean;
 	emailOnEstimateSent: boolean;
-	emailWeeklySummary: boolean;
+	emailConfirmation: boolean;
 }
 
 const defaultPreferences: NotificationPreferences = {
 	emailOnInvoiceSent: true,
-	emailOnInvoicePaid: true,
 	emailOnEstimateSent: true,
-	emailWeeklySummary: false
+	emailConfirmation: true
 };
 
 export const GET: RequestHandler = async ({ locals }) => {

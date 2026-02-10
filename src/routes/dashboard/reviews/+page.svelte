@@ -3,6 +3,7 @@
 	import { cubicOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
+	import { SCROLL_DOWN_THRESHOLD, SCROLL_UP_THRESHOLD, SCROLL_HEADER_MIN_Y } from '$lib/constants';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import Clock from 'lucide-svelte/icons/clock';
 	import Check from 'lucide-svelte/icons/check';
@@ -32,9 +33,9 @@
 			requestAnimationFrame(() => {
 				const delta = currentScrollY - lastScrollY;
 
-				if (delta > 8 && currentScrollY > 60) {
+				if (delta > SCROLL_DOWN_THRESHOLD && currentScrollY > SCROLL_HEADER_MIN_Y) {
 					headerHidden = true;
-				} else if (delta < -5 || currentScrollY <= 60) {
+				} else if (delta < -SCROLL_UP_THRESHOLD || currentScrollY <= SCROLL_HEADER_MIN_Y) {
 					headerHidden = false;
 				}
 

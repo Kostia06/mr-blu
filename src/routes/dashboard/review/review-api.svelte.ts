@@ -91,7 +91,7 @@ export function createReviewAPI() {
 		documentType: 'invoice' | 'estimate',
 		deliveryMethod: 'email' | 'sms' | 'whatsapp',
 		recipient: { email?: string; phone?: string }
-	): Promise<boolean> {
+	): Promise<{ success: boolean; error?: string }> {
 		try {
 			const response = await fetch('/api/documents/send', {
 				method: 'POST',
@@ -105,10 +105,10 @@ export function createReviewAPI() {
 			});
 
 			const result = await response.json();
-			return result.success;
+			return { success: result.success, error: result.error };
 		} catch (error) {
 			console.error('Send document error:', error);
-			return false;
+			return { success: false, error: 'Network error' };
 		}
 	}
 

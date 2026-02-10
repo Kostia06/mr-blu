@@ -17,7 +17,7 @@
 		rate: number;
 		total: number;
 		material?: string | null;
-		measurementType?: 'sqft' | 'linear_ft' | 'unit' | 'hour' | 'job' | null;
+		measurementType?: 'sqft' | 'linear_ft' | 'unit' | 'hour' | 'job' | 'service' | null;
 		dimensions?: {
 			width: number | null;
 			length: number | null;
@@ -58,6 +58,58 @@
 
 	// Internal state
 	let expandedItemId = $state<string | null>(null);
+
+	const measurementChips = [
+		{ type: 'service' as const, label: 'Service' },
+		{ type: 'sqft' as const, label: 'Area' },
+		{ type: 'linear_ft' as const, label: 'Linear' },
+		{ type: 'unit' as const, label: 'Per Unit' },
+		{ type: 'hour' as const, label: 'Per Hour' }
+	];
+
+	function setMeasurementType(item: LineItem, type: LineItem['measurementType']) {
+		item.measurementType = type;
+		if (type === 'service' || type === 'job') {
+			item.quantity = 1;
+			item.unit = 'job';
+		} else if (type === 'sqft') {
+			item.unit = 'sqft';
+			if (!item.dimensions) {
+				item.dimensions = { width: null, length: null, unit: 'ft' };
+			}
+		} else if (type === 'linear_ft') {
+			item.unit = 'ft';
+		} else if (type === 'unit') {
+			item.unit = 'unit';
+		} else if (type === 'hour') {
+			item.unit = 'hr';
+		}
+		onUpdateItemTotal(item);
+	}
+
+	function formatCollapsedMeta(item: LineItem): string {
+		const type = item.measurementType;
+		if (type === 'service' || type === 'job') {
+			return formatCurrency(item.total);
+		}
+		if (type === 'sqft' && item.dimensions?.width && item.dimensions?.length) {
+			return `${item.dimensions.width} \u00d7 ${item.dimensions.length} ${item.dimensions.unit || 'ft'}`;
+		}
+		if (type === 'linear_ft') {
+			return `${item.quantity} ft`;
+		}
+		if (type === 'unit') {
+			return `${item.quantity} \u00d7 ${formatCurrency(item.rate)}`;
+		}
+		if (type === 'hour') {
+			return `${item.quantity} hrs`;
+		}
+		// Fallback: existing behavior
+		if (item.dimensions?.width && item.dimensions?.length) {
+			return `${item.dimensions.width} \u00d7 ${item.dimensions.length} ${item.dimensions.unit || 'ft'}`;
+		}
+		return `${formatCurrency(item.rate)}${item.unit ? `/${item.unit}` : ''}`;
+	}
 </script>
 
 <div class="line-items-section">
@@ -92,8 +144,7 @@
 						<div class="line-item-summary">
 							<span class="line-item-desc">{item.description || 'Untitled item'}</span>
 							<span class="line-item-meta">
-								{item.quantity}
-								{item.unit} × {formatCurrency(item.rate)}
+								{formatCollapsedMeta(item)}
 							</span>
 						</div>
 						<div class="line-item-total-wrapper">
@@ -143,6 +194,20 @@
 
 					{#if isExpanded}
 						<div class="line-item-edit">
+							<!-- Measurement type chips -->
+							<div class="measurement-chips">
+								{#each measurementChips as chip (chip.type)}
+									<button
+										class="measurement-chip"
+										class:active={item.measurementType === chip.type}
+										onclick={() => setMeasurementType(item, chip.type)}
+									>
+										{chip.label}
+									</button>
+								{/each}
+							</div>
+
+							<!-- Description (always shown) -->
 							<div class="edit-field full">
 								<label for="item-desc-{item.id}">{$t('review.description')}</label>
 								<input
@@ -152,43 +217,24 @@
 									placeholder={$t('placeholder.description')}
 								/>
 							</div>
-							<div class="edit-row">
-								<div class="edit-field">
-									<label for="item-qty-{item.id}">{$t('review.quantity')}</label>
-									<input
-										id="item-qty-{item.id}"
-										type="number"
-										bind:value={item.quantity}
-										oninput={() => onUpdateItemTotal(item)}
-										min="0"
-										step="0.01"
-										disabled={item.dimensions?.width != null && item.dimensions?.length != null}
-									/>
+
+							<!-- Type-specific inputs -->
+							{#if item.measurementType === 'service' || item.measurementType === 'job'}
+								<!-- Service: total only -->
+								<div class="edit-row">
+									<div class="edit-field" style="flex:1">
+										<label for="item-total-{item.id}">{$t('review.total')}</label>
+										<input
+											id="item-total-{item.id}"
+											type="number"
+											bind:value={item.total}
+											min="0"
+											step="0.01"
+										/>
+									</div>
 								</div>
-								<div class="edit-field">
-									<label for="item-unit-{item.id}">{$t('review.unit')}</label>
-									<input
-										id="item-unit-{item.id}"
-										type="text"
-										bind:value={item.unit}
-										placeholder={$t('placeholder.unit')}
-									/>
-								</div>
-							</div>
-							<div class="edit-row">
-								<div class="edit-field full">
-									<label for="item-rate-{item.id}">{$t('review.rate')}</label>
-									<input
-										id="item-rate-{item.id}"
-										type="number"
-										bind:value={item.rate}
-										oninput={() => onUpdateItemTotal(item)}
-										min="0"
-										step="0.01"
-									/>
-								</div>
-							</div>
-							{#if item.dimensions || item.measurementType === 'sqft'}
+							{:else if item.measurementType === 'sqft'}
+								<!-- Area: Width x Length -> auto quantity, Rate/sqft -->
 								<div class="dimensions-row">
 									<span class="dimensions-label">{$t('review.dimensions')}</span>
 									<div class="dimensions-inputs">
@@ -208,7 +254,7 @@
 											min="0"
 											step="0.1"
 										/>
-										<span class="dimension-separator">×</span>
+										<span class="dimension-separator">&times;</span>
 										<input
 											type="number"
 											class="dimension-input"
@@ -225,16 +271,172 @@
 											min="0"
 											step="0.1"
 										/>
-										<span class="dimension-unit">{item.dimensions?.unit || 'ft'}</span>
+										<span class="dimension-unit">ft</span>
 										{#if item.dimensions?.width && item.dimensions?.length}
-											<span class="dimension-result"
-												>= {item.dimensions.width * item.dimensions.length}
-												{item.unit || 'sqft'}</span
-											>
+											<span class="dimension-result">
+												= {item.dimensions.width * item.dimensions.length} sqft
+											</span>
 										{/if}
 									</div>
 								</div>
+								<div class="edit-row">
+									<div class="edit-field">
+										<label for="item-rate-{item.id}">{$t('review.rate')} /sqft</label>
+										<input
+											id="item-rate-{item.id}"
+											type="number"
+											bind:value={item.rate}
+											oninput={() => onUpdateItemTotal(item)}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+									<div class="edit-field">
+										<label for="item-total-{item.id}">{$t('review.total')}</label>
+										<input
+											id="item-total-{item.id}"
+											type="number"
+											bind:value={item.total}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+								</div>
+							{:else if item.measurementType === 'linear_ft'}
+								<!-- Linear: Length + Rate/ft -->
+								<div class="edit-row">
+									<div class="edit-field">
+										<label for="item-qty-{item.id}">Length (ft)</label>
+										<input
+											id="item-qty-{item.id}"
+											type="number"
+											bind:value={item.quantity}
+											oninput={() => onUpdateItemTotal(item)}
+											min="0"
+											step="0.1"
+										/>
+									</div>
+									<div class="edit-field">
+										<label for="item-rate-{item.id}">{$t('review.rate')} /ft</label>
+										<input
+											id="item-rate-{item.id}"
+											type="number"
+											bind:value={item.rate}
+											oninput={() => onUpdateItemTotal(item)}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+									<div class="edit-field">
+										<label for="item-total-{item.id}">{$t('review.total')}</label>
+										<input
+											id="item-total-{item.id}"
+											type="number"
+											bind:value={item.total}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+								</div>
+							{:else if item.measurementType === 'unit'}
+								<!-- Per Unit: Count + Rate/unit -->
+								<div class="edit-row">
+									<div class="edit-field">
+										<label for="item-qty-{item.id}">Count</label>
+										<input
+											id="item-qty-{item.id}"
+											type="number"
+											bind:value={item.quantity}
+											oninput={() => onUpdateItemTotal(item)}
+											min="0"
+											step="1"
+										/>
+									</div>
+									<div class="edit-field">
+										<label for="item-rate-{item.id}">{$t('review.rate')} /unit</label>
+										<input
+											id="item-rate-{item.id}"
+											type="number"
+											bind:value={item.rate}
+											oninput={() => onUpdateItemTotal(item)}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+									<div class="edit-field">
+										<label for="item-total-{item.id}">{$t('review.total')}</label>
+										<input
+											id="item-total-{item.id}"
+											type="number"
+											bind:value={item.total}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+								</div>
+							{:else if item.measurementType === 'hour'}
+								<!-- Per Hour: Hours + Rate/hr -->
+								<div class="edit-row">
+									<div class="edit-field">
+										<label for="item-qty-{item.id}">Hours</label>
+										<input
+											id="item-qty-{item.id}"
+											type="number"
+											bind:value={item.quantity}
+											oninput={() => onUpdateItemTotal(item)}
+											min="0"
+											step="0.5"
+										/>
+									</div>
+									<div class="edit-field">
+										<label for="item-rate-{item.id}">{$t('review.rate')} /hr</label>
+										<input
+											id="item-rate-{item.id}"
+											type="number"
+											bind:value={item.rate}
+											oninput={() => onUpdateItemTotal(item)}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+									<div class="edit-field">
+										<label for="item-total-{item.id}">{$t('review.total')}</label>
+										<input
+											id="item-total-{item.id}"
+											type="number"
+											bind:value={item.total}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+								</div>
+							{:else}
+								<!-- No type selected: show rate + total (original default) -->
+								<div class="edit-row">
+									<div class="edit-field">
+										<label for="item-rate-{item.id}">{$t('review.rate')}</label>
+										<input
+											id="item-rate-{item.id}"
+											type="number"
+											bind:value={item.rate}
+											oninput={() => onUpdateItemTotal(item)}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+									<div class="edit-field">
+										<label for="item-total-{item.id}">{$t('review.total')}</label>
+										<input
+											id="item-total-{item.id}"
+											type="number"
+											bind:value={item.total}
+											min="0"
+											step="0.01"
+										/>
+									</div>
+								</div>
 							{/if}
+
 							{#if item.material}
 								<div class="material-info">
 									<span class="material-tag">
@@ -680,6 +882,42 @@
 		padding: 4px 8px;
 		background: #ecfdf5;
 		border-radius: 4px;
+	}
+
+	.measurement-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		padding-bottom: 4px;
+	}
+
+	.measurement-chip {
+		padding: 5px 12px;
+		border: 1px solid var(--gray-200);
+		border-radius: 20px;
+		background: var(--gray-100);
+		color: var(--gray-600);
+		font-size: 12px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		white-space: nowrap;
+	}
+
+	.measurement-chip:hover {
+		border-color: var(--gray-300);
+		background: var(--gray-200);
+	}
+
+	.measurement-chip.active {
+		background: var(--blu-primary, #0066ff);
+		color: var(--white);
+		border-color: var(--blu-primary, #0066ff);
+	}
+
+	.measurement-chip.active:hover {
+		background: #0052cc;
+		border-color: #0052cc;
 	}
 
 	.line-item-edit .edit-actions {

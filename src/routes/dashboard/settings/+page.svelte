@@ -3,12 +3,13 @@
 	import { cubicOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
+	import { SCROLL_DOWN_THRESHOLD, SCROLL_UP_THRESHOLD, SCROLL_HEADER_MIN_Y } from '$lib/constants';
 	import User from 'lucide-svelte/icons/user';
 	import Building2 from 'lucide-svelte/icons/building-2';
 	import LogOut from 'lucide-svelte/icons/log-out';
 	import Globe from 'lucide-svelte/icons/globe';
+	import BellRing from 'lucide-svelte/icons/bell-ring';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
-	import { Avatar } from '$lib/components/ui';
 	import { SettingsSection, SettingsItem } from '$lib/components/settings';
 	import { t } from '$lib/i18n';
 
@@ -27,9 +28,9 @@
 				const delta = currentScrollY - lastScrollY;
 
 				// Hide header when scrolling down significantly, show when scrolling up
-				if (delta > 8 && currentScrollY > 60) {
+				if (delta > SCROLL_DOWN_THRESHOLD && currentScrollY > SCROLL_HEADER_MIN_Y) {
 					headerHidden = true;
-				} else if (delta < -5 || currentScrollY <= 60) {
+				} else if (delta < -SCROLL_UP_THRESHOLD || currentScrollY <= SCROLL_HEADER_MIN_Y) {
 					headerHidden = false;
 				}
 
@@ -47,12 +48,6 @@
 	onDestroy(() => {
 		window.removeEventListener('scroll', handleScroll);
 	});
-
-	// Get user info from session - use $derived for reactivity
-	const user = $derived(data.session?.user);
-	const fullName = $derived(user?.user_metadata?.full_name || user?.user_metadata?.name || '');
-	const displayName = $derived(fullName || user?.email?.split('@')[0] || 'User');
-	const userEmail = $derived(user?.email || '');
 
 	const settingsSections = $derived([
 		{
@@ -75,6 +70,12 @@
 		{
 			title: $t('settings.preferences'),
 			items: [
+				{
+					icon: BellRing,
+					label: $t('settings.notifications'),
+					value: $t('settings.notificationsDesc'),
+					href: '/dashboard/settings/notifications'
+				},
 				{
 					icon: Globe,
 					label: $t('settings.language'),
@@ -105,26 +106,6 @@
 	</header>
 
 	<div class="page-content" in:fly={{ y: 20, duration: 500, delay: 100, easing: cubicOut }}>
-		<!-- User Profile Card -->
-		<a href="/dashboard/settings/profile" class="user-card">
-			<Avatar name={displayName} size="lg" />
-			<div class="user-info">
-				<h2 class="user-name">{displayName}</h2>
-				<p class="user-email">{userEmail}</p>
-			</div>
-			<span class="card-arrow">
-				<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-					<path
-						d="M7.5 15L12.5 10L7.5 5"
-						stroke="currentColor"
-						stroke-width="1.5"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-				</svg>
-			</span>
-		</a>
-
 		<!-- Settings Sections -->
 		{#each settingsSections as section, sectionIndex}
 			<div
@@ -236,67 +217,14 @@
 	.page-content {
 		padding: var(--page-padding-x, 20px);
 		max-width: var(--page-max-width, 600px);
+		width: 100%;
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
+		justify-content: center;
+		min-height: calc(100vh - 60px);
 		gap: var(--section-gap, 24px);
 		padding-bottom: 100px;
-	}
-
-	/* User Card */
-	.user-card {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-		padding: 20px;
-		background: transparent;
-		border: none;
-		border-radius: var(--radius-card, 20px);
-		text-decoration: none;
-		transition: all 0.2s ease;
-	}
-
-	.user-card:hover {
-		box-shadow: var(--shadow-card-hover);
-	}
-
-	.user-card:active {
-		transform: scale(0.99);
-	}
-
-	.user-info {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.user-name {
-		font-family: var(--font-display, system-ui);
-		font-size: 18px;
-		font-weight: 600;
-		color: var(--gray-900, #0f172a);
-		margin: 0 0 4px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.user-email {
-		font-size: 14px;
-		color: var(--gray-500, #64748b);
-		margin: 0;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.card-arrow {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 32px;
-		height: 32px;
-		color: var(--gray-400, #94a3b8);
-		flex-shrink: 0;
 	}
 
 	/* Section wrapper */
@@ -352,7 +280,6 @@
 	@media (prefers-reduced-motion: reduce) {
 		.page-header,
 		.back-btn,
-		.user-card,
 		.logout-btn {
 			transition: none;
 		}

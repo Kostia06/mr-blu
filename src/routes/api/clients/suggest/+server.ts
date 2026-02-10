@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { SIMILARITY_THRESHOLD } from '$lib/constants';
 import { calculateSimilarity } from '$lib/utils/phonetic';
 
 // Normalize text by removing accents and converting to lowercase
@@ -75,8 +76,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					address: client.address,
 					similarity: 1
 				};
-			} else if (similarity >= 0.3) {
-				// Lower threshold for speech-to-text errors
+			} else if (similarity >= SIMILARITY_THRESHOLD) {
 				suggestions.push({
 					id: client.id,
 					name: client.name,

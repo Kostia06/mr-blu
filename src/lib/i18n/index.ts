@@ -865,6 +865,15 @@ const translations: Translations = {
 		// Notifications Settings
 		'settings.emailNotificationsTitle': 'Email Notifications',
 		'settings.emailNotificationsDesc': 'Choose which updates to receive by email',
+		'settings.notifInvoiceSent': 'Invoice Sent',
+		'settings.notifInvoiceSentDesc': 'Get notified when an invoice is sent to a client',
+		'settings.notifEstimateSent': 'Estimate Sent',
+		'settings.notifEstimateSentDesc': 'Get notified when an estimate is sent to a client',
+		'settings.notifConfirmation': 'Confirmation Emails',
+		'settings.notifConfirmationDesc': 'Receive a copy when you send a document',
+		'settings.notifAllDisabled': 'All notifications disabled',
+		'settings.notifEnabledCount': '{count} notifications enabled',
+		'settings.notifAutoSave': 'Changes are saved automatically when you toggle a setting.',
 
 		// Review Page Additional
 		'review.editActionLabel': 'Edit action',
@@ -1821,6 +1830,15 @@ const translations: Translations = {
 		// Notifications Settings
 		'settings.emailNotificationsTitle': 'Notificaciones por Email',
 		'settings.emailNotificationsDesc': 'Elige qué actualizaciones recibir por email',
+		'settings.notifInvoiceSent': 'Factura Enviada',
+		'settings.notifInvoiceSentDesc': 'Recibe una notificación cuando se envía una factura',
+		'settings.notifEstimateSent': 'Estimado Enviado',
+		'settings.notifEstimateSentDesc': 'Recibe una notificación cuando se envía un estimado',
+		'settings.notifConfirmation': 'Correos de Confirmación',
+		'settings.notifConfirmationDesc': 'Recibe una copia cuando envías un documento',
+		'settings.notifAllDisabled': 'Todas las notificaciones desactivadas',
+		'settings.notifEnabledCount': '{count} notificaciones activadas',
+		'settings.notifAutoSave': 'Los cambios se guardan automáticamente al activar o desactivar.',
 
 		// Review Page Additional
 		'review.editActionLabel': 'Editar acción',

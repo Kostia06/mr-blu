@@ -113,17 +113,23 @@
 			phone: data.profile?.phone || undefined,
 			address: data.profile?.address || undefined
 		},
-		lineItems: (doc.line_items || []).map((item: any) => ({
-			description: item.description || 'Item',
-			quantity: item.quantity || 1,
-			unit: item.unit || 'ea',
-			rate: item.rate || item.total || 0,
-			total: item.total || 0,
-			measurementType: item.measurementType,
-			dimensions: item.dimensions
-				? `${item.dimensions.width} × ${item.dimensions.length} ${item.dimensions.unit || 'ft'}`
-				: undefined
-		})),
+		lineItems: (doc.line_items || []).map((item: any) => {
+			let dims: string | undefined;
+			if (typeof item.dimensions === 'string') {
+				dims = item.dimensions.includes('undefined') ? undefined : item.dimensions;
+			} else if (item.dimensions?.width && item.dimensions?.length) {
+				dims = `${item.dimensions.width} × ${item.dimensions.length} ${item.dimensions.unit || 'ft'}`;
+			}
+			return {
+				description: item.description || 'Item',
+				quantity: item.quantity || 1,
+				unit: item.unit || 'ea',
+				rate: item.rate || item.total || 0,
+				total: item.total || 0,
+				measurementType: item.measurementType,
+				dimensions: dims
+			};
+		}),
 		subtotal: doc.subtotal || doc.total || 0,
 		taxRate: doc.tax_rate || 0,
 		taxAmount: doc.tax_amount || 0,
@@ -305,9 +311,10 @@
 			link.click();
 			document.body.removeChild(link);
 			URL.revokeObjectURL(url);
+			toast.success('PDF downloaded');
 		} catch (error) {
 			console.error('Failed to generate PDF:', error);
-			alert($t('docDetail.failedPdf'));
+			toast.error($t('docDetail.failedPdf'));
 		} finally {
 			isGenerating = false;
 		}
@@ -822,21 +829,21 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		-webkit-overflow-scrolling: touch;
+		padding: var(--page-padding-x, 20px);
+		padding-top: calc(12px + var(--safe-area-top, 0px));
+		padding-bottom: 0;
 	}
 
 	/* Header */
 	.page-header {
-		position: sticky;
-		top: 0;
-		z-index: var(--z-sticky, 100);
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		padding: var(--space-3, 12px) var(--page-padding-x, 20px);
-		padding-top: calc(var(--space-3, 12px) + var(--safe-area-top, 0px));
-		background: rgba(219, 232, 244, 0.9);
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
+		margin-bottom: 20px;
+		max-width: var(--page-max-width, 600px);
+		margin-left: auto;
+		margin-right: auto;
+		width: 100%;
 	}
 
 	.header-title {
@@ -980,7 +987,9 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 12px 16px;
-		margin: 0 var(--page-padding-x, 20px);
+		max-width: var(--page-max-width, 600px);
+		margin: 0 auto;
+		width: 100%;
 		background: #fef2f2;
 		border: 1px solid #fecaca;
 		border-radius: 12px;
@@ -1008,9 +1017,8 @@
 	/* Edit Container */
 	.edit-container {
 		flex: 1;
-		padding: 16px var(--page-padding-x, 20px);
 		padding-bottom: 120px;
-		max-width: 680px;
+		max-width: var(--page-max-width, 600px);
 		margin: 0 auto;
 		width: 100%;
 		display: flex;
@@ -1288,9 +1296,8 @@
 	/* Document Container (View Mode) */
 	.document-container {
 		flex: 1;
-		padding: 16px var(--page-padding-x, 20px);
 		padding-bottom: 120px;
-		max-width: 680px;
+		max-width: var(--page-max-width, 600px);
 		margin: 0 auto;
 		width: 100%;
 	}
@@ -1487,7 +1494,6 @@
 	@media (max-width: 600px) {
 		.document-container,
 		.edit-container {
-			padding: 12px;
 			padding-bottom: 100px;
 		}
 

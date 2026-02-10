@@ -51,10 +51,9 @@ export interface DocumentSourceData {
  */
 export interface TemplateLineItem {
 	description: string;
-	qtyDisplay: string; // Pre-formatted: "24 × 90 ft = 2,160 sqft"
-	rateDisplay: string; // Pre-formatted: "$0.35/sqft"
+	detailsDisplay: string; // Pre-formatted: "24 × 90 ft = 2,160 sqft" or em-dash for service
 	totalFormatted: string; // Pre-formatted: "$756.00"
-	qtySubtext: string; // Mobile-only: "156 sqft @ $57.00/sqft" (empty for simple qty=1 unit items)
+	detailsSubtext: string; // Mobile-only: "156 sqft" (empty for service/simple items)
 }
 
 /**

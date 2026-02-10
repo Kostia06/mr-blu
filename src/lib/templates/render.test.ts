@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { prepareTemplateData, renderTemplate, getTemplate } from './render';
+import { prepareTemplateData, renderTemplate, renderDocumentHTML, getTemplate } from './render';
 import type { DocumentSourceData } from './types';
 
 function makeDoc(overrides: Partial<DocumentSourceData> = {}): DocumentSourceData {
@@ -18,8 +18,8 @@ function makeDoc(overrides: Partial<DocumentSourceData> = {}): DocumentSourceDat
 	};
 }
 
-describe('prepareTemplateData - qtySubtext', () => {
-	it('generates qtySubtext for sqft items', () => {
+describe('prepareTemplateData - detailsSubtext', () => {
+	it('generates detailsSubtext for sqft items', () => {
 		const doc = makeDoc({
 			lineItems: [
 				{
@@ -36,12 +36,11 @@ describe('prepareTemplateData - qtySubtext', () => {
 		});
 
 		const data = prepareTemplateData(doc);
-		expect(data.lineItems[0].qtySubtext).toContain('156');
-		expect(data.lineItems[0].qtySubtext).toContain('@');
-		expect(data.lineItems[0].qtySubtext).toContain('$57.00');
+		expect(data.lineItems[0].detailsSubtext).toContain('156');
+		expect(data.lineItems[0].detailsSubtext).toContain('sqft');
 	});
 
-	it('generates qtySubtext for linear_ft items', () => {
+	it('generates detailsSubtext for linear_ft items', () => {
 		const doc = makeDoc({
 			lineItems: [
 				{
@@ -58,11 +57,11 @@ describe('prepareTemplateData - qtySubtext', () => {
 		});
 
 		const data = prepareTemplateData(doc);
-		expect(data.lineItems[0].qtySubtext).toContain('35');
-		expect(data.lineItems[0].qtySubtext).toContain('@');
+		expect(data.lineItems[0].detailsSubtext).toContain('35');
+		expect(data.lineItems[0].detailsSubtext).toContain('linear ft');
 	});
 
-	it('skips qtySubtext for simple qty=1 unit items', () => {
+	it('skips detailsSubtext for simple qty=1 unit items', () => {
 		const doc = makeDoc({
 			lineItems: [
 				{
@@ -79,10 +78,10 @@ describe('prepareTemplateData - qtySubtext', () => {
 		});
 
 		const data = prepareTemplateData(doc);
-		expect(data.lineItems[0].qtySubtext).toBe('');
+		expect(data.lineItems[0].detailsSubtext).toBe('');
 	});
 
-	it('skips qtySubtext for service/job items', () => {
+	it('skips detailsSubtext for service/job items', () => {
 		const doc = makeDoc({
 			lineItems: [
 				{
@@ -99,10 +98,10 @@ describe('prepareTemplateData - qtySubtext', () => {
 		});
 
 		const data = prepareTemplateData(doc);
-		expect(data.lineItems[0].qtySubtext).toBe('');
+		expect(data.lineItems[0].detailsSubtext).toBe('');
 	});
 
-	it('generates qtySubtext for multi-quantity unit items', () => {
+	it('generates detailsSubtext for multi-quantity unit items', () => {
 		const doc = makeDoc({
 			lineItems: [
 				{
@@ -118,14 +117,12 @@ describe('prepareTemplateData - qtySubtext', () => {
 		});
 
 		const data = prepareTemplateData(doc);
-		expect(data.lineItems[0].qtySubtext).toContain('5');
-		expect(data.lineItems[0].qtySubtext).toContain('@');
-		expect(data.lineItems[0].qtySubtext).toContain('$120.00');
+		expect(data.lineItems[0].detailsSubtext).toContain('5');
 	});
 });
 
-describe('renderTemplate - qtySubtext in HTML', () => {
-	it('renders qtySubtext span when present', () => {
+describe('renderTemplate - detailsSubtext in HTML', () => {
+	it('renders detailsSubtext span when present', () => {
 		const doc = makeDoc({
 			lineItems: [
 				{
@@ -145,11 +142,11 @@ describe('renderTemplate - qtySubtext in HTML', () => {
 		const data = prepareTemplateData(doc);
 		const html = renderTemplate(template, data);
 
-		expect(html).toContain('<span class="qty-subtext">');
+		expect(html).toContain('<span class="details-subtext">');
 		expect(html).toContain('200');
 	});
 
-	it('omits qtySubtext span for simple items', () => {
+	it('omits detailsSubtext span for simple items', () => {
 		const doc = makeDoc({
 			lineItems: [
 				{
@@ -169,6 +166,68 @@ describe('renderTemplate - qtySubtext in HTML', () => {
 		const data = prepareTemplateData(doc);
 		const html = renderTemplate(template, data);
 
-		expect(html).not.toContain('<span class="qty-subtext">');
+		expect(html).not.toContain('<span class="details-subtext">');
+	});
+});
+
+describe('renderDocumentHTML - forPdf mode', () => {
+	it('adds for-pdf class when forPdf is true', () => {
+		const doc = makeDoc({
+			lineItems: [
+				{
+					description: 'Deck install',
+					quantity: 100,
+					unit: 'sqft',
+					rate: 10,
+					total: 1000,
+					measurementType: 'sqft'
+				}
+			],
+			subtotal: 1000,
+			taxRate: 5,
+			taxAmount: 50,
+			total: 1050
+		});
+
+		const html = renderDocumentHTML(doc, { forPdf: true });
+
+		expect(html).toContain('class="document-template for-pdf"');
+		expect(html).toContain('INVOICE');
+		expect(html).toContain('INV-001');
+		expect(html).toContain('Deck install');
+		expect(html).toContain('$1,050.00');
+	});
+
+	it('does not add for-pdf class to document div when forPdf is false', () => {
+		const doc = makeDoc();
+		const html = renderDocumentHTML(doc, { forPdf: false });
+
+		expect(html).not.toContain('class="document-template for-pdf"');
+	});
+
+	it('renders estimate type correctly in PDF mode', () => {
+		const doc = makeDoc({
+			documentType: 'estimate',
+			documentNumber: 'EST-042',
+			lineItems: [
+				{
+					description: 'Kitchen reno',
+					quantity: 1,
+					unit: 'job',
+					rate: 15000,
+					total: 15000,
+					measurementType: 'job'
+				}
+			],
+			subtotal: 15000,
+			total: 15000
+		});
+
+		const html = renderDocumentHTML(doc, { forPdf: true });
+
+		expect(html).toContain('ESTIMATE');
+		expect(html).toContain('EST-042');
+		expect(html).toContain('Kitchen reno');
+		expect(html).toContain('Estimate Date');
 	});
 });

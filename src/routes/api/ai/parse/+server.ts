@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { GEMINI_API_KEY } from '$env/static/private';
 import { logger } from '$lib/server/logger';
+import { TAX_RATE_DECIMAL_THRESHOLD } from '$lib/constants';
 import {
 	rateLimiters,
 	getClientIdentifier,
@@ -147,6 +148,14 @@ KEY EXAMPLES:
 - "Turn Jackson's estimate into invoice" → document_transform
 - "plus GST" → taxes with GST 5%
 - "Ontario tax" → taxes with HST 13%
+
+MEASUREMENT TYPE RULES for items:
+- For flat-rate services (labor, consultation, cleanup), use measurementType: "service" with quantity: 1
+- For area-based work with dimensions (flooring, painting, decking), use measurementType: "sqft" with dimensions
+- For linear work (trim, fencing, gutters), use measurementType: "linear_ft"
+- For counted items (fixtures, outlets), use measurementType: "unit"
+- For time-based work, use measurementType: "hour"
+- Default to "service" when quantity is 1 and no specific unit applies
 
 IMPORTANT: All item descriptions MUST be in English regardless of the input language. Translate any non-English item descriptions to English. Only translate item description text - keep client names, addresses, and other proper nouns as-is.
 
@@ -394,12 +403,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		}
 
 		// Normalize tax rates that come as decimals (0.05 → 5)
-		if (parsed.taxRate && parsed.taxRate > 0 && parsed.taxRate < 1) {
+		if (parsed.taxRate && parsed.taxRate > 0 && parsed.taxRate < TAX_RATE_DECIMAL_THRESHOLD) {
 			parsed.taxRate = parsed.taxRate * 100;
 		}
 		if (parsed.taxes && Array.isArray(parsed.taxes)) {
 			for (const tax of parsed.taxes) {
-				if (tax.rate && tax.rate > 0 && tax.rate < 1) {
+				if (tax.rate && tax.rate > 0 && tax.rate < TAX_RATE_DECIMAL_THRESHOLD) {
 					tax.rate = tax.rate * 100;
 				}
 			}

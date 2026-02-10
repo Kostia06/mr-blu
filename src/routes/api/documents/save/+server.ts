@@ -27,6 +27,8 @@ interface TemplateDataInput {
 		total: number;
 		quantity?: number;
 		rate?: number;
+		measurementType?: string;
+		dimensions?: string;
 	}>;
 	subtotal: number;
 	gstRate: number;
@@ -114,7 +116,9 @@ function cleanLineItems(items: TemplateDataInput['items']) {
 			quantity,
 			unit,
 			rate,
-			total: typeof item.total === 'number' && !isNaN(item.total) ? item.total : 0
+			total: typeof item.total === 'number' && !isNaN(item.total) ? item.total : 0,
+			measurementType: item.measurementType || undefined,
+			dimensions: item.dimensions || undefined
 		};
 	});
 }

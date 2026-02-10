@@ -10,6 +10,7 @@ export interface ActionStep {
 		frequency?: string;
 		message?: string;
 	};
+	error?: string;
 }
 
 export interface LineItem {
@@ -20,7 +21,7 @@ export interface LineItem {
 	rate: number;
 	total: number;
 	material?: string | null;
-	measurementType?: 'sqft' | 'linear_ft' | 'unit' | 'hour' | 'job' | null;
+	measurementType?: 'sqft' | 'linear_ft' | 'unit' | 'hour' | 'job' | 'service' | null;
 	dimensions?: {
 		width: number | null;
 		length: number | null;

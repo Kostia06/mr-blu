@@ -6,20 +6,31 @@
 	let {
 		isExecuting,
 		canExecute,
-		onExecute
+		onExecute,
+		onLockedClick
 	}: {
 		isExecuting: boolean;
 		canExecute: boolean;
 		onExecute: () => void;
+		onLockedClick?: () => void;
 	} = $props();
+
+	function handleClick() {
+		if (isExecuting) return;
+		if (!canExecute) {
+			onLockedClick?.();
+			return;
+		}
+		onExecute();
+	}
 </script>
 
 <div class="execute-section">
 	<button
 		class="execute-btn"
 		class:executing={isExecuting}
-		onclick={onExecute}
-		disabled={!canExecute || isExecuting}
+		class:locked={!canExecute && !isExecuting}
+		onclick={handleClick}
 	>
 		{#if isExecuting}
 			<Loader2 size={20} class="spinning" />
@@ -61,16 +72,16 @@
 		box-shadow: 0 4px 20px var(--glass-primary-25);
 	}
 
-	.execute-btn:hover:not(:disabled) {
+	.execute-btn:hover:not(.locked) {
 		transform: translateY(-1px);
 		box-shadow: 0 6px 24px rgba(0, 102, 255, 0.35);
 	}
 
-	.execute-btn:active:not(:disabled) {
+	.execute-btn:active:not(.locked) {
 		transform: scale(0.98);
 	}
 
-	.execute-btn:disabled {
+	.execute-btn.locked {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}

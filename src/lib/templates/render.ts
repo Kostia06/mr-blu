@@ -12,8 +12,7 @@ import type {
 import {
 	formatCurrency as formatCurrencyBase,
 	formatDate as formatDateBase,
-	formatQuantityDisplay as formatQtyDisplay,
-	formatRateDisplay as formatRateDisp
+	formatQuantityDisplay as formatQtyDisplay
 } from '$lib/utils/format';
 import templateHtml from './document-template.html?raw';
 
@@ -55,34 +54,26 @@ export function prepareTemplateData(
 
 	// Format line items
 	const lineItems: TemplateLineItem[] = doc.lineItems.map((item) => {
-		const qtyDisplay = formatQtyDisplay({
+		const detailsDisplay = formatQtyDisplay({
 			quantity: item.quantity,
 			measurementType: item.measurementType,
 			dimensions: item.dimensions
 		});
-		const rateDisplay = formatRateDisp({
-			rate: item.rate,
-			measurementType: item.measurementType
-		});
 
-		// Build mobile subtext: "156 sqft @ $57.00/sqft"
-		// Skip for simple qty=1 unit items (no useful info to show)
+		// Build mobile subtext with details info
+		// Skip for simple qty=1 unit items and service/job items
 		const qty = item.quantity ?? 1;
 		const unit = item.unit || 'unit';
 		const mt = item.measurementType;
 		const isSimple = qty === 1 && (!mt || mt === 'unit') && unit === 'unit';
 		const isServiceJob = mt === 'service' || mt === 'job';
-		let qtySubtext = '';
-		if (!isSimple && !isServiceJob) {
-			qtySubtext = `${qtyDisplay} @ ${rateDisplay}`;
-		}
+		const detailsSubtext = !isSimple && !isServiceJob ? detailsDisplay : '';
 
 		return {
 			description: item.description,
-			qtyDisplay,
-			rateDisplay,
+			detailsDisplay,
 			totalFormatted: formatCurrency(item.total),
-			qtySubtext
+			detailsSubtext
 		};
 	});
 
@@ -163,17 +154,15 @@ export function renderTemplate(template: string, data: RenderedTemplateData): st
 		return data.lineItems
 			.map((item) => {
 				let itemHtml = content;
-				// Handle qtySubtext conditional section
+				// Handle detailsSubtext conditional section
 				itemHtml = itemHtml.replace(
-					/\{\{#qtySubtext\}\}([\s\S]*?)\{\{\/qtySubtext\}\}/g,
-					(_: string, inner: string) => (item.qtySubtext ? inner : '')
+					/\{\{#detailsSubtext\}\}([\s\S]*?)\{\{\/detailsSubtext\}\}/g,
+					(_: string, inner: string) => (item.detailsSubtext ? inner : '')
 				);
 				// Replace item-level variables
 				itemHtml = itemHtml.replace(/\{\{description\}\}/g, escapeHtml(item.description));
-				itemHtml = itemHtml.replace(/\{\{qtyDisplay\}\}/g, escapeHtml(item.qtyDisplay));
-				itemHtml = itemHtml.replace(/\{\{rateDisplay\}\}/g, escapeHtml(item.rateDisplay));
 				itemHtml = itemHtml.replace(/\{\{totalFormatted\}\}/g, escapeHtml(item.totalFormatted));
-				itemHtml = itemHtml.replace(/\{\{qtySubtext\}\}/g, escapeHtml(item.qtySubtext));
+				itemHtml = itemHtml.replace(/\{\{detailsSubtext\}\}/g, escapeHtml(item.detailsSubtext));
 				return itemHtml;
 			})
 			.join('');

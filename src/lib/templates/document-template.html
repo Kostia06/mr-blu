@@ -189,29 +189,6 @@ body {
     border-bottom: none;
 }
 
-.desc-col {
-    width: 50%;
-}
-
-.qty-col {
-    width: 15%;
-    text-align: right;
-    padding-right: 12px !important;
-}
-
-.rate-col {
-    width: 15%;
-    text-align: right;
-    padding-right: 12px !important;
-}
-
-.total-col {
-    width: 20%;
-    text-align: right;
-}
-
-.items-table th.qty-col,
-.items-table th.rate-col,
 .items-table th.total-col {
     text-align: right;
 }
@@ -220,15 +197,18 @@ body {
     font-weight: 600;
 }
 
-/* Quantity subtext: hidden on desktop, shown on mobile when Qty/Rate columns are hidden */
-.qty-subtext {
-    display: none;
-}
-
-.items-table td.qty-col,
-.items-table td.rate-col {
+.details-subtext {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     color: #6b7280;
+    margin-top: 3px;
+}
+
+.total-col {
+    width: 120px;
+    text-align: right;
 }
 
 .items-table td.total-col {
@@ -408,25 +388,8 @@ body {
         font-size: 12px;
     }
 
-    .document-template:not(.for-pdf) .qty-col,
-    .document-template:not(.for-pdf) .rate-col {
-        display: none;
-    }
-
-    .document-template:not(.for-pdf) .desc-col {
-        width: auto;
-    }
-
-    .document-template:not(.for-pdf) .qty-subtext {
-        display: block;
-        font-size: 11px;
-        font-weight: 400;
-        color: #6b7280;
-        margin-top: 2px;
-    }
-
     .document-template:not(.for-pdf) .total-col {
-        width: 35%;
+        width: 100px;
     }
 
     .document-template:not(.for-pdf) .totals-section {
@@ -492,17 +455,13 @@ body {
             <thead>
                 <tr>
                     <th class="desc-col">Description</th>
-                    <th class="qty-col">Qty</th>
-                    <th class="rate-col">Rate</th>
                     <th class="total-col">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 {{#lineItems}}
                 <tr>
-                    <td class="desc-col">{{description}}{{#qtySubtext}}<span class="qty-subtext">{{qtySubtext}}</span>{{/qtySubtext}}</td>
-                    <td class="qty-col">{{qtyDisplay}}</td>
-                    <td class="rate-col">{{rateDisplay}}</td>
+                    <td class="desc-col">{{description}}{{#detailsSubtext}}<span class="details-subtext">{{detailsSubtext}}</span>{{/detailsSubtext}}</td>
                     <td class="total-col">{{totalFormatted}}</td>
                 </tr>
                 {{/lineItems}}

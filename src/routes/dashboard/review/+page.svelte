@@ -54,6 +54,15 @@
 	import { createSendFlow } from './review-send.svelte';
 	import { createMergeFlow } from './review-merge.svelte';
 	import { createReviewSession } from './review-session.svelte';
+	import {
+		handleInformationQuery,
+		handleDocumentClone,
+		handleDocumentMerge,
+		handleDocumentSend,
+		handleDocumentTransform,
+		handleDocumentAction,
+		handleParseError
+	} from './review-intent-handlers';
 
 	// Initialize modules
 	const api = createReviewAPI();
@@ -79,11 +88,20 @@
 				const result = await response.json();
 				if (result.profile) {
 					userProfile = result.profile;
+					const p = result.profile;
+					const biz = pageData.user?.user_metadata?.business;
+					const fullAddress = [
+						p.address || biz?.address,
+						[biz?.city, biz?.state, biz?.zip].filter(Boolean).join(', ')
+					]
+						.filter(Boolean)
+						.join('\n');
 					businessInfo = {
-						name: result.profile.business_name || result.profile.full_name || '',
-						address: result.profile.address || '',
-						phone: result.profile.phone || '',
-						email: result.profile.email || ''
+						name: p.full_name || '',
+						businessName: p.business_name || '',
+						address: fullAddress,
+						phone: p.phone || '',
+						email: p.email || ''
 					};
 				}
 			}
@@ -239,10 +257,14 @@
 		if (!userProfile.address) missing.push('Business address');
 		return missing;
 	});
+	const hasAnyProfileField = $derived(
+		Boolean(userProfile?.business_name || userProfile?.full_name || userProfile?.email || userProfile?.address)
+	);
 	const isProfileComplete = $derived(profileMissingFields.length === 0);
 
 	let businessInfo = $state({
 		name: '',
+		businessName: '',
 		address: '',
 		phone: '',
 		email: ''
@@ -423,6 +445,20 @@
 
 	const canExecute = $derived(!hasValidationErrors && data.actions.length > 0);
 
+	const validationErrors = $derived.by(() => {
+		const errors: string[] = [];
+		if (!validation.clientName.valid) errors.push($t('review.clientNameRequired'));
+		if (!validation.items.valid) errors.push($t('review.atLeastOneItem'));
+		if (!validation.total.valid) errors.push($t('review.totalMustBePositive'));
+		return errors;
+	});
+
+	function showValidationErrors() {
+		for (const error of validationErrors) {
+			toast.error(error);
+		}
+	}
+
 	const sortedActions = $derived([...data.actions].sort((a, b) => a.order - b.order));
 
 	const actionConfig: Record<string, { icon: typeof FileText; labelKey: string; color: string }> = {
@@ -499,7 +535,6 @@
 				body: JSON.stringify({ transcription })
 			});
 
-			// Handle rate limit error - redirect to dashboard with toast
 			if (response.status === 429) {
 				toast.error($t('error.rateLimit'), 6000);
 				goToDashboard();
@@ -509,90 +544,37 @@
 			const result = await response.json();
 
 			if (result.success) {
-				intentType = result.intentType || 'document_action';
+				const saveSession = () => session.saveReviewSession(getSessionData);
+				const intent = result.intentType || 'document_action';
 
-				if (intentType === 'information_query') {
-					queryData = result.data;
+				if (intent === 'information_query') {
 					isParsing = false;
-					await executeQuery();
-				} else if (result.intentType === 'document_clone') {
-					intentType = 'document_clone';
-					clone.cloneData = result.data;
+					const res = await handleInformationQuery(result, {
+						setQueryData: (d) => (queryData = d),
+						executeQuery
+					});
+					intentType = res.intentType;
+				} else if (intent === 'document_clone') {
 					isParsing = false;
-
-					if (clone.cloneData?.sourceClient) {
-						const err = await clone.searchSourceDocuments(
-							clone.cloneData.sourceClient,
-							clone.cloneData.documentType || undefined
-						);
-						if (err) parseError = err;
-					}
-
-					session.saveReviewSession(getSessionData);
-				} else if (result.intentType === 'document_merge') {
-					intentType = 'document_merge';
-					merge.mergeData = result.data;
+					const res = await handleDocumentClone(result, { clone, saveSession });
+					intentType = res.intentType;
+					if (res.parseError) parseError = res.parseError;
+				} else if (intent === 'document_merge') {
 					isParsing = false;
-
-					if (merge.mergeData?.sourceClients && merge.mergeData.sourceClients.length > 0) {
-						merge.mergeSourceSelections = merge.mergeData.sourceClients.map((clientName) => ({
-							clientName,
-							documents: [],
-							selectedDoc: null,
-							isSearching: true
-						}));
-						merge.showMergeSelection = true;
-
-						await Promise.all(
-							merge.mergeData.sourceClients.map((clientName, index) =>
-								merge.searchMergeSourceDocuments(
-									clientName,
-									index,
-									merge.mergeData?.documentType || undefined
-								)
-							)
-						);
-					}
-
-					session.saveReviewSession(getSessionData);
-				} else if (result.intentType === 'document_send') {
-					intentType = 'document_send';
-					send.sendData = result.data;
-					send.sendDocument = null;
-					send.sendClientInfo = null;
-					send.sendError = null;
-					send.sendSuccess = false;
+					const res = await handleDocumentMerge(result, { merge, saveSession });
+					intentType = res.intentType;
+				} else if (intent === 'document_send') {
 					isParsing = false;
-
-					if (send.sendData?.clientName) {
-						await send.findDocumentToSend();
-					}
-				} else if (result.intentType === 'document_transform') {
-					intentType = 'document_transform';
-					transform.transformData = result.data;
-					transform.transformSourceDoc = null;
-					transform.transformError = null;
-					transform.transformSuccess = false;
-					transform.transformResult = null;
+					const res = await handleDocumentSend(result, { send });
+					intentType = res.intentType;
+				} else if (intent === 'document_transform') {
 					isParsing = false;
-
-					if (transform.transformData?.source?.clientName) {
-						await transform.findTransformSourceDocument();
-					}
-
-					session.saveReviewSession(getSessionData);
+					const res = await handleDocumentTransform(result, { transform, saveSession });
+					intentType = res.intentType;
 				} else {
-					data = result.data;
-					if (data.taxRate && data.taxRate > 0 && data.taxRate < 1) {
-						data.taxRate = data.taxRate * 100;
-					}
-					if (data.taxes && Array.isArray(data.taxes)) {
-						for (const tax of data.taxes) {
-							if (tax.rate && tax.rate > 0 && tax.rate < 1) {
-								tax.rate = tax.rate * 100;
-							}
-						}
-					}
+					const res = handleDocumentAction(result, data);
+					data = res.data;
+					intentType = res.intentType;
 					isParsing = false;
 					generateDocNumber();
 					if (data.client.name) {
@@ -600,29 +582,16 @@
 					}
 					fetchItemSuggestions();
 					fetchPricingSuggestions();
-					session.saveReviewSession(getSessionData);
+					saveSession();
 					if (data.confidence?.overall < 0.7) {
 						session.fetchRecentDocuments();
 					}
 				}
 			} else {
-				parseError = result.error || 'Failed to parse';
-				intentType = 'document_action';
-				if (result.data) {
-					data = result.data;
-					data.summary = result.data.summary || parseError;
-				}
-				if (!data.actions || data.actions.length === 0) {
-					data.actions = [
-						{
-							id: 'fallback-create',
-							type: 'create_document',
-							order: 1,
-							status: 'pending',
-							details: {}
-						}
-					];
-				}
+				const res = handleParseError(result, data);
+				data = res.data;
+				parseError = res.parseError;
+				intentType = res.intentType;
 				isParsing = false;
 				generateDocNumber();
 			}
@@ -1056,20 +1025,31 @@
 				email: data.client.email || null
 			},
 			from: {
-				businessName: businessInfo.name || '',
+				name: businessInfo.name || null,
+				businessName: businessInfo.businessName || '',
 				address: businessInfo.address || null,
 				city: null,
 				phone: businessInfo.phone || null,
 				email: businessInfo.email || null
 			},
-			items: data.items.map((item) => ({
-				id: item.id || '',
-				description: item.description || '',
-				quantity: ensureNumber(item.quantity) || 1,
-				unit: cleanUnit(item),
-				rate: ensureNumber(item.rate),
-				total: ensureNumber(item.total)
-			})),
+			items: data.items.map((item) => {
+				let dims: string | undefined;
+				if (typeof item.dimensions === 'string') {
+					dims = item.dimensions.includes('undefined') ? undefined : item.dimensions;
+				} else if (item.dimensions?.width && item.dimensions?.length) {
+					dims = `${item.dimensions.width} × ${item.dimensions.length} ${item.dimensions.unit || 'ft'}`;
+				}
+				return {
+					id: item.id || '',
+					description: item.description || '',
+					quantity: ensureNumber(item.quantity) || 1,
+					unit: cleanUnit(item),
+					rate: ensureNumber(item.rate),
+					total: ensureNumber(item.total),
+					measurementType: item.measurementType || undefined,
+					dimensions: dims
+				};
+			}),
 			subtotal: ensureNumber(calculatedSubtotal),
 			gstRate: ensureNumber(data.taxRate) / 100,
 			gstAmount: ensureNumber(calculatedTaxAmount),
@@ -1081,62 +1061,72 @@
 
 	// Download PDF
 	async function handleDownloadPDF() {
-		const tpl = getTemplateData();
-		const documentData = {
-			documentType: tpl.documentType,
-			documentNumber: tpl.documentNumber,
-			client: {
-				name: tpl.billTo.name,
-				email: tpl.billTo.email,
-				phone: tpl.billTo.phone,
-				address: tpl.billTo.address
-			},
-			from: {
-				businessName: tpl.from.businessName,
-				email: tpl.from.email,
-				phone: tpl.from.phone,
-				address: tpl.from.address
-			},
-			lineItems: tpl.items.map(
-				(item: {
-					description: string;
-					quantity: number;
-					unit: string;
-					rate: number;
-					total: number;
-				}) => ({
-					description: item.description,
-					quantity: item.quantity,
-					unit: item.unit,
-					rate: item.rate,
-					total: item.total
-				})
-			),
-			subtotal: tpl.subtotal,
-			taxRate: tpl.gstRate * 100,
-			taxAmount: tpl.gstAmount,
-			total: tpl.total,
-			date: tpl.date,
-			dueDate: tpl.dueDate
-		};
+		try {
+			const tpl = getTemplateData();
+			const documentData = {
+				documentType: tpl.documentType,
+				documentNumber: tpl.documentNumber,
+				client: {
+					name: tpl.billTo.name,
+					email: tpl.billTo.email,
+					phone: tpl.billTo.phone,
+					address: tpl.billTo.address
+				},
+				from: {
+					businessName: tpl.from.businessName,
+					email: tpl.from.email,
+					phone: tpl.from.phone,
+					address: tpl.from.address
+				},
+				lineItems: tpl.items.map(
+					(item: {
+						description: string;
+						quantity: number;
+						unit: string;
+						rate: number;
+						total: number;
+						measurementType?: string;
+						dimensions?: string;
+					}) => ({
+						description: item.description,
+						quantity: item.quantity,
+						unit: item.unit,
+						rate: item.rate,
+						total: item.total,
+						measurementType: item.measurementType,
+						dimensions: item.dimensions
+					})
+				),
+				subtotal: tpl.subtotal,
+				taxRate: tpl.gstRate * 100,
+				taxAmount: tpl.gstAmount,
+				total: tpl.total,
+				date: tpl.date,
+				dueDate: tpl.dueDate
+			};
 
-		const response = await fetch('/api/documents/pdf', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(documentData)
-		});
+			const response = await fetch('/api/documents/pdf', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(documentData)
+			});
 
-		if (!response.ok) throw new Error('PDF generation failed');
+			if (!response.ok) throw new Error('PDF generation failed');
 
-		const blob = await response.blob();
-		const url = URL.createObjectURL(blob);
-		const link = window.document.createElement('a');
-		link.href = url;
-		link.download = `${tpl.documentType}-${tpl.documentNumber || 'document'}.pdf`;
-		window.document.body.appendChild(link);
-		link.click();
-		window.document.body.removeChild(link);
-		URL.revokeObjectURL(url);
+			const blob = await response.blob();
+			const url = URL.createObjectURL(blob);
+			const link = window.document.createElement('a');
+			link.href = url;
+			link.download = `${tpl.documentType}-${tpl.documentNumber || 'document'}.pdf`;
+			window.document.body.appendChild(link);
+			link.click();
+			window.document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+			toast.success('PDF downloaded');
+		} catch (error) {
+			console.error('Failed to generate PDF:', error);
+			toast.error('Failed to generate PDF');
+		}
 	}
 
 	// Execute single action
@@ -1146,6 +1136,7 @@
 
 		currentActionIndex = index;
 		data.actions[index].status = 'in_progress';
+		data.actions[index].error = undefined;
 
 		try {
 			switch (action.type) {
@@ -1159,7 +1150,7 @@
 					break;
 
 				case 'send_email':
-					if (!isProfileComplete && !profileWarningDismissed) {
+					if (!hasAnyProfileField && !profileWarningDismissed) {
 						showProfileWarning = true;
 						data.actions[index].status = 'pending';
 						currentActionIndex = -1;
@@ -1168,37 +1159,39 @@
 					showProfileWarning = false;
 
 					const emailRecipient = action.details.recipient || data.client.email;
+					if (!emailRecipient) {
+						throw new Error('Email address is required');
+					}
 					if (!savedDocumentId) {
 						const doc = await api.saveDocumentAPI(getTemplateData(), rawTranscription, 'sent');
 						if (doc) savedDocumentId = doc.id;
 					}
-					if (savedDocumentId && emailRecipient) {
-						const sent = await api.sendDocumentAPI(savedDocumentId, data.documentType, 'email', {
+					if (savedDocumentId) {
+						const emailResult = await api.sendDocumentAPI(savedDocumentId, data.documentType, 'email', {
 							email: emailRecipient
 						});
-						if (!sent) {
-							throw new Error('Failed to send email');
+						if (!emailResult.success) {
+							throw new Error(emailResult.error || 'Failed to send email');
 						}
-					} else if (!emailRecipient) {
-						throw new Error('Email address is required');
 					}
 					break;
 
 				case 'send_sms':
 					const smsRecipient = action.details.recipient || data.client.phone;
+					if (!smsRecipient) {
+						throw new Error('Phone number is required');
+					}
 					if (!savedDocumentId) {
 						const doc = await api.saveDocumentAPI(getTemplateData(), rawTranscription, 'sent');
 						if (doc) savedDocumentId = doc.id;
 					}
-					if (savedDocumentId && smsRecipient) {
-						const sent = await api.sendDocumentAPI(savedDocumentId, data.documentType, 'sms', {
+					if (savedDocumentId) {
+						const smsResult = await api.sendDocumentAPI(savedDocumentId, data.documentType, 'sms', {
 							phone: smsRecipient
 						});
-						if (!sent) {
-							throw new Error('Failed to send SMS');
+						if (!smsResult.success) {
+							throw new Error(smsResult.error || 'Failed to send SMS');
 						}
-					} else if (!smsRecipient) {
-						throw new Error('Phone number is required');
 					}
 					break;
 
@@ -1218,12 +1211,25 @@
 					break;
 			}
 			data.actions[index].status = 'completed';
+			const toastMessages: Record<string, string> = {
+				create_document: 'Document created',
+				send_email: 'Email sent',
+				send_sms: 'SMS sent',
+				save_draft: 'Draft saved',
+				schedule: 'Scheduled'
+			};
+			if (toastMessages[action.type]) {
+				toast.success(toastMessages[action.type]);
+			}
 			if (['create_document', 'send_email', 'send_sms', 'save_draft'].includes(action.type)) {
 				savePricingMemory();
 			}
 		} catch (error) {
 			console.error('Action failed:', error);
+			const errorMessage = error instanceof Error ? error.message : 'Action failed';
 			data.actions[index].status = 'failed';
+			data.actions[index].error = errorMessage;
+			toast.error(errorMessage);
 		}
 
 		currentActionIndex = -1;
@@ -1234,7 +1240,7 @@
 		isExecuting = true;
 
 		for (const action of sortedActions) {
-			if (action.status === 'pending') {
+			if (action.status === 'pending' || action.status === 'failed') {
 				await executeAction(action);
 			}
 		}
@@ -1285,6 +1291,20 @@
 			default:
 				return '';
 		}
+	}
+
+	function retryAction(action: ActionStep) {
+		const index = data.actions.findIndex((a) => a.id === action.id);
+		if (index === -1) return;
+
+		const needsEmail = action.type === 'send_email' && !action.details.recipient && !data.client.email;
+		const needsPhone = action.type === 'send_sms' && !action.details.recipient && !data.client.phone;
+
+		if (needsEmail || needsPhone) return;
+
+		data.actions[index].status = 'pending';
+		data.actions[index].error = undefined;
+		executeAction(data.actions[index]);
 	}
 
 	function addAction(type: ActionStep['type']) {
@@ -1680,7 +1700,10 @@
 				{profileMissingFields}
 				copyLinkStatus={api.copyLinkStatus}
 				{sortedActions}
+				reviewSessionId={session.reviewSessionId}
+				onSaveSession={() => session.saveReviewSession(getSessionData)}
 				onExecuteAction={executeAction}
+				onRetryAction={retryAction}
 				onAddAction={addAction}
 				onHandleDownloadPDF={handleDownloadPDF}
 				onSaveDocument={async (actionId) => {
@@ -1710,7 +1733,7 @@
 		</div>
 
 		<!-- Execute Button -->
-		<ReviewExecuteButton {isExecuting} {canExecute} onExecute={executeAllActions} />
+		<ReviewExecuteButton {isExecuting} {canExecute} onExecute={executeAllActions} onLockedClick={showValidationErrors} />
 	{/if}
 </main>
 

@@ -15,6 +15,7 @@
 	import Download from 'lucide-svelte/icons/download';
 	import Database from 'lucide-svelte/icons/database';
 	import Eye from 'lucide-svelte/icons/eye';
+	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 
 	interface ActionStep {
 		id: string;
@@ -26,6 +27,7 @@
 			frequency?: string;
 			message?: string;
 		};
+		error?: string;
 	}
 
 	interface ParsedData {
@@ -63,7 +65,10 @@
 		onActionHasEditableData,
 		onUpdateActionRecipient,
 		onUpdateActionFrequency,
-		onDismissProfileWarning
+		onRetryAction,
+		onDismissProfileWarning,
+		reviewSessionId,
+		onSaveSession
 	}: {
 		data: ParsedData;
 		actions: ActionStep[];
@@ -85,7 +90,10 @@
 		onActionHasEditableData: (action: ActionStep) => boolean;
 		onUpdateActionRecipient: (action: ActionStep, value: string) => void;
 		onUpdateActionFrequency: (action: ActionStep, frequency: string) => void;
+		onRetryAction: (action: ActionStep) => void;
 		onDismissProfileWarning?: () => void;
+		reviewSessionId?: string | null;
+		onSaveSession?: () => Promise<void>;
 	} = $props();
 
 	// Internal state
@@ -135,7 +143,10 @@
 				>
 					{$t('review.sendAnyway')}
 				</button>
-				<button class="warning-btn primary" onclick={() => goto('/dashboard/settings/business')}>
+				<button class="warning-btn primary" onclick={async () => {
+					await onSaveSession?.();
+					goto(`/dashboard/settings/business?from=review${reviewSessionId ? `&session=${reviewSessionId}` : ''}`);
+				}}>
 					{$t('review.goToProfile')}
 				</button>
 			</div>
@@ -175,6 +186,9 @@
 					<div class="action-content">
 						<span class="action-label">{$t(config.labelKey)}</span>
 						<span class="action-desc">{onGetActionDescription(action)}</span>
+						{#if action.status === 'failed' && action.error}
+							<span class="action-error">{action.error}</span>
+						{/if}
 					</div>
 
 					<div class="action-buttons">
@@ -197,6 +211,22 @@
 								aria-label="Execute action"
 							>
 								<Play size={16} />
+							</button>
+						{:else if action.status === 'failed' && !isExecuting}
+							<button
+								class="action-edit"
+								class:active={isEditing}
+								onclick={() => toggleActionEdit(action.id)}
+								aria-label="Edit and retry action"
+							>
+								<Pencil size={14} />
+							</button>
+							<button
+								class="action-retry"
+								onclick={() => onRetryAction(action)}
+								aria-label="Retry action"
+							>
+								<RotateCcw size={16} />
 							</button>
 						{:else if action.status === 'completed'}
 							<div class="action-done">
@@ -1033,6 +1063,30 @@
 		height: 34px;
 		border-radius: 8px;
 		flex-shrink: 0;
+	}
+
+	.action-retry {
+		width: 36px;
+		height: 36px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(239, 68, 68, 0.15);
+		border-radius: 10px;
+		color: #ef4444;
+		transition: all 0.2s ease;
+	}
+
+	.action-retry:hover {
+		background: rgba(239, 68, 68, 0.25);
+		transform: scale(1.05);
+	}
+
+	.action-error {
+		display: block;
+		font-size: 11px;
+		color: #ef4444;
+		margin-top: 2px;
 	}
 
 	:global(.spinning) {

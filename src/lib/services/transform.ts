@@ -1,6 +1,7 @@
 import { createClient } from '$lib/supabase/client';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TransformJob, TransformJobConfig, TransformGeneratedDoc } from '$lib/types/transform';
+import { SIMILARITY_THRESHOLD, MAX_CLIENT_SUGGESTIONS } from '$lib/constants';
 import { calculateSimilarity } from '$lib/utils/phonetic';
 
 // =============================================
@@ -249,8 +250,9 @@ export async function findSimilarClients(
 	// Sort by similarity score (highest first)
 	suggestions.sort((a, b) => b.similarity - a.similarity);
 
-	// Filter by minimum similarity threshold (0.3) and return top 5
-	return suggestions.filter((s) => s.similarity >= 0.3).slice(0, 5);
+	return suggestions
+		.filter((s) => s.similarity >= SIMILARITY_THRESHOLD)
+		.slice(0, MAX_CLIENT_SUGGESTIONS);
 }
 
 // =============================================

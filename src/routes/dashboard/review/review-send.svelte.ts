@@ -10,7 +10,7 @@ export function createSendFlow(deps: {
 		documentType: 'invoice' | 'estimate',
 		deliveryMethod: 'email' | 'sms' | 'whatsapp',
 		recipient: { email?: string; phone?: string }
-	) => Promise<boolean>;
+	) => Promise<{ success: boolean; error?: string }>;
 	updateClientContactInfo: (clientId: string, email?: string, phone?: string) => Promise<boolean>;
 }) {
 	let sendData = $state<SendData | null>(null);
@@ -295,17 +295,17 @@ export function createSendFlow(deps: {
 				}
 			}
 
-			const success = await deps.sendDocumentAPI(
+			const result = await deps.sendDocumentAPI(
 				sendDocument.id,
 				sendDocument.type as 'invoice' | 'estimate',
 				sendData.deliveryMethod,
 				recipient
 			);
 
-			if (success) {
+			if (result.success) {
 				sendSuccess = true;
 			} else {
-				showSendErrorToast(get(t)('review.failedToSend'));
+				showSendErrorToast(result.error || get(t)('review.failedToSend'));
 			}
 		} catch (error) {
 			console.error('Execute send document error:', error);
