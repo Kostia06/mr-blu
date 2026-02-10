@@ -3,3 +3,5 @@ export const SCROLL_UP_THRESHOLD = 10;
 export const SCROLL_HEADER_MIN_Y = 60;
 export const PENDING_REVIEW_PREVIEW_LENGTH = 80;
 export const TAX_RATE_DECIMAL_THRESHOLD = 1;
+export const SIMILARITY_THRESHOLD = 0.3;
+export const MAX_CLIENT_SUGGESTIONS = 5;

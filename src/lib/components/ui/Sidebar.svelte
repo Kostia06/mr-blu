@@ -3,7 +3,7 @@
 	import FileText from 'lucide-svelte/icons/file-text';
 	import Settings from 'lucide-svelte/icons/settings';
 	import LogOut from 'lucide-svelte/icons/log-out';
-	import Logo from '$lib/components/Logo.svelte';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		currentPath: string;
@@ -12,11 +12,11 @@
 
 	let { currentPath, onSignOut }: Props = $props();
 
-	const navItems = [
-		{ href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-		{ href: '/dashboard/documents', icon: FileText, label: 'Documents' },
-		{ href: '/dashboard/settings', icon: Settings, label: 'Settings' }
-	];
+	const navItems = $derived([
+		{ href: '/dashboard', icon: LayoutDashboard, label: $t('nav.home') },
+		{ href: '/dashboard/documents', icon: FileText, label: $t('nav.documents') },
+		{ href: '/dashboard/settings', icon: Settings, label: $t('nav.settings') }
+	]);
 
 	const isActive = (href: string): boolean => {
 		if (href === '/dashboard') {
@@ -29,11 +29,8 @@
 <aside
 	class="hidden md:flex flex-col w-64 h-screen bg-white border-r border-gray-200 fixed left-0 top-0"
 >
-	<!-- Logo Section -->
+	<!-- Header -->
 	<div class="flex items-center h-16 px-6 border-b border-gray-100">
-		<a href="/dashboard" class="flex items-center">
-			<Logo size="md" />
-		</a>
 	</div>
 
 	<!-- Navigation -->
@@ -60,7 +57,7 @@
 			class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-navy-600 hover:bg-gray-50 hover:text-red-600 transition-all duration-200"
 		>
 			<LogOut size={20} strokeWidth={1.5} class="flex-shrink-0" />
-			<span>Sign Out</span>
+			<span>{$t('settings.signOut')}</span>
 		</button>
 	</div>
 </aside>

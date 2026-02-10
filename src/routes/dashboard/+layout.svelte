@@ -1,6 +1,5 @@
 <script lang="ts">
 	import BottomNav from '$lib/components/BottomNav.svelte';
-	import FeedbackButton from '$lib/components/FeedbackButton.svelte';
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import { TutorialProvider } from '$lib/tutorial';
 	import { page } from '$app/stores';
@@ -95,9 +94,6 @@
 		{#if !hideBottomNav}
 			<BottomNav />
 		{/if}
-
-		<!-- Feedback Button -->
-		<FeedbackButton />
 
 		<!-- Tutorial System -->
 		<TutorialProvider />

@@ -9,6 +9,7 @@
 	import LogOut from 'lucide-svelte/icons/log-out';
 	import Globe from 'lucide-svelte/icons/globe';
 	import BellRing from 'lucide-svelte/icons/bell-ring';
+	import MessageCircle from 'lucide-svelte/icons/message-circle';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { SettingsSection, SettingsItem } from '$lib/components/settings';
 	import { t } from '$lib/i18n';
@@ -81,6 +82,12 @@
 					label: $t('settings.language'),
 					value: $t('settings.appLanguage'),
 					href: '/dashboard/settings/language'
+				},
+				{
+					icon: MessageCircle,
+					label: $t('settings.feedback'),
+					value: $t('settings.feedbackDesc'),
+					href: '/dashboard/settings/feedback'
 				}
 			]
 		}

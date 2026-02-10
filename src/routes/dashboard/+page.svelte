@@ -51,14 +51,6 @@
 		return unsub;
 	});
 
-	// Get time-based greeting
-	const getGreeting = () => {
-		const hour = new Date().getHours();
-		if (hour < 12) return translate('dashboard.goodMorning');
-		if (hour < 18) return translate('dashboard.goodAfternoon');
-		return translate('dashboard.goodEvening');
-	};
-
 	// Derived state from voice composable (template-friendly aliases)
 	const currentState = $derived(voice.currentState);
 	const transcript = $derived(voice.transcript);
@@ -253,12 +245,7 @@
 		<div class="idle-ui">
 			<!-- Header -->
 			<header class="idle-header" in:fly={{ y: -20, duration: 400, easing: cubicOut }}>
-				{#if hasName}
-					<div class="greeting-section">
-						<span class="greeting-text">{getGreeting()},</span>
-						<h1 class="user-name">{firstName}</h1>
-					</div>
-				{/if}
+				<div></div>
 				<button
 					class="settings-btn"
 					onclick={() => goto('/dashboard/settings')}
@@ -458,26 +445,6 @@
 		justify-content: space-between;
 		padding: 16px var(--page-padding-x, 20px);
 		padding-top: calc(16px + var(--safe-area-top, 0px));
-	}
-
-	.greeting-section {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.greeting-text {
-		font-size: var(--text-sm);
-		color: var(--gray-500);
-	}
-
-	.user-name {
-		font-family: var(--font-display);
-		font-size: var(--text-2xl);
-		font-weight: var(--font-bold);
-		color: var(--gray-900);
-		margin: 0;
-		letter-spacing: var(--tracking-tight);
 	}
 
 	.settings-btn {
@@ -1072,10 +1039,6 @@
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
-		.user-name {
-			font-size: 22px;
-		}
-
 		/* Name banner mobile */
 		.name-banner {
 			margin: 0 12px var(--space-3);
