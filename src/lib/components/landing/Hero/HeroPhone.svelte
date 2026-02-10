@@ -121,17 +121,6 @@
 					<div class="screen-blob blob-3"></div>
 				</div>
 
-				<!-- Dashboard Header -->
-				<div class="dashboard-header">
-					<div class="greeting">
-						<span class="greeting-text">{$t('landing.phone.greeting')}</span>
-						<span class="user-name">{$t('landing.phone.userName')}</span>
-					</div>
-					<div class="avatar">
-						<span>M</span>
-					</div>
-				</div>
-
 				<!-- Content Area -->
 				<div class="content-area">
 					{#if activeTab === 'record'}

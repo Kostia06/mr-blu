@@ -9,7 +9,6 @@
 	import User from 'lucide-svelte/icons/user';
 	import Keyboard from 'lucide-svelte/icons/keyboard';
 	import FileText from 'lucide-svelte/icons/file-text';
-	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import { t } from '$lib/i18n';
 	import { toast } from '$lib/stores/toast';
 	import RecordButton from '$lib/components/RecordButtonMobile.svelte';
@@ -243,30 +242,6 @@
 	{:else}
 		<!-- Main UI (always visible) -->
 		<div class="idle-ui">
-			<!-- Header -->
-			<header class="idle-header" in:fly={{ y: -20, duration: 400, easing: cubicOut }}>
-				<div></div>
-				<button
-					class="settings-btn"
-					onclick={() => goto('/dashboard/settings')}
-					aria-label={translate('nav.settings')}
-				>
-					{#if user?.user_metadata?.avatar_url}
-						<img
-							src={user.user_metadata.avatar_url}
-							alt="Profile"
-							class="avatar-img"
-							loading="lazy"
-							decoding="async"
-						/>
-					{:else}
-						<span class="avatar-letter"
-							>{firstName[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}</span
-						>
-					{/if}
-				</button>
-			</header>
-
 			<!-- Name Suggestion Banner -->
 			{#if !hasName && !nameBannerDismissed}
 				<div class="name-banner" in:fly={{ y: -10, duration: 300 }}>
@@ -425,7 +400,7 @@
 	.dashboard-page {
 		position: relative;
 		width: 100%;
-		height: calc(100dvh - 80px - var(--safe-area-bottom, 0px));
+		height: 100dvh;
 		background: transparent;
 		overflow: hidden;
 	}
@@ -436,57 +411,21 @@
 		z-index: 1;
 		display: flex;
 		flex-direction: column;
-		height: 100%;
-	}
-
-	.idle-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 16px var(--page-padding-x, 20px);
-		padding-top: calc(16px + var(--safe-area-top, 0px));
-	}
-
-	.settings-btn {
-		width: var(--avatar-lg);
-		height: var(--avatar-lg);
-		background: var(--avatar-gradient-1);
-		border: none;
-		border-radius: var(--radius-full);
-		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--white);
-		cursor: pointer;
-		transition: all var(--duration-fast) ease;
-		overflow: hidden;
-	}
-
-	.settings-btn:hover {
-		transform: scale(1.05);
-	}
-
-	.settings-btn:active {
-		transform: scale(0.95);
-	}
-
-	.avatar-img {
-		width: 100%;
 		height: 100%;
-		object-fit: cover;
-	}
-
-	.avatar-letter {
-		font-size: var(--text-lg);
-		font-weight: var(--font-bold);
 	}
 
 	/* Name Suggestion Banner */
 	.name-banner {
+		position: absolute;
+		top: calc(var(--space-3) + var(--safe-area-top, 0px));
+		left: var(--page-padding-x, 20px);
+		right: var(--page-padding-x, 20px);
+		z-index: 2;
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
-		margin: 0 var(--page-padding-x, 20px) var(--space-4);
 		padding: var(--space-3) var(--space-4);
 		background: rgba(245, 158, 11, 0.1);
 		border: 1px solid rgba(245, 158, 11, 0.3);
@@ -643,11 +582,10 @@
 	}
 
 	.idle-content {
-		flex: 1;
 		display: flex;
 		flex-direction: column;
+		align-items: center;
 		padding: 0 var(--page-padding-x, 20px);
-		overflow: hidden;
 	}
 
 	/* Record Section */
@@ -655,8 +593,6 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		flex: 1;
 	}
 
 	.record-wrapper {
@@ -1018,7 +954,6 @@
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.settings-btn,
 		.type-option,
 		.step,
 		.step-dot,

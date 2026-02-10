@@ -37,7 +37,7 @@
 {#if !$isRecordingMode && !$isModalOpen}
 <nav class="bottom-nav" transition:fly={{ y: 100, duration: 300, easing: cubicOut }}>
 	<!-- Animated indicator -->
-	<div class="indicator" style="transform: translateX({activeIndex * 72}px)"></div>
+	<div class="indicator" style="transform: translateX({activeIndex * 58}px)"></div>
 
 	<a
 		href="/dashboard/documents"
@@ -82,27 +82,27 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: var(--space-3);
-		background: var(--glass-white-70);
+		gap: 6px;
+		background: rgba(203, 218, 233, 0.65);
 		backdrop-filter: blur(20px) saturate(150%);
 		-webkit-backdrop-filter: blur(20px) saturate(150%);
-		padding: var(--space-2);
-		padding-bottom: calc(var(--space-2) + var(--safe-area-bottom));
+		padding: 6px;
+		padding-bottom: calc(6px + var(--safe-area-bottom));
 		border-radius: var(--radius-full);
-		box-shadow: var(--blu-shadow-md);
+		box-shadow: 0 4px 24px rgba(0, 40, 100, 0.1);
 		z-index: var(--z-fixed);
 		transition: transform var(--duration-normal) var(--ease-out-expo);
 	}
 
 	.indicator {
 		position: absolute;
-		left: var(--space-2);
-		width: 60px;
-		height: 60px;
-		background: var(--glass-white-70);
+		left: 6px;
+		width: 52px;
+		height: 52px;
+		background: rgba(255, 255, 255, 0.6);
 		border-radius: var(--radius-full);
 		transition: transform var(--duration-normal) var(--ease-out-expo);
-		box-shadow: var(--blu-shadow-sm);
+		box-shadow: 0 2px 8px rgba(0, 40, 100, 0.08);
 	}
 
 	.nav-item {
@@ -110,8 +110,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 60px;
-		height: 60px;
+		width: 52px;
+		height: 52px;
 		color: var(--gray-500);
 		text-decoration: none;
 		transition: color var(--duration-fast) ease;
@@ -120,7 +120,7 @@
 	}
 
 	.nav-item:hover {
-		color: var(--gray-600);
+		color: var(--gray-700);
 	}
 
 	.nav-item.active {

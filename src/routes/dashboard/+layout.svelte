@@ -6,7 +6,6 @@
 	import Loader2 from 'lucide-svelte/icons/loader-2';
 	import { onMount } from 'svelte';
 	import { pageTransition } from '$lib/stores/pageTransition';
-	import { performanceStore } from '$lib/utils/performance';
 	import { toast } from '$lib/stores/toast';
 
 	let { children } = $props();
@@ -16,15 +15,6 @@
 	$effect(() => {
 		const unsub = toast.subscribe((v) => {
 			toasts = v;
-		});
-		return unsub;
-	});
-
-	// Reactive performance quality
-	let quality = $state<'high' | 'medium' | 'low' | 'minimal'>('high');
-	$effect(() => {
-		const unsub = performanceStore.quality.subscribe((q) => {
-			quality = q;
 		});
 		return unsub;
 	});
@@ -68,18 +58,12 @@
 {:else}
 	<div class="dashboard-shell">
 		<!-- Decorative Background -->
-		{#if quality === 'high' || quality === 'medium'}
-			<div class="bg-decoration" class:quality-medium={quality === 'medium'} aria-hidden="true">
-				<div class="blob blob-1"></div>
-				<div class="blob blob-2"></div>
-				{#if quality === 'high'}
-					<div class="blob blob-3"></div>
-					<div class="blob blob-4"></div>
-				{/if}
-			</div>
-		{:else}
-			<div class="bg-decoration-static" aria-hidden="true"></div>
-		{/if}
+		<div class="bg-decoration" aria-hidden="true">
+			<div class="blob blob-1"></div>
+			<div class="blob blob-2"></div>
+			<div class="blob blob-3"></div>
+			<div class="blob blob-4"></div>
+		</div>
 
 		<!-- Page Content -->
 		<div
@@ -179,72 +163,11 @@
 		}
 	}
 
-	/* Blob morphing animations - GPU-only (transform), no filter/hue-rotate on mobile */
-	@keyframes blob-morph-1 {
-		0%,
-		100% {
-			transform: scale(1) translate(0, 0);
-		}
-		25% {
-			transform: scale(1.02) translate(10px, -5px);
-		}
-		50% {
-			transform: scale(0.98) translate(-5px, 10px);
-		}
-		75% {
-			transform: scale(1.01) translate(5px, 5px);
-		}
-	}
-
-	@keyframes blob-morph-2 {
-		0%,
-		100% {
-			transform: scale(1) translate(0, 0);
-		}
-		33% {
-			transform: scale(1.03) translate(-15px, 10px);
-		}
-		66% {
-			transform: scale(0.97) translate(10px, -10px);
-		}
-	}
-
-	@keyframes blob-morph-3 {
-		0%,
-		100% {
-			transform: scale(1) translate(0, 0);
-		}
-		20% {
-			transform: scale(0.98) translate(8px, 12px);
-		}
-		40% {
-			transform: scale(1.02) translate(-10px, -8px);
-		}
-		60% {
-			transform: scale(1) translate(5px, -5px);
-		}
-		80% {
-			transform: scale(1.01) translate(-5px, 8px);
-		}
-	}
-
-	@keyframes blob-morph-4 {
-		0%,
-		100% {
-			transform: scale(1) translate(0, 0);
-		}
-		50% {
-			transform: scale(1.04) translate(-12px, -10px);
-		}
-	}
-
 	/* Blobs - blue gradient circles */
 	.blob {
 		position: absolute;
 		border-radius: 50%;
 		filter: blur(100px);
-		animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
-		animation-fill-mode: both;
 	}
 
 	.blob-1 {
@@ -282,26 +205,6 @@
 		bottom: -150px;
 		left: 15%;
 		opacity: 0.25;
-	}
-
-	/* Idle state - continuous morphing animation */
-	.bg-decoration:not(.entering):not(.exiting) .blob-1 {
-		animation: blob-morph-1 20s ease-in-out infinite;
-	}
-
-	.bg-decoration:not(.entering):not(.exiting) .blob-2 {
-		animation: blob-morph-2 25s ease-in-out infinite;
-		animation-delay: -5s;
-	}
-
-	.bg-decoration:not(.entering):not(.exiting) .blob-3 {
-		animation: blob-morph-3 18s ease-in-out infinite;
-		animation-delay: -10s;
-	}
-
-	.bg-decoration:not(.entering):not(.exiting) .blob-4 {
-		animation: blob-morph-4 22s ease-in-out infinite;
-		animation-delay: -3s;
 	}
 
 	.dashboard-content {
@@ -365,45 +268,4 @@
 			radial-gradient(ellipse 500px 500px at -10% 40%, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
 	}
 
-	/* Medium quality: simpler morph, slower */
-	.bg-decoration.quality-medium .blob-1 {
-		animation-duration: 30s;
-	}
-	.bg-decoration.quality-medium .blob-2 {
-		animation-duration: 35s;
-	}
-
-	/* Reduced motion support */
-	@media (prefers-reduced-motion: reduce) {
-		.blob {
-			animation: none;
-			filter: blur(100px);
-		}
-		.blob-1 {
-			opacity: 0.35;
-			top: -200px;
-			right: -150px;
-		}
-		.blob-2 {
-			opacity: 0.25;
-			top: 35%;
-			left: -200px;
-		}
-		.blob-3 {
-			opacity: 0.2;
-			bottom: 10%;
-			right: -100px;
-		}
-		.blob-4 {
-			opacity: 0.25;
-			bottom: -150px;
-			left: 15%;
-		}
-		.dashboard-content,
-		.dashboard-content.content-fade-in,
-		.dashboard-content.content-fade-out {
-			animation: none;
-			opacity: 1;
-		}
-	}
 </style>

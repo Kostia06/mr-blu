@@ -199,7 +199,9 @@
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
+		justify-content: center;
 		gap: var(--section-gap, 24px);
+		min-height: calc(100vh - 80px);
 		padding-bottom: 100px;
 	}
 
