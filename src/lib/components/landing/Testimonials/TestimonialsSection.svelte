@@ -50,7 +50,6 @@
 <SectionWrapper id="testimonials" background="gray">
 	<div class="testimonials-section" bind:this={sectionRef}>
 		<div class="section-header">
-			<span class="section-label">{$t('landing.testimonials.label')}</span>
 			<h2 class="section-title">{$t('landing.testimonials.title')}</h2>
 		</div>
 
@@ -95,16 +94,6 @@
 	.section-header {
 		text-align: center;
 		margin-bottom: 48px;
-	}
-
-	.section-label {
-		display: inline-block;
-		font-size: 13px;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		color: var(--blu-primary, #0066ff);
-		margin-bottom: 12px;
 	}
 
 	.section-title {

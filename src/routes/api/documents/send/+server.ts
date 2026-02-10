@@ -250,9 +250,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 			let attachments: Array<{ filename: string; content: string }> | undefined;
 			if (pdfData) {
 				try {
-					console.log('Generating PDF for:', documentNumber);
 					const pdfBuffer = await generatePDFServer(pdfData, platform!.env.MYBROWSER);
-					console.log('PDF generated, size:', pdfBuffer.byteLength);
 					const typeLabel = documentType === 'invoice' ? 'Invoice' : 'Estimate';
 					// Convert ArrayBuffer to base64 for Resend (Cloudflare Workers compatible)
 					const uint8Array = new Uint8Array(pdfBuffer);
@@ -263,7 +261,6 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 						binary += String.fromCharCode.apply(null, Array.from(chunk));
 					}
 					const base64Content = btoa(binary);
-					console.log('PDF base64 length:', base64Content.length);
 					attachments = [
 						{
 							filename: `${typeLabel}-${documentNumber}.pdf`,

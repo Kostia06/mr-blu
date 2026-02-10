@@ -46,7 +46,7 @@
 					</a>
 				{:else}
 					<a href="/login" class="cta-button">
-						<span>{$t('landing.nav.getStarted')}</span>
+						<span class="cta-text">{$t('landing.nav.getStarted')}</span>
 						<ArrowRight size={14} strokeWidth={2.5} />
 					</a>
 				{/if}
@@ -173,5 +173,15 @@
 	.cta-button:hover {
 		background: #0052cc;
 		box-shadow: 0 4px 16px rgba(0, 102, 255, 0.35);
+	}
+
+	@media (max-width: 480px) {
+		.cta-text {
+			display: none;
+		}
+
+		.cta-button {
+			padding: 10px 12px;
+		}
 	}
 </style>

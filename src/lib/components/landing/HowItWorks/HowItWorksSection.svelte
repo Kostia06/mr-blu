@@ -71,7 +71,6 @@
 <SectionWrapper id="how-it-works" background="gray">
 	<div class="how-it-works" bind:this={sectionRef}>
 		<div class="section-header">
-			<span class="section-label">{$t('landing.howItWorks.label')}</span>
 			<h2 class="section-title">{$t('landing.howItWorks.title')}</h2>
 			<p class="section-description">
 				{$t('landing.howItWorks.description')}
@@ -99,16 +98,6 @@
 	.section-header {
 		text-align: center;
 		margin-bottom: 60px;
-	}
-
-	.section-label {
-		display: inline-block;
-		font-size: 13px;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		color: var(--blu-primary, #0066ff);
-		margin-bottom: 12px;
 	}
 
 	.section-title {

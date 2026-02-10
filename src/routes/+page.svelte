@@ -1,7 +1,5 @@
 <script lang="ts">
 	import Navbar from '$lib/components/landing/Navbar.svelte';
-	import BackgroundBlobs from '$lib/components/landing/shared/BackgroundBlobs.svelte';
-	import NoiseOverlay from '$lib/components/landing/shared/NoiseOverlay.svelte';
 	import { HeroSection } from '$lib/components/landing/Hero';
 	import LazySection from '$lib/components/landing/LazySection.svelte';
 	import Footer from '$lib/components/landing/Footer.svelte';
@@ -14,11 +12,7 @@
 	<title>{$t('landing.meta.title')}</title>
 	<meta name="description" content={$t('landing.meta.description')} />
 </svelte:head>
-<NoiseOverlay opacity={0.02} />
-
 <div class="landing-page">
-	<!-- Global animated background blobs (same as dashboard) -->
-	<BackgroundBlobs intensity="subtle" />
 
 	<Navbar session={data?.session ?? null} />
 

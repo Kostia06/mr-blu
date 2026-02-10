@@ -32,7 +32,7 @@
 <div class="hero-headline-container" class:visible>
 	<h1 class="hero-headline">
 		{#each words as word, wordIndex (word.text)}
-			<span class="word" class:highlight={word.highlight} style="--word-index: {wordIndex}">
+			<span class="word" class:highlight={word.highlight}>
 				{word.text}
 			</span>
 			{#if wordIndex < words.length - 1}
@@ -50,6 +50,17 @@
 	.hero-headline-container {
 		text-align: center;
 		position: relative;
+		opacity: 0;
+		transform: translateY(16px);
+		transition:
+			opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+			transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+		transition-delay: 0.1s;
+	}
+
+	.hero-headline-container.visible {
+		opacity: 1;
+		transform: translateY(0);
 	}
 
 	.hero-headline {
@@ -64,17 +75,6 @@
 
 	.word {
 		display: inline-block;
-		opacity: 0;
-		transform: translateY(20px);
-		transition:
-			opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-			transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-		transition-delay: calc(0.1s + var(--word-index) * 0.12s);
-	}
-
-	.visible .word {
-		opacity: 1;
-		transform: translateY(0);
 	}
 
 	.word.highlight {
@@ -96,23 +96,11 @@
 		color: var(--gray-600, #475569);
 		max-width: 540px;
 		margin: 0 auto;
-		opacity: 0;
-		transform: translateY(16px);
-		transition:
-			opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-			transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-		transition-delay: 0.5s;
-	}
-
-	.visible .hero-subheadline {
-		opacity: 1;
-		transform: translateY(0);
 	}
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.word,
-		.hero-subheadline {
+		.hero-headline-container {
 			opacity: 1;
 			transform: none;
 			transition: none;
