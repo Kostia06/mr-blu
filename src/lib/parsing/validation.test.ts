@@ -26,7 +26,8 @@ function createValidTemplateData(): TemplateData {
 			address: '456 Business Ave',
 			city: 'Austin',
 			phone: '555-987-6543',
-			email: 'jane@smithservices.com'
+			email: 'jane@smithservices.com',
+			website: null
 		},
 		items: [
 			{
