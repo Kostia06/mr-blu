@@ -84,8 +84,6 @@ export function prepareTemplateData(
 
 	const docTypeUpper = doc.documentType.toUpperCase();
 	const isInvoice = docTypeUpper === 'INVOICE';
-	const amountDue = doc.amountDue ?? (isInvoice ? doc.total : null);
-
 	return {
 		// Document info
 		documentType: docTypeUpper,
@@ -122,10 +120,6 @@ export function prepareTemplateData(
 		taxLabel: `Tax (${doc.taxRate}%)`,
 		taxFormatted: formatCurrency(doc.taxAmount),
 		totalFormatted: formatCurrency(doc.total),
-
-		// Amount Due
-		hasAmountDue: isInvoice && amountDue != null,
-		amountDueFormatted: amountDue != null ? formatCurrency(amountDue) : '',
 
 		// Payment terms
 		hasPaymentTerms: Boolean(doc.paymentTerms),
@@ -187,7 +181,6 @@ export function renderTemplate(template: string, data: RenderedTemplateData): st
 		'clientEmail',
 		'clientPhone',
 		'isInvoice',
-		'hasAmountDue',
 		'hasPaymentTerms',
 		'hasNotes',
 		'hasTerms'
@@ -227,7 +220,6 @@ export function renderTemplate(template: string, data: RenderedTemplateData): st
 		'taxLabel',
 		'taxFormatted',
 		'totalFormatted',
-		'amountDueFormatted',
 		'paymentTerms',
 		'notes',
 		'terms'

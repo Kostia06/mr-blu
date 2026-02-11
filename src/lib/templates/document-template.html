@@ -261,30 +261,6 @@ body {
     color: #1a1a1a;
 }
 
-/* ============================================
-   AMOUNT DUE BOX (invoices only)
-   ============================================ */
-.amount-due-box {
-    background: #0066FF;
-    color: white;
-    border-radius: 10px;
-    padding: 18px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 24px;
-}
-
-.amount-due-label {
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.amount-due-value {
-    font-size: 24px;
-    font-weight: 700;
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-}
 
 /* ============================================
    NOTES & TERMS
@@ -396,9 +372,6 @@ body {
         width: 100%;
     }
 
-    .document-template:not(.for-pdf) .amount-due-box {
-        margin-top: 20px;
-    }
 }
 </style>
 </head>
@@ -488,13 +461,6 @@ body {
         </div>
     </div>
 
-    <!-- Amount Due (invoices only) -->
-    {{#hasAmountDue}}
-    <div class="amount-due-box">
-        <span class="amount-due-label">Amount Due</span>
-        <span class="amount-due-value">{{amountDueFormatted}}</span>
-    </div>
-    {{/hasAmountDue}}
 
     <!-- Notes & Terms -->
     {{#hasNotes}}

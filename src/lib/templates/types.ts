@@ -98,10 +98,6 @@ export interface RenderedTemplateData {
 	taxFormatted: string;
 	totalFormatted: string;
 
-	// Amount Due (invoices only)
-	hasAmountDue: boolean;
-	amountDueFormatted: string;
-
 	// Payment terms
 	hasPaymentTerms: boolean;
 	paymentTerms: string;
