@@ -306,17 +306,18 @@
 	}
 
 	async function handleDelete(documentId: string, documentType: string) {
-		const response = await fetch(`/api/documents/${documentId}?type=${documentType}`, {
+		// Optimistically remove from local data
+		data.documents = data.documents.filter((d) => d.id !== documentId);
+
+		// Fire API delete in background
+		fetch(`/api/documents/${documentId}?type=${documentType}`, {
 			method: 'DELETE'
+		}).then((response) => {
+			if (!response.ok) {
+				console.error('Failed to delete document');
+			}
+			invalidateAll();
 		});
-
-		if (!response.ok) {
-			const result = await response.json();
-			throw new Error(result.error || 'Failed to delete document');
-		}
-
-		// Refresh the page data
-		await invalidateAll();
 	}
 
 	function handleSendSuccess() {

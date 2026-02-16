@@ -324,19 +324,11 @@
 	async function handleDelete() {
 		if (!confirm($t('docDetail.confirmDelete'))) return;
 
-		isDeleting = true;
-		try {
-			const response = await fetch(`/api/documents/${doc.id}`, {
-				method: 'DELETE'
-			});
-			if (response.ok) {
-				goto('/dashboard/documents');
-			}
-		} catch (error) {
+		// Navigate immediately, delete in background
+		goto('/dashboard/documents');
+		fetch(`/api/documents/${doc.id}`, { method: 'DELETE' }).catch((error) => {
 			console.error('Delete error:', error);
-		} finally {
-			isDeleting = false;
-		}
+		});
 	}
 
 	// Send email handler
