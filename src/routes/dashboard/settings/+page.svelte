@@ -10,6 +10,7 @@
 	import Globe from 'lucide-svelte/icons/globe';
 	import BellRing from 'lucide-svelte/icons/bell-ring';
 	import MessageCircle from 'lucide-svelte/icons/message-circle';
+	import BookOpen from 'lucide-svelte/icons/book-open';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { SettingsSection, SettingsItem } from '$lib/components/settings';
 	import { t } from '$lib/i18n';
@@ -65,6 +66,17 @@
 					label: $t('settings.business'),
 					value: $t('settings.companyInfoBranding'),
 					href: '/dashboard/settings/business'
+				}
+			]
+		},
+		{
+			title: $t('settings.businessTools'),
+			items: [
+				{
+					icon: BookOpen,
+					label: $t('settings.priceBook'),
+					value: $t('settings.priceBookDesc'),
+					href: '/dashboard/settings/pricebook'
 				}
 			]
 		},

@@ -157,6 +157,8 @@ MEASUREMENT TYPE RULES for items:
 - For time-based work, use measurementType: "hour"
 - Default to "service" when quantity is 1 and no specific unit applies
 
+PRICE BOOK: If a USER'S PRICE BOOK section is provided below, match items against it and use stored rates when the user does not specify a price. Always prefer voice-specified prices over stored prices.
+
 IMPORTANT: All item descriptions MUST be in English regardless of the input language. Translate any non-English item descriptions to English. Only translate item description text - keep client names, addresses, and other proper nouns as-is.
 
 Tax rates should be whole percentages (e.g., 5 for 5%, 13 for 13%, NOT 0.05 or 0.13).
@@ -194,8 +196,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return json({ error: 'Transcription is empty' }, { status: 400 });
 		}
 
+		// Fetch user's price book for context
+		let priceBookContext = '';
+		try {
+			const { data: priceItems } = await locals.supabase
+				.from('price_items')
+				.select('name, unit_price, unit')
+				.eq('user_id', userId)
+				.order('times_used', { ascending: false })
+				.limit(30);
+
+			if (priceItems && priceItems.length > 0) {
+				const lines = priceItems.map(
+					(p: { name: string; unit_price: number; unit: string }) =>
+						`- ${p.name}: $${Number(p.unit_price).toFixed(2)}/${p.unit}`
+				);
+				priceBookContext = `\n\nUSER'S PRICE BOOK (use these rates when the user doesn't specify a price):\n${lines.join('\n')}\n`;
+			}
+		} catch {
+			// Price book fetch is non-critical
+		}
+
 		// Call Gemini API via REST
-		const text = await callGemini(PARSE_PROMPT + sanitizedTranscription);
+		const text = await callGemini(PARSE_PROMPT + priceBookContext + sanitizedTranscription);
 
 		// Extract JSON from response (handle markdown code blocks if present)
 		let jsonStr = text;

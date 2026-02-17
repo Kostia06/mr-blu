@@ -115,23 +115,22 @@
 	let isLoadingPricing = $state(false);
 
 	async function fetchPricingSuggestions(): Promise<void> {
-		const itemsWithMaterial = data.items.filter(
-			(item) => item.material && item.measurementType && item.quantity > 0
+		const itemsToLookup = data.items.filter(
+			(item) => item.description && item.quantity > 0
 		);
 
-		if (itemsWithMaterial.length === 0) return;
+		if (itemsToLookup.length === 0) return;
 
 		isLoadingPricing = true;
 
 		try {
-			const lookupPromises = itemsWithMaterial.map(async (item) => {
+			const lookupPromises = itemsToLookup.map(async (item) => {
 				try {
 					const response = await fetch('/api/pricing/lookup', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
-							material: item.material,
-							measurementType: item.measurementType,
+							description: item.description,
 							quantity: item.quantity
 						})
 					});
@@ -153,7 +152,7 @@
 						}
 					}
 				} catch (error) {
-					console.error(`Pricing lookup failed for ${item.material}:`, error);
+					console.error(`Pricing lookup failed for ${item.description}:`, error);
 				}
 			});
 
@@ -189,21 +188,21 @@
 	}
 
 	async function savePricingMemory(): Promise<void> {
-		const itemsWithMaterial = data.items.filter(
-			(item) => item.material && item.measurementType && item.quantity > 0 && item.total > 0
+		const pricedItems = data.items.filter(
+			(item) => item.description && item.quantity > 0 && item.total > 0
 		);
 
-		if (itemsWithMaterial.length === 0) return;
+		if (pricedItems.length === 0) return;
 
 		try {
 			await fetch('/api/pricing/save', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					items: itemsWithMaterial.map((item) => ({
+					items: pricedItems.map((item) => ({
 						description: item.description,
-						material: item.material,
 						measurementType: item.measurementType,
+						unit: item.unit,
 						quantity: item.quantity,
 						rate: item.rate,
 						total: item.total

@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { incrementUsage, type UsageLimitInfo } from '$lib/server/usage-limits';
 import { logger } from '$lib/server/logger';
+import { inferCategory } from '$lib/types/pricing';
 
 interface TemplateDataInput {
 	documentType: string;
@@ -370,6 +371,25 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			};
 		} catch (err) {
 			console.error('Error tracking usage:', err);
+		}
+
+		// Auto-save priced line items to price book
+		try {
+			for (const item of cleanedItems) {
+				if (item.total > 0 && item.quantity > 0 && item.description) {
+					await supabase.rpc('upsert_price_item', {
+						p_user_id: userId,
+						p_name: item.description.toLowerCase().trim(),
+						p_description: item.description,
+						p_category: inferCategory(item.description),
+						p_unit_price: item.total / item.quantity,
+						p_unit: item.measurementType || item.unit || 'each',
+						p_source: 'voice'
+					});
+				}
+			}
+		} catch (err) {
+			console.error('Error auto-saving prices:', err);
 		}
 
 		return json({

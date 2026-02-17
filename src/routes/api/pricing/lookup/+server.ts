@@ -1,46 +1,25 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-interface PricingLookupResult {
-	found: boolean;
-	material: string;
-	measurementType: string;
-	historicalRatePerUnit: number | null;
-	suggestedPrice: number | null;
-	confidence: number;
-	basedOn: {
-		quantity: number;
-		total: number;
-		date: string;
-		usageCount: number;
-	} | null;
-}
-
-// Round up to nearest increment based on price
 function roundUpToIncrement(price: number): number {
 	if (price < 100) {
-		// Round up to nearest $10
 		return Math.ceil(price / 10) * 10;
 	} else if (price < 1000) {
-		// Round up to nearest $50
 		return Math.ceil(price / 50) * 50;
 	} else if (price < 5000) {
-		// Round up to nearest $100
 		return Math.ceil(price / 100) * 100;
 	} else {
-		// Round up to nearest $250
 		return Math.ceil(price / 250) * 250;
 	}
 }
 
-// Calculate confidence based on recency and usage
 function calculateConfidence(lastUsedAt: Date, usageCount: number): number {
-	const daysSinceLastUse = Math.floor((Date.now() - lastUsedAt.getTime()) / (1000 * 60 * 60 * 24));
+	const daysSinceLastUse = Math.floor(
+		(Date.now() - lastUsedAt.getTime()) / (1000 * 60 * 60 * 24)
+	);
 
-	// Base confidence starts at 0.7
 	let confidence = 0.7;
 
-	// Boost for recent usage (within 30 days)
 	if (daysSinceLastUse <= 7) {
 		confidence += 0.2;
 	} else if (daysSinceLastUse <= 30) {
@@ -49,7 +28,6 @@ function calculateConfidence(lastUsedAt: Date, usageCount: number): number {
 		confidence += 0.05;
 	}
 
-	// Boost for multiple uses
 	if (usageCount >= 5) {
 		confidence += 0.1;
 	} else if (usageCount >= 3) {
@@ -59,17 +37,7 @@ function calculateConfidence(lastUsedAt: Date, usageCount: number): number {
 	return Math.min(confidence, 1.0);
 }
 
-// Normalize material name for matching
-function normalizeMaterial(material: string): string {
-	return material
-		.toLowerCase()
-		.trim()
-		.replace(/\s+/g, ' ')
-		.replace(/[^a-z0-9\s]/g, '');
-}
-
 export const POST: RequestHandler = async ({ request, locals }) => {
-	// Session already validated in auth guard hook
 	const session = locals.session;
 	if (!session?.user) {
 		return json({ error: 'Unauthorized' }, { status: 401 });
@@ -79,106 +47,94 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const userId = session.user.id;
 
 	try {
-		const { material, measurementType, quantity } = await request.json();
+		const { description, quantity } = await request.json();
 
-		if (!material || !measurementType || typeof quantity !== 'number') {
+		if (!description || typeof quantity !== 'number') {
 			return json(
-				{ error: 'Missing required fields: material, measurementType, quantity' },
+				{ error: 'Missing required fields: description, quantity' },
 				{ status: 400 }
 			);
 		}
 
-		const normalizedMaterial = normalizeMaterial(material);
+		const normalizedName = description.toLowerCase().trim();
 
-		// Look up pricing memory - try exact match first
-		// eslint-disable-next-line prefer-const
-		let { data: pricingData, error } = await supabase
-			.from('pricing_memory')
+		// Try exact match first (by name)
+		const { data: exactMatch } = await supabase
+			.from('price_items')
 			.select('*')
 			.eq('user_id', userId)
-			.eq('measurement_type', measurementType)
-			.ilike('material', `%${normalizedMaterial}%`)
+			.ilike('name', normalizedName)
 			.order('last_used_at', { ascending: false })
 			.limit(1)
 			.maybeSingle();
 
-		if (error) {
-			console.error('Pricing lookup error:', error);
-			return json({ error: 'Database error' }, { status: 500 });
-		}
+		if (exactMatch) {
+			const unitPrice = parseFloat(exactMatch.unit_price);
+			const rawPrice = unitPrice * quantity;
+			const suggestedPrice = roundUpToIncrement(rawPrice);
+			const confidence = calculateConfidence(
+				new Date(exactMatch.last_used_at),
+				exactMatch.times_used
+			);
 
-		// If no exact match, try fuzzy matching
-		if (!pricingData) {
-			const { data: allPricing } = await supabase
-				.from('pricing_memory')
-				.select('*')
-				.eq('user_id', userId)
-				.eq('measurement_type', measurementType)
-				.order('last_used_at', { ascending: false });
-
-			if (allPricing && allPricing.length > 0) {
-				// Find best match based on word overlap
-				const materialWords = normalizedMaterial.split(' ').filter((w) => w.length > 2);
-				let bestMatch = null;
-				let bestScore = 0;
-
-				for (const pricing of allPricing) {
-					const storedWords = normalizeMaterial(pricing.material)
-						.split(' ')
-						.filter((w) => w.length > 2);
-					const matchingWords = materialWords.filter((w) =>
-						storedWords.some((sw) => sw.includes(w) || w.includes(sw))
-					);
-					const score = matchingWords.length / Math.max(materialWords.length, storedWords.length);
-
-					if (score > bestScore && score >= 0.5) {
-						bestScore = score;
-						bestMatch = pricing;
-					}
+			return json({
+				found: true,
+				name: exactMatch.name,
+				unitPrice,
+				unit: exactMatch.unit,
+				suggestedPrice,
+				confidence,
+				basedOn: {
+					timesUsed: exactMatch.times_used,
+					lastUsed: exactMatch.last_used_at,
+					minPrice: parseFloat(exactMatch.min_price),
+					maxPrice: parseFloat(exactMatch.max_price)
 				}
-
-				pricingData = bestMatch;
-			}
+			});
 		}
 
-		if (!pricingData) {
-			const result: PricingLookupResult = {
-				found: false,
-				material,
-				measurementType,
-				historicalRatePerUnit: null,
-				suggestedPrice: null,
-				confidence: 0,
-				basedOn: null
-			};
-			return json(result);
+		// Fall back to fuzzy search via pg_trgm
+		const { data: fuzzyResults } = await supabase.rpc('search_price_items', {
+			p_user_id: userId,
+			p_query: normalizedName,
+			p_limit: 1
+		});
+
+		if (fuzzyResults && fuzzyResults.length > 0) {
+			const match = fuzzyResults[0];
+			const unitPrice = parseFloat(match.unit_price);
+			const rawPrice = unitPrice * quantity;
+			const suggestedPrice = roundUpToIncrement(rawPrice);
+			const baseConfidence = calculateConfidence(
+				new Date(match.last_used_at),
+				match.times_used
+			);
+			const confidence = baseConfidence * match.similarity;
+
+			return json({
+				found: true,
+				name: match.name,
+				unitPrice,
+				unit: match.unit,
+				suggestedPrice,
+				confidence,
+				basedOn: {
+					timesUsed: match.times_used,
+					lastUsed: match.last_used_at,
+					minPrice: parseFloat(match.min_price),
+					maxPrice: parseFloat(match.max_price)
+				}
+			});
 		}
 
-		// Calculate suggested price based on historical rate
-		const ratePerUnit = parseFloat(pricingData.rate_per_unit) || 0;
-		const rawPrice = ratePerUnit * quantity;
-		const suggestedPrice = roundUpToIncrement(rawPrice);
-		const confidence = calculateConfidence(
-			new Date(pricingData.last_used_at),
-			pricingData.usage_count
-		);
-
-		const result: PricingLookupResult = {
-			found: true,
-			material: pricingData.material,
-			measurementType: pricingData.measurement_type,
-			historicalRatePerUnit: ratePerUnit,
-			suggestedPrice,
-			confidence,
-			basedOn: {
-				quantity: parseFloat(pricingData.base_quantity) || 0,
-				total: parseFloat(pricingData.base_rate) || 0,
-				date: pricingData.last_used_at,
-				usageCount: pricingData.usage_count
-			}
-		};
-
-		return json(result);
+		return json({
+			found: false,
+			name: description,
+			unitPrice: null,
+			suggestedPrice: null,
+			confidence: 0,
+			basedOn: null
+		});
 	} catch (error) {
 		console.error('Pricing lookup error:', error);
 		return json({ error: 'Internal server error' }, { status: 500 });
