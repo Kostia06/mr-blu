@@ -212,7 +212,7 @@
 
 	.back-btn:hover {
 		background: var(--glass-white-70);
-		color: var(--gray-900, #0f172a);
+		color: var(--gray-900);
 	}
 
 	.back-btn:active {
@@ -221,9 +221,9 @@
 
 	.page-title {
 		font-family: var(--font-display, system-ui);
-		font-size: 18px;
+		font-size: var(--text-lg);
 		font-weight: 700;
-		color: var(--gray-900, #0f172a);
+		color: var(--gray-900);
 		margin: 0;
 		letter-spacing: -0.02em;
 	}
@@ -242,7 +242,7 @@
 		flex-direction: column;
 		justify-content: center;
 		min-height: calc(100vh - 60px);
-		gap: var(--section-gap, 24px);
+		gap: var(--section-gap, var(--space-6));
 		padding-bottom: 100px;
 	}
 
@@ -253,28 +253,28 @@
 
 	/* Logout Form */
 	.logout-form {
-		margin-top: 8px;
+		margin-top: var(--space-2);
 	}
 
 	.logout-btn {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 10px;
+		gap: var(--space-2-5);
 		width: 100%;
-		padding: 16px 24px;
+		padding: var(--space-4) var(--space-6);
 		background: transparent;
 		border: none;
 		border-radius: var(--radius-button, 14px);
-		color: var(--data-red, #ef4444);
-		font-size: 15px;
+		color: var(--data-red);
+		font-size: var(--text-base);
 		font-weight: 600;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.logout-btn:hover {
-		background: var(--status-overdue-bg, rgba(239, 68, 68, 0.1));
+		background: var(--status-overdue-bg);
 	}
 
 	.logout-btn:active {
@@ -290,9 +290,9 @@
 	/* Version */
 	.version-text {
 		text-align: center;
-		font-size: 12px;
-		color: var(--gray-400, #94a3b8);
-		margin: 8px 0 0;
+		font-size: var(--text-xs);
+		color: var(--gray-400);
+		margin: var(--space-2) 0 0;
 	}
 
 	/* Reduced motion */

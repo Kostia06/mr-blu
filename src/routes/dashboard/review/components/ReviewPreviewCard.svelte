@@ -169,11 +169,9 @@
 	</div>
 
 	<div class="preview-body">
-		<!-- Client + Total side by side -->
-		<div class="client-total-row">
-			<!-- Client Side (left) -->
-			<div class="client-side">
-				<div class="client-row-wrapper">
+		<!-- Client Section -->
+		<div class="client-section">
+			<div class="client-row-wrapper">
 					{#if isEditingClientName}
 						<div class="client-editing-form">
 							<div class="client-edit-field">
@@ -420,32 +418,29 @@
 						/>
 					</div>
 				</div>
-			</div>
+		</div>
 
-			<!-- Total Side (right) -->
-			<div class="total-side">
-				<div class="total-block" class:has-warning={calculatedTotal <= 0}>
-					<DollarSign size={16} class="preview-icon" />
-					<div class="preview-info">
-						<span class="preview-label"
-							>{$t('review.total')}
-							<span class="total-hint">{$t('review.fromLineItems')}</span></span
-						>
-						<span class="preview-value amount" class:warning-value={calculatedTotal <= 0}
-							>{formatCurrency(calculatedTotal)}</span
-						>
-					</div>
-					{#if calculatedTotal <= 0}
-						<div class="inline-warning" title="Total must be greater than $0">
-							<AlertTriangle size={16} />
-						</div>
-					{:else}
-						<div class="inline-valid" title="Valid amount">
-							<Check size={16} />
-						</div>
-					{/if}
-				</div>
+		<!-- Total Row -->
+		<div class="total-row" class:has-warning={calculatedTotal <= 0}>
+			<DollarSign size={16} class="preview-icon" />
+			<div class="preview-info">
+				<span class="preview-label"
+					>{$t('review.total')}
+					<span class="total-hint">{$t('review.fromLineItems')}</span></span
+				>
+				<span class="preview-value amount" class:warning-value={calculatedTotal <= 0}
+					>{formatCurrency(calculatedTotal)}</span
+				>
 			</div>
+			{#if calculatedTotal <= 0}
+				<div class="inline-warning" title="Total must be greater than $0">
+					<AlertTriangle size={16} />
+				</div>
+			{:else}
+				<div class="inline-valid" title="Valid amount">
+					<Check size={16} />
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -503,24 +498,24 @@
 	.doc-number-btn {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		padding: 4px 8px;
+		gap: var(--space-1-5);
+		padding: var(--space-1) var(--space-2);
 		background: transparent;
 		border: 1px solid transparent;
 		border-radius: 6px;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.doc-number-btn:hover {
 		background: var(--gray-100);
-		border-color: #e2e8f0;
+		border-color: var(--blu-border);
 	}
 
 	.doc-number-btn :global(.edit-icon) {
 		color: var(--gray-400);
 		opacity: 0;
-		transition: opacity 0.2s ease;
+		transition: opacity var(--duration-fast) ease;
 	}
 
 	.doc-number-btn:hover :global(.edit-icon) {
@@ -528,82 +523,67 @@
 	}
 
 	.doc-number-input {
-		padding: 4px 8px;
-		border: 1px solid var(--blu-primary, #0066ff);
+		padding: var(--space-1) var(--space-2);
+		border: 1px solid var(--blu-primary);
 		border-radius: 6px;
-		font-size: 12px;
+		font-size: var(--text-xs);
 		font-family: monospace;
 		color: var(--gray-900);
 		background: var(--white);
 		outline: none;
 		width: 120px;
-		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+		box-shadow: var(--shadow-input-focus);
 	}
 
 	.preview-body {
-		padding: 16px;
+		padding: var(--space-4);
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: var(--space-3);
 	}
 
-	.client-total-row {
-		display: flex;
-		gap: 16px;
-		align-items: flex-start;
-	}
-
-	.client-side {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.total-side {
-		flex-shrink: 0;
+	.client-section {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
-		align-items: flex-end;
-		text-align: right;
-	}
-
-	.total-block {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-
-	.total-block .preview-info {
-		align-items: flex-end;
 	}
 
 	.due-date-row {
-		margin-top: 16px;
+		margin-top: var(--space-4);
 		cursor: pointer;
 	}
 
-	.total-block.has-warning {
-		color: var(--data-amber);
+	.total-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-3);
+		background: var(--gray-50);
+		border-radius: var(--radius-sm);
+	}
+
+	.total-row.has-warning {
+		background: rgba(245, 158, 11, 0.04);
 	}
 
 	.client-editing-form {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: var(--space-3);
 		background: rgba(0, 102, 255, 0.03);
 		border: 1px solid rgba(0, 102, 255, 0.12);
-		border-radius: 14px;
-		padding: 16px;
+		border-radius: var(--radius-button);
+		padding: var(--space-4);
 	}
 
 	.client-edit-field {
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: var(--space-1);
+		position: relative;
 	}
 
 	.client-edit-field label {
-		font-size: 11px;
+		font-size: var(--text-xs);
 		font-weight: 600;
 		color: var(--gray-500);
 		text-transform: uppercase;
@@ -612,11 +592,12 @@
 
 	.client-name-search-wrapper {
 		position: relative;
+		z-index: 2;
 	}
 
 	.client-name-search-wrapper :global(.search-icon-inside) {
 		position: absolute;
-		right: 12px;
+		right: var(--space-3);
 		top: 50%;
 		transform: translateY(-50%);
 		color: var(--gray-400);
@@ -625,15 +606,15 @@
 
 	.client-name-input,
 	.client-email-input {
-		font-size: 14px;
+		font-size: var(--text-sm);
 		color: var(--gray-900);
 		border: 1px solid var(--gray-200);
-		border-radius: 10px;
-		padding: 10px 12px;
+		border-radius: var(--radius-sm);
+		padding: var(--space-2-5) var(--space-3);
 		background: white;
 		width: 100%;
 		font-family: inherit;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.client-name-input {
@@ -643,8 +624,8 @@
 	.client-name-input:focus,
 	.client-email-input:focus {
 		outline: none;
-		border-color: var(--blu-primary, #0066ff);
-		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+		border-color: var(--blu-primary);
+		box-shadow: var(--shadow-input-focus);
 	}
 
 	.client-name-input::placeholder,
@@ -653,14 +634,21 @@
 	}
 
 	.client-search-results {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
 		display: flex;
 		flex-direction: column;
 		border: 1px solid var(--gray-200);
-		border-radius: 10px;
+		border-radius: var(--radius-sm);
 		overflow: hidden;
 		background: white;
-		max-height: 180px;
+		max-height: 200px;
 		overflow-y: auto;
+		box-shadow: var(--blu-shadow-md);
+		z-index: 10;
+		margin-top: var(--space-1);
 	}
 
 	.client-search-results .dropdown-item {
@@ -677,16 +665,16 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 6px;
-		padding: 10px 20px;
+		gap: var(--space-1-5);
+		padding: var(--space-2-5) var(--space-5);
 		border: none;
-		border-radius: 10px;
-		background: var(--blu-primary, #0066ff);
+		border-radius: var(--radius-sm);
+		background: var(--blu-primary);
 		color: white;
-		font-size: 13px;
+		font-size: var(--text-sm);
 		font-weight: 600;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 		box-shadow: 0 2px 8px rgba(0, 102, 255, 0.25);
 		align-self: flex-end;
 	}
@@ -697,31 +685,15 @@
 	}
 
 	.client-email-hint {
-		font-size: 12px;
+		font-size: var(--text-xs);
 		color: var(--gray-400);
 	}
 
-	@media (max-width: 480px) {
-		.client-total-row {
-			flex-direction: column;
-			gap: 12px;
-		}
-
-		.total-side {
-			align-items: flex-start;
-			text-align: left;
-			width: 100%;
-		}
-
-		.total-block .preview-info {
-			align-items: flex-start;
-		}
-	}
 
 	.preview-row {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: var(--space-3);
 	}
 
 	.preview-row :global(.preview-icon) {
@@ -731,20 +703,20 @@
 	.preview-info {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 		flex: 1;
 		min-width: 0;
 	}
 
 	.preview-label {
-		font-size: 11px;
+		font-size: var(--text-xs);
 		color: var(--gray-500);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 	}
 
 	.preview-value {
-		font-size: 15px;
+		font-size: var(--text-base);
 		color: var(--gray-900);
 		font-weight: 500;
 	}
@@ -756,7 +728,7 @@
 
 	.preview-value.amount {
 		color: var(--data-green);
-		font-size: 18px;
+		font-size: var(--text-lg);
 		font-weight: 700;
 	}
 
@@ -792,8 +764,8 @@
 
 	.preview-row.has-warning {
 		background: rgba(245, 158, 11, 0.04);
-		margin: -8px -12px;
-		padding: 8px 12px;
+		margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-3));
+		padding: var(--space-2) var(--space-3);
 		border-radius: 8px;
 	}
 
@@ -807,21 +779,21 @@
 		border: none;
 		cursor: pointer;
 		text-align: left;
-		transition: all 0.2s ease;
-		border-radius: 10px;
+		transition: all var(--duration-fast) ease;
+		border-radius: var(--radius-sm);
 	}
 
 	.client-row-btn:hover {
-		background: transparent;
+		background: var(--gray-50);
 	}
 
 	.client-row-btn .preview-value {
 		background: var(--gray-50);
 		border: 1px solid var(--gray-200);
-		border-radius: 10px;
-		padding: 6px 12px;
+		border-radius: var(--radius-sm);
+		padding: var(--space-1-5) var(--space-3);
 		display: inline-block;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.client-row-btn:hover .preview-value {
@@ -830,14 +802,14 @@
 	}
 
 	.dropdown-loading {
-		padding: 20px;
+		padding: var(--space-5);
 		text-align: center;
 		color: var(--gray-500);
-		font-size: 14px;
+		font-size: var(--text-sm);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 8px;
+		gap: var(--space-2);
 	}
 
 	.dropdown-item {
@@ -845,17 +817,17 @@
 		align-items: center;
 		justify-content: space-between;
 		width: 100%;
-		padding: 12px 14px;
+		padding: var(--space-3) var(--space-3-5);
 		background: transparent;
 		border: none;
 		border-bottom: 1px solid var(--gray-100);
 		cursor: pointer;
 		text-align: left;
-		transition: background 0.2s ease;
+		transition: background var(--duration-fast) ease;
 	}
 
 	.dropdown-item:hover {
-		background: transparent;
+		background: var(--gray-50);
 	}
 
 	.dropdown-item:last-child {
@@ -865,24 +837,24 @@
 	.dropdown-item-info {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 	}
 
 	.dropdown-item-name {
-		font-size: 14px;
+		font-size: var(--text-sm);
 		font-weight: 500;
 		color: var(--gray-900);
 	}
 
 	.dropdown-item-detail {
-		font-size: 12px;
+		font-size: var(--text-xs);
 		color: var(--gray-500);
 	}
 
 	.match-badge {
-		padding: 4px 8px;
+		padding: var(--space-1) var(--space-2);
 		border-radius: 6px;
-		font-size: 11px;
+		font-size: var(--text-xs);
 		font-weight: 500;
 	}
 
@@ -899,14 +871,14 @@
 	.due-date-input {
 		background: var(--gray-50);
 		border: 1px solid var(--gray-200);
-		border-radius: 10px;
-		padding: 8px 12px;
-		font-size: 14px;
+		border-radius: var(--radius-sm);
+		padding: var(--space-2) var(--space-3);
+		font-size: var(--text-sm);
 		font-weight: 500;
 		color: var(--gray-900);
 		font-family: inherit;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 		-webkit-appearance: none;
 		appearance: none;
 		width: 160px;
@@ -920,9 +892,9 @@
 
 	.due-date-input:focus {
 		outline: none;
-		border-color: var(--blu-primary, #0066ff);
+		border-color: var(--blu-primary);
 		background: white;
-		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+		box-shadow: var(--shadow-input-focus);
 	}
 
 	.due-date-input:invalid,
@@ -932,24 +904,24 @@
 
 	.total-hint {
 		font-weight: 400;
-		font-size: 11px;
+		font-size: var(--text-xs);
 		color: var(--gray-400);
 	}
 
 	.client-suggestions-inline {
-		padding: 12px;
+		padding: var(--space-3);
 		background: rgba(14, 165, 233, 0.06);
 		border: 1px solid rgba(14, 165, 233, 0.15);
-		border-radius: 10px;
-		margin: 4px -4px;
+		border-radius: var(--radius-sm);
+		margin: var(--space-1) calc(-1 * var(--space-1));
 	}
 
 	.suggestions-header-inline {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		margin-bottom: 10px;
-		font-size: 12px;
+		gap: var(--space-1-5);
+		margin-bottom: var(--space-2-5);
+		font-size: var(--text-xs);
 		font-weight: 500;
 		color: #0284c7;
 	}
@@ -957,21 +929,21 @@
 	.suggestions-chips {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 8px;
+		gap: var(--space-2);
 	}
 
 	.suggestion-chip {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		padding: 8px 14px;
+		gap: var(--space-1-5);
+		padding: var(--space-2) var(--space-3-5);
 		background: var(--white);
 		border: 1px solid rgba(14, 165, 233, 0.3);
-		border-radius: 20px;
-		font-size: 13px;
+		border-radius: var(--radius-card);
+		font-size: var(--text-sm);
 		color: var(--gray-900);
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.suggestion-chip:hover {

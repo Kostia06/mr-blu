@@ -9,8 +9,8 @@ export const GET: RequestHandler = async () => {
 				namespace: 'android_app',
 				package_name: 'com.mrblu.app',
 				sha256_cert_fingerprints: [
-					// Add your SHA256 certificate fingerprint here
-					'00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00'
+					'1C:5A:63:0E:43:65:B8:29:32:4B:90:43:BE:C4:9D:93:36:8D:95:40:05:48:9E:32:E7:51:A6:FA:81:20:F0:20',
+					'BD:EC:6D:06:B9:8E:BE:A4:36:FB:4E:A3:CB:2B:4F:FB:E1:DF:DF:F5:BA:16:6D:EC:CB:31:D9:14:06:09:92:29'
 				]
 			}
 		}

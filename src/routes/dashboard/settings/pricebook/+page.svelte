@@ -11,37 +11,11 @@
 	import X from 'lucide-svelte/icons/x';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import { t } from '$lib/i18n';
-	import { PRICE_CATEGORIES, type PriceItem, type PriceCategory } from '$lib/types/pricing';
-
-	const CATEGORY_COLORS: Record<PriceCategory, string> = {
-		material: '#f59e0b',
-		labor: '#3b82f6',
-		service: '#10b981',
-		tools: '#6366f1',
-		equipment: '#8b5cf6',
-		rental: '#ec4899',
-		permit: '#14b8a6',
-		disposal: '#ef4444',
-		other: '#6b7280'
-	};
-
-	const CATEGORY_KEYS: Record<string, string> = {
-		all: 'priceBook.all',
-		material: 'priceBook.material',
-		labor: 'priceBook.labor',
-		service: 'priceBook.service',
-		tools: 'priceBook.tools',
-		equipment: 'priceBook.equipment',
-		rental: 'priceBook.rental',
-		permit: 'priceBook.permit',
-		disposal: 'priceBook.disposal',
-		other: 'priceBook.other'
-	};
+	import { type PriceItem } from '$lib/types/pricing';
 
 	let items = $state<PriceItem[]>([]);
 	let loading = $state(true);
 	let searchQuery = $state('');
-	let activeCategory = $state<string>('all');
 	let expandedItemId = $state<string | null>(null);
 	let isAddingNew = $state(false);
 	let saving = $state(false);
@@ -51,24 +25,13 @@
 	let formName = $state('');
 	let formRate = $state('');
 	let formUnit = $state('');
-	let formCategory = $state<PriceCategory>('other');
 
 	const filteredItems = $derived.by(() => {
-		let result = items;
+		if (!searchQuery.trim()) return items;
 
-		if (activeCategory !== 'all') {
-			result = result.filter((item) => item.category === activeCategory);
-		}
-
-		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase().trim();
-			result = result.filter((item) => item.name.toLowerCase().includes(query));
-		}
-
-		return result;
+		const query = searchQuery.toLowerCase().trim();
+		return items.filter((item) => item.name.toLowerCase().includes(query));
 	});
-
-	const categories = $derived(['all', ...PRICE_CATEGORIES]);
 
 	function showToast(message: string) {
 		toastMessage = message;
@@ -91,7 +54,6 @@
 		formName = '';
 		formRate = '';
 		formUnit = '';
-		formCategory = 'other';
 	}
 
 	function openAddForm() {
@@ -117,7 +79,6 @@
 		formName = item.name;
 		formRate = item.unit_price.toString();
 		formUnit = item.unit;
-		formCategory = item.category;
 	}
 
 	async function fetchItems() {
@@ -145,7 +106,6 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					name: formName.trim(),
-					category: formCategory,
 					unitPrice: rate,
 					unit: formUnit.trim() || 'each'
 				})
@@ -176,8 +136,7 @@
 				body: JSON.stringify({
 					name: formName.trim(),
 					unit_price: rate,
-					unit: formUnit.trim() || 'each',
-					category: formCategory
+					unit: formUnit.trim() || 'each'
 				})
 			});
 
@@ -255,20 +214,6 @@
 			{/if}
 		</div>
 
-		<!-- Category chips -->
-		<div class="category-chips">
-			{#each categories as category (category)}
-				<button
-					class="chip"
-					class:active={activeCategory === category}
-					style:--chip-color={category === 'all' ? 'var(--blu-primary, #0066ff)' : CATEGORY_COLORS[category as PriceCategory]}
-					onclick={() => (activeCategory = category)}
-				>
-					{$t(CATEGORY_KEYS[category])}
-				</button>
-			{/each}
-		</div>
-
 		<!-- Add new item form -->
 		{#if isAddingNew}
 			<div class="item-card form-card" in:fly={{ y: -10, duration: 250, easing: cubicOut }}>
@@ -303,18 +248,6 @@
 							placeholder={$t('priceBook.unitPlaceholder')}
 							bind:value={formUnit}
 						/>
-					</div>
-					<div class="form-category-chips">
-						{#each PRICE_CATEGORIES as cat (cat)}
-							<button
-								class="mini-chip"
-								class:active={formCategory === cat}
-								style:--chip-color={CATEGORY_COLORS[cat]}
-								onclick={() => (formCategory = cat)}
-							>
-								{$t(CATEGORY_KEYS[cat])}
-							</button>
-						{/each}
 					</div>
 				</div>
 				<div class="form-actions">
@@ -352,21 +285,13 @@
 					>
 						<!-- Item summary row -->
 						<button class="item-summary" onclick={() => expandItem(item)}>
-							<div class="item-info">
+							<div class="item-top-row">
 								<span class="item-name">{capitalizeFirst(item.name)}</span>
-								<div class="item-meta">
-									<span
-										class="category-badge"
-										style:--badge-color={CATEGORY_COLORS[item.category]}
-									>
-										{$t(CATEGORY_KEYS[item.category])}
+								{#if item.times_used > 0}
+									<span class="times-used">
+										{$t('priceBook.timesUsed').replace('{n}', String(item.times_used))}
 									</span>
-									{#if item.times_used > 0}
-										<span class="times-used">
-											{$t('priceBook.timesUsed').replace('{n}', String(item.times_used))}
-										</span>
-									{/if}
-								</div>
+								{/if}
 							</div>
 							<span class="item-rate">{formatRate(item.unit_price, item.unit)}</span>
 						</button>
@@ -400,19 +325,7 @@
 											bind:value={formUnit}
 										/>
 									</div>
-									<div class="form-category-chips">
-										{#each PRICE_CATEGORIES as cat (cat)}
-											<button
-												class="mini-chip"
-												class:active={formCategory === cat}
-												style:--chip-color={CATEGORY_COLORS[cat]}
-												onclick={() => (formCategory = cat)}
-											>
-												{$t(CATEGORY_KEYS[cat])}
-											</button>
-										{/each}
-									</div>
-								</div>
+																	</div>
 								<div class="form-actions">
 									<button
 										class="btn-delete"
@@ -507,9 +420,9 @@
 
 	.page-title {
 		font-family: var(--font-display, system-ui);
-		font-size: 18px;
+		font-size: var(--text-lg);
 		font-weight: 700;
-		color: var(--gray-900, #0f172a);
+		color: var(--gray-900);
 		margin: 0;
 		letter-spacing: -0.02em;
 	}
@@ -520,16 +433,16 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--blu-primary, #0066ff);
+		background: var(--blu-primary);
 		border: none;
 		border-radius: var(--radius-button);
 		color: white;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.add-btn:hover {
-		background: var(--blu-primary-hover, #0052cc);
+		background: var(--blu-primary-hover);
 	}
 
 	.add-btn:active {
@@ -551,15 +464,15 @@
 	.search-bar {
 		display: flex;
 		align-items: center;
-		gap: 10px;
-		padding: 0 14px;
+		gap: var(--space-2-5);
+		padding: 0 var(--space-3-5);
 		height: 44px;
 		background: var(--glass-white-50);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid var(--glass-white-30);
-		border-radius: var(--radius-input, 12px);
-		color: var(--gray-400, #94a3b8);
+		border-radius: var(--radius-input);
+		color: var(--gray-400);
 	}
 
 	.search-input {
@@ -567,13 +480,13 @@
 		background: none;
 		border: none;
 		outline: none;
-		font-size: 15px;
-		color: var(--gray-900, #0f172a);
+		font-size: var(--text-base);
+		color: var(--gray-900);
 		font-family: inherit;
 	}
 
 	.search-input::placeholder {
-		color: var(--gray-400, #94a3b8);
+		color: var(--gray-400);
 	}
 
 	.search-clear {
@@ -585,56 +498,16 @@
 		background: var(--glass-white-30);
 		border: none;
 		border-radius: 50%;
-		color: var(--gray-500, #64748b);
+		color: var(--blu-text-muted);
 		cursor: pointer;
 		padding: 0;
-	}
-
-	/* Category Chips */
-	.category-chips {
-		display: flex;
-		gap: 8px;
-		overflow-x: auto;
-		scrollbar-width: none;
-		-ms-overflow-style: none;
-		padding-bottom: 2px;
-	}
-
-	.category-chips::-webkit-scrollbar {
-		display: none;
-	}
-
-	.chip {
-		flex-shrink: 0;
-		padding: 6px 14px;
-		border-radius: 100px;
-		border: 1px solid var(--glass-white-30);
-		background: var(--glass-white-50);
-		backdrop-filter: blur(8px);
-		-webkit-backdrop-filter: blur(8px);
-		font-size: 13px;
-		font-weight: 500;
-		color: var(--gray-600, #475569);
-		cursor: pointer;
-		transition: all 0.2s ease;
-		white-space: nowrap;
-	}
-
-	.chip.active {
-		background: var(--chip-color);
-		color: white;
-		border-color: var(--chip-color);
-	}
-
-	.chip:not(.active):hover {
-		background: var(--glass-white-70);
 	}
 
 	/* Item Cards */
 	.items-list {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--space-2);
 	}
 
 	.item-card {
@@ -644,30 +517,30 @@
 		border: 1px solid var(--glass-white-30);
 		border-radius: var(--radius-button);
 		overflow: hidden;
-		transition: border-color 0.2s ease;
+		transition: border-color var(--duration-fast) ease;
 	}
 
 	.item-card.expanded {
-		border-color: var(--blu-primary, #0066ff);
+		border-color: var(--blu-primary);
 	}
 
 	.item-card.form-card {
-		border-color: var(--blu-primary, #0066ff);
-		padding: 16px;
+		border-color: var(--blu-primary);
+		padding: var(--space-4);
 	}
 
 	.item-summary {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		flex-direction: column;
+		gap: var(--space-1);
 		width: 100%;
-		padding: 14px 16px;
+		padding: var(--space-3-5) var(--space-4);
 		background: none;
 		border: none;
 		cursor: pointer;
 		text-align: left;
 		font-family: inherit;
-		transition: background 0.15s ease;
+		transition: background var(--duration-fast) ease;
 	}
 
 	.item-summary:hover {
@@ -678,58 +551,38 @@
 		background: var(--glass-white-50);
 	}
 
-	.item-info {
+	.item-top-row {
 		display: flex;
-		flex-direction: column;
-		gap: 6px;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-2);
 		min-width: 0;
-		flex: 1;
 	}
 
 	.item-name {
-		font-size: 15px;
+		font-size: var(--text-base);
 		font-weight: 600;
-		color: var(--gray-900, #0f172a);
+		color: var(--gray-900);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
-	.item-meta {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-
-	.category-badge {
-		display: inline-flex;
-		align-items: center;
-		padding: 2px 8px;
-		border-radius: 100px;
-		font-size: 11px;
-		font-weight: 600;
-		color: var(--badge-color);
-		background: color-mix(in srgb, var(--badge-color) 12%, transparent);
-		letter-spacing: 0.01em;
-	}
-
 	.times-used {
-		font-size: 12px;
-		color: var(--gray-400, #94a3b8);
+		font-size: var(--text-xs);
+		color: var(--gray-400);
 	}
 
 	.item-rate {
-		font-size: 15px;
+		font-size: var(--text-base);
 		font-weight: 700;
-		color: var(--gray-900, #0f172a);
+		color: var(--gray-900);
 		white-space: nowrap;
-		flex-shrink: 0;
-		margin-left: 12px;
 	}
 
 	/* Edit Section */
 	.edit-section {
-		padding: 0 16px 16px;
+		padding: 0 var(--space-4) var(--space-4);
 		border-top: 1px solid var(--glass-white-30);
 	}
 
@@ -738,13 +591,13 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: 14px;
+		margin-bottom: var(--space-3-5);
 	}
 
 	.form-title {
-		font-size: 14px;
+		font-size: var(--text-sm);
 		font-weight: 600;
-		color: var(--gray-900, #0f172a);
+		color: var(--gray-900);
 	}
 
 	.form-close {
@@ -756,7 +609,7 @@
 		background: var(--glass-white-30);
 		border: none;
 		border-radius: 50%;
-		color: var(--gray-500, #64748b);
+		color: var(--blu-text-muted);
 		cursor: pointer;
 		padding: 0;
 	}
@@ -764,37 +617,37 @@
 	.form-fields {
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
-		padding-top: 12px;
+		gap: var(--space-2-5);
+		padding-top: var(--space-3);
 	}
 
 	.form-row {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 10px;
+		gap: var(--space-2-5);
 	}
 
 	.field-input {
 		width: 100%;
 		height: 42px;
-		padding: 0 12px;
+		padding: 0 var(--space-3);
 		background: var(--glass-white-30);
 		border: 1px solid var(--glass-white-30);
-		border-radius: var(--radius-input, 12px);
-		font-size: 14px;
-		color: var(--gray-900, #0f172a);
+		border-radius: var(--radius-input);
+		font-size: var(--text-sm);
+		color: var(--gray-900);
 		font-family: inherit;
 		outline: none;
-		transition: border-color 0.2s ease;
+		transition: border-color var(--duration-fast) ease;
 		box-sizing: border-box;
 	}
 
 	.field-input:focus {
-		border-color: var(--blu-primary, #0066ff);
+		border-color: var(--blu-primary);
 	}
 
 	.field-input::placeholder {
-		color: var(--gray-400, #94a3b8);
+		color: var(--gray-400);
 	}
 
 	.field-group {
@@ -805,46 +658,20 @@
 
 	.field-prefix {
 		position: absolute;
-		left: 12px;
-		font-size: 14px;
+		left: var(--space-3);
+		font-size: var(--text-sm);
 		font-weight: 600;
-		color: var(--gray-500, #64748b);
+		color: var(--blu-text-muted);
 		z-index: 1;
 		pointer-events: none;
 	}
 
 	.rate-field .field-input {
-		padding-left: 24px;
+		padding-left: var(--space-6);
 	}
 
 	.unit-input {
 		/* inherits from field-input */
-	}
-
-	/* Mini category chips for forms */
-	.form-category-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-	}
-
-	.mini-chip {
-		padding: 4px 10px;
-		border-radius: 100px;
-		border: 1px solid var(--glass-white-30);
-		background: var(--glass-white-30);
-		font-size: 11px;
-		font-weight: 600;
-		color: var(--gray-500, #64748b);
-		cursor: pointer;
-		transition: all 0.15s ease;
-		white-space: nowrap;
-	}
-
-	.mini-chip.active {
-		background: color-mix(in srgb, var(--chip-color) 15%, transparent);
-		color: var(--chip-color);
-		border-color: color-mix(in srgb, var(--chip-color) 30%, transparent);
 	}
 
 	/* Form Actions */
@@ -852,26 +679,26 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 8px;
-		margin-top: 14px;
+		gap: var(--space-2);
+		margin-top: var(--space-3-5);
 	}
 
 	.form-actions-right {
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: var(--space-2);
 	}
 
 	.btn-cancel {
-		padding: 8px 16px;
+		padding: var(--space-2) var(--space-4);
 		background: var(--glass-white-30);
 		border: none;
-		border-radius: var(--radius-input, 12px);
-		font-size: 13px;
+		border-radius: var(--radius-input);
+		font-size: var(--text-sm);
 		font-weight: 600;
-		color: var(--gray-600, #475569);
+		color: var(--blu-text-secondary);
 		cursor: pointer;
-		transition: all 0.15s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.btn-cancel:hover {
@@ -879,24 +706,24 @@
 	}
 
 	.btn-save {
-		padding: 8px 20px;
-		background: var(--blu-primary, #0066ff);
+		padding: var(--space-2) var(--space-5);
+		background: var(--blu-primary);
 		border: none;
-		border-radius: var(--radius-input, 12px);
-		font-size: 13px;
+		border-radius: var(--radius-input);
+		font-size: var(--text-sm);
 		font-weight: 600;
 		color: white;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 6px;
+		gap: var(--space-1-5);
 		min-width: 64px;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.btn-save:hover:not(:disabled) {
-		background: var(--blu-primary-hover, #0052cc);
+		background: var(--blu-primary-hover);
 	}
 
 	.btn-save:active:not(:disabled) {
@@ -920,10 +747,10 @@
 		height: 36px;
 		background: var(--status-overdue-bg, rgba(239, 68, 68, 0.1));
 		border: none;
-		border-radius: var(--radius-input, 12px);
-		color: var(--data-red, #ef4444);
+		border-radius: var(--radius-input);
+		color: var(--data-red);
 		cursor: pointer;
-		transition: all 0.15s ease;
+		transition: all var(--duration-fast) ease;
 		flex-shrink: 0;
 	}
 
@@ -941,7 +768,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: 60px 0;
-		color: var(--gray-400, #94a3b8);
+		color: var(--gray-400);
 	}
 
 	.loading-state :global(.spin) {
@@ -954,20 +781,20 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		padding: 48px 24px;
+		padding: 48px var(--space-6);
 		text-align: center;
 	}
 
 	.empty-title {
-		font-size: 16px;
+		font-size: var(--text-base);
 		font-weight: 600;
-		color: var(--gray-900, #0f172a);
-		margin: 0 0 8px;
+		color: var(--gray-900);
+		margin: 0 0 var(--space-2);
 	}
 
 	.empty-desc {
-		font-size: 14px;
-		color: var(--gray-400, #94a3b8);
+		font-size: var(--text-sm);
+		color: var(--gray-400);
 		margin: 0;
 		line-height: 1.5;
 		max-width: 280px;
@@ -981,12 +808,12 @@
 		transform: translateX(-50%);
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 12px 20px;
-		background: var(--gray-900, #0f172a);
+		gap: var(--space-2);
+		padding: var(--space-3) var(--space-5);
+		background: var(--gray-900);
 		color: white;
-		border-radius: 100px;
-		font-size: 14px;
+		border-radius: var(--radius-chip);
+		font-size: var(--text-sm);
 		font-weight: 500;
 		z-index: calc(var(--z-sticky) + 10);
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -1002,8 +829,6 @@
 	@media (prefers-reduced-motion: reduce) {
 		.back-btn,
 		.add-btn,
-		.chip,
-		.mini-chip,
 		.btn-save,
 		.btn-cancel,
 		.btn-delete,

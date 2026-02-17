@@ -161,6 +161,11 @@ PRICE BOOK: If a USER'S PRICE BOOK section is provided below, match items agains
 
 IMPORTANT: All item descriptions MUST be in English regardless of the input language. Translate any non-English item descriptions to English. Only translate item description text - keep client names, addresses, and other proper nouns as-is.
 
+ITEM DESCRIPTIONS: Rewrite raw voice input into clean, professional line item names suitable for an invoice. Use proper industry terminology and title case.
+Examples: "fence out of cabel metal" → "Cable Metal Fence", "put in some drywall" → "Drywall Installation", "fix the leaky pipe in bathroom" → "Bathroom Pipe Repair", "paint the outside walls" → "Exterior Wall Painting", "tear out old flooring" → "Flooring Removal".
+
+PRICING RULE: If the user does NOT specify a price/cost/rate for an item AND no matching price book entry exists, set rate to 0 and total to 0. NEVER guess or make up prices. Only use non-zero rates when explicitly stated by the user or found in the price book.
+
 Tax rates should be whole percentages (e.g., 5 for 5%, 13 for 13%, NOT 0.05 or 0.13).
 
 TRANSCRIPTION:

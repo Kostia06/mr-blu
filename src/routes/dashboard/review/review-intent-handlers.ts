@@ -168,7 +168,10 @@ export function handleDocumentAction(
 			if (!item.quantity || item.quantity <= 0) {
 				item.quantity = 1;
 			}
-			if (!item.total && item.rate) {
+			if (!item.rate || isNaN(item.rate)) {
+				item.rate = 0;
+			}
+			if (!item.total || isNaN(item.total)) {
 				item.total = item.quantity * item.rate;
 			}
 			// Auto-infer measurementType when not set

@@ -61,14 +61,15 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const suggestions: ClientSuggestion[] = [];
 		let exactMatch: ClientSuggestion | null = null;
 
+		const normalizedSearch = normalizeText(name);
+
 		for (const client of clients) {
 			const similarity = calculateSimilarity(name, client.name);
-
-			// Check for exact match (case-insensitive, accent-insensitive)
-			const normalizedSearch = normalizeText(name);
 			const normalizedClient = normalizeText(client.name);
-			if (normalizedSearch === normalizedClient) {
-				exactMatch = {
+			const isExact = normalizedSearch === normalizedClient;
+
+			if (isExact) {
+				const match = {
 					id: client.id,
 					name: client.name,
 					email: client.email,
@@ -76,6 +77,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					address: client.address,
 					similarity: 1
 				};
+				exactMatch = match;
+				suggestions.push(match);
 			} else if (similarity >= SIMILARITY_THRESHOLD) {
 				suggestions.push({
 					id: client.id,

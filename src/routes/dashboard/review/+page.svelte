@@ -2,7 +2,6 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { t, locale } from '$lib/i18n';
-	import { toast } from '$lib/stores/toast';
 	import FileText from 'lucide-svelte/icons/file-text';
 	import Mail from 'lucide-svelte/icons/mail';
 	import Save from 'lucide-svelte/icons/save';
@@ -455,9 +454,7 @@
 	});
 
 	function showValidationErrors() {
-		for (const error of validationErrors) {
-			toast.error(error);
-		}
+		// Validation errors shown inline via UI
 	}
 
 	const sortedActions = $derived([...data.actions].sort((a, b) => a.order - b.order));
@@ -537,7 +534,6 @@
 			});
 
 			if (response.status === 429) {
-				toast.error($t('error.rateLimit'), 6000);
 				goToDashboard();
 				return;
 			}
@@ -872,7 +868,7 @@
 			if (result.success) {
 				clientSuggestions = result.suggestions || [];
 				exactClientMatch = result.exactMatch || null;
-				showClientSuggestions = clientSuggestions.length > 0 && !exactClientMatch;
+				showClientSuggestions = clientSuggestions.length > 0;
 
 				// Auto-fill client details from exact match (email, phone, address)
 				if (exactClientMatch) {
@@ -1126,10 +1122,8 @@
 			link.click();
 			window.document.body.removeChild(link);
 			URL.revokeObjectURL(url);
-			toast.success('PDF downloaded');
 		} catch (error) {
 			console.error('Failed to generate PDF:', error);
-			toast.error('Failed to generate PDF');
 		}
 	}
 
@@ -1215,16 +1209,6 @@
 					break;
 			}
 			data.actions[index].status = 'completed';
-			const toastMessages: Record<string, string> = {
-				create_document: 'Document created',
-				send_email: 'Email sent',
-				send_sms: 'SMS sent',
-				save_draft: 'Draft saved',
-				schedule: 'Scheduled'
-			};
-			if (toastMessages[action.type]) {
-				toast.success(toastMessages[action.type]);
-			}
 			if (['create_document', 'send_email', 'send_sms', 'save_draft'].includes(action.type)) {
 				savePricingMemory();
 			}
@@ -1233,7 +1217,6 @@
 			const errorMessage = error instanceof Error ? error.message : 'Action failed';
 			data.actions[index].status = 'failed';
 			data.actions[index].error = errorMessage;
-			toast.error(errorMessage);
 		}
 
 		currentActionIndex = -1;
@@ -1797,18 +1780,18 @@
 	.btn {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 14px 24px;
-		border-radius: 14px;
-		font-size: 15px;
+		gap: var(--space-2);
+		padding: var(--space-3-5) var(--space-6);
+		border-radius: var(--radius-button);
+		font-size: var(--text-base);
 		font-weight: 600;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.btn.primary {
-		background: linear-gradient(135deg, #0066ff 0%, #0ea5e9 100%);
+		background: linear-gradient(135deg, var(--blu-primary) 0%, #0ea5e9 100%);
 		color: white;
-		box-shadow: 0 4px 20px rgba(0, 102, 255, 0.3);
+		box-shadow: 0 4px 20px var(--glass-primary-30);
 	}
 
 	/* Spinning animation */

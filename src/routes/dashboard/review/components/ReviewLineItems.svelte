@@ -60,11 +60,11 @@
 	let expandedItemId = $state<string | null>(null);
 
 	const measurementChips = [
-		{ type: 'service' as const, label: 'Service' },
-		{ type: 'sqft' as const, label: 'Area' },
-		{ type: 'linear_ft' as const, label: 'Linear' },
+		{ type: 'service' as const, label: 'Flat Rate' },
+		{ type: 'sqft' as const, label: 'Sq Ft' },
+		{ type: 'linear_ft' as const, label: 'Linear Ft' },
 		{ type: 'unit' as const, label: 'Per Unit' },
-		{ type: 'hour' as const, label: 'Per Hour' }
+		{ type: 'hour' as const, label: 'Hourly' }
 	];
 
 	function setMeasurementType(item: LineItem, type: LineItem['measurementType']) {
@@ -220,19 +220,7 @@
 
 							<!-- Type-specific inputs -->
 							{#if item.measurementType === 'service' || item.measurementType === 'job'}
-								<!-- Service: total only -->
-								<div class="edit-row">
-									<div class="edit-field" style="flex:1">
-										<label for="item-total-{item.id}">{$t('review.total')}</label>
-										<input
-											id="item-total-{item.id}"
-											type="number"
-											bind:value={item.total}
-											min="0"
-											step="0.01"
-										/>
-									</div>
-								</div>
+								<!-- Service: no extra fields before total -->
 							{:else if item.measurementType === 'sqft'}
 								<!-- Area: Width x Length -> auto quantity, Rate/sqft -->
 								<div class="dimensions-row">
@@ -279,28 +267,16 @@
 										{/if}
 									</div>
 								</div>
-								<div class="edit-row">
-									<div class="edit-field">
-										<label for="item-rate-{item.id}">{$t('review.rate')} /sqft</label>
-										<input
-											id="item-rate-{item.id}"
-											type="number"
-											bind:value={item.rate}
-											oninput={() => onUpdateItemTotal(item)}
-											min="0"
-											step="0.01"
-										/>
-									</div>
-									<div class="edit-field">
-										<label for="item-total-{item.id}">{$t('review.total')}</label>
-										<input
-											id="item-total-{item.id}"
-											type="number"
-											bind:value={item.total}
-											min="0"
-											step="0.01"
-										/>
-									</div>
+								<div class="edit-field full">
+									<label for="item-rate-{item.id}">Price /sqft</label>
+									<input
+										id="item-rate-{item.id}"
+										type="number"
+										bind:value={item.rate}
+										oninput={() => onUpdateItemTotal(item)}
+										min="0"
+										step="0.01"
+									/>
 								</div>
 							{:else if item.measurementType === 'linear_ft'}
 								<!-- Linear: Length + Rate/ft -->
@@ -317,7 +293,7 @@
 										/>
 									</div>
 									<div class="edit-field">
-										<label for="item-rate-{item.id}">{$t('review.rate')} /ft</label>
+										<label for="item-rate-{item.id}">Price /ft</label>
 										<input
 											id="item-rate-{item.id}"
 											type="number"
@@ -327,22 +303,12 @@
 											step="0.01"
 										/>
 									</div>
-									<div class="edit-field">
-										<label for="item-total-{item.id}">{$t('review.total')}</label>
-										<input
-											id="item-total-{item.id}"
-											type="number"
-											bind:value={item.total}
-											min="0"
-											step="0.01"
-										/>
-									</div>
 								</div>
 							{:else if item.measurementType === 'unit'}
 								<!-- Per Unit: Count + Rate/unit -->
 								<div class="edit-row">
 									<div class="edit-field">
-										<label for="item-qty-{item.id}">Count</label>
+										<label for="item-qty-{item.id}">Quantity</label>
 										<input
 											id="item-qty-{item.id}"
 											type="number"
@@ -353,22 +319,12 @@
 										/>
 									</div>
 									<div class="edit-field">
-										<label for="item-rate-{item.id}">{$t('review.rate')} /unit</label>
+										<label for="item-rate-{item.id}">Unit Price</label>
 										<input
 											id="item-rate-{item.id}"
 											type="number"
 											bind:value={item.rate}
 											oninput={() => onUpdateItemTotal(item)}
-											min="0"
-											step="0.01"
-										/>
-									</div>
-									<div class="edit-field">
-										<label for="item-total-{item.id}">{$t('review.total')}</label>
-										<input
-											id="item-total-{item.id}"
-											type="number"
-											bind:value={item.total}
 											min="0"
 											step="0.01"
 										/>
@@ -389,53 +345,43 @@
 										/>
 									</div>
 									<div class="edit-field">
-										<label for="item-rate-{item.id}">{$t('review.rate')} /hr</label>
+										<label for="item-rate-{item.id}">Hourly Rate</label>
 										<input
 											id="item-rate-{item.id}"
 											type="number"
 											bind:value={item.rate}
 											oninput={() => onUpdateItemTotal(item)}
-											min="0"
-											step="0.01"
-										/>
-									</div>
-									<div class="edit-field">
-										<label for="item-total-{item.id}">{$t('review.total')}</label>
-										<input
-											id="item-total-{item.id}"
-											type="number"
-											bind:value={item.total}
 											min="0"
 											step="0.01"
 										/>
 									</div>
 								</div>
 							{:else}
-								<!-- No type selected: show rate + total (original default) -->
-								<div class="edit-row">
-									<div class="edit-field">
-										<label for="item-rate-{item.id}">{$t('review.rate')}</label>
-										<input
-											id="item-rate-{item.id}"
-											type="number"
-											bind:value={item.rate}
-											oninput={() => onUpdateItemTotal(item)}
-											min="0"
-											step="0.01"
-										/>
-									</div>
-									<div class="edit-field">
-										<label for="item-total-{item.id}">{$t('review.total')}</label>
-										<input
-											id="item-total-{item.id}"
-											type="number"
-											bind:value={item.total}
-											min="0"
-											step="0.01"
-										/>
-									</div>
+								<!-- No type selected: show rate only -->
+								<div class="edit-field full">
+									<label for="item-rate-{item.id}">Unit Price</label>
+									<input
+										id="item-rate-{item.id}"
+										type="number"
+										bind:value={item.rate}
+										oninput={() => onUpdateItemTotal(item)}
+										min="0"
+										step="0.01"
+									/>
 								</div>
 							{/if}
+
+							<!-- Total always on its own row -->
+							<div class="edit-field full">
+								<label for="item-total-{item.id}">Line Total</label>
+								<input
+									id="item-total-{item.id}"
+									type="number"
+									bind:value={item.total}
+									min="0"
+									step="0.01"
+								/>
+							</div>
 
 							{#if item.material}
 								<div class="material-info">
@@ -507,7 +453,7 @@
 
 <style>
 	.line-items-section {
-		padding: 16px;
+		padding: var(--space-4);
 		background: linear-gradient(135deg, rgba(0, 102, 255, 0.06), rgba(59, 130, 246, 0.04));
 		border-radius: var(--radius-card);
 	}
@@ -515,8 +461,8 @@
 	.line-items-header {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		margin-bottom: 12px;
+		gap: var(--space-2);
+		margin-bottom: var(--space-3);
 	}
 
 	.line-items-header .items-label {
@@ -524,7 +470,7 @@
 	}
 
 	.items-label {
-		font-size: 13px;
+		font-size: var(--text-sm);
 		font-weight: 600;
 		color: var(--gray-600);
 	}
@@ -545,34 +491,34 @@
 	.line-items-list {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
-		margin-bottom: 12px;
+		gap: var(--space-2);
+		margin-bottom: var(--space-3);
 	}
 
 	.line-item-card {
 		background: var(--white);
 		border: 1px solid var(--gray-200);
-		border-radius: 12px;
+		border-radius: var(--radius-input);
 		overflow: hidden;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.line-item-card.expanded {
-		border-color: var(--blu-primary, #0066ff);
-		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+		border-color: var(--blu-primary);
+		box-shadow: var(--shadow-input-focus);
 	}
 
 	.line-item-header {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: var(--space-3);
 		width: 100%;
-		padding: 12px 14px;
+		padding: var(--space-3) var(--space-3-5);
 		background: transparent;
 		border: none;
 		cursor: pointer;
 		text-align: left;
-		transition: background 0.2s ease;
+		transition: background var(--duration-fast) ease;
 	}
 
 	.line-item-header:hover {
@@ -587,7 +533,7 @@
 		justify-content: center;
 		background: var(--gray-100);
 		border-radius: 6px;
-		font-size: 12px;
+		font-size: var(--text-xs);
 		font-weight: 600;
 		color: var(--gray-500);
 		flex-shrink: 0;
@@ -598,11 +544,11 @@
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 	}
 
 	.line-item-desc {
-		font-size: 14px;
+		font-size: var(--text-sm);
 		font-weight: 500;
 		color: var(--gray-900);
 		overflow: hidden;
@@ -611,12 +557,12 @@
 	}
 
 	.line-item-meta {
-		font-size: 12px;
+		font-size: var(--text-xs);
 		color: var(--gray-500);
 	}
 
 	.line-item-total {
-		font-size: 14px;
+		font-size: var(--text-sm);
 		font-weight: 600;
 		color: var(--data-green);
 		flex-shrink: 0;
@@ -629,9 +575,10 @@
 	.line-item-total-wrapper {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: var(--space-1-5);
 		flex-shrink: 0;
 	}
+
 
 	.pricing-hint {
 		display: flex;
@@ -664,17 +611,17 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 10px 14px;
+		padding: var(--space-2-5) var(--space-3-5);
 		background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
 		border-top: 1px solid #bfdbfe;
-		gap: 12px;
+		gap: var(--space-3);
 	}
 
 	.suggestion-content {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		font-size: 13px;
+		gap: var(--space-2);
+		font-size: var(--text-sm);
 		color: #1e40af;
 	}
 
@@ -683,10 +630,10 @@
 	}
 
 	.suggestion-content .confidence {
-		font-size: 11px;
-		padding: 2px 6px;
+		font-size: var(--text-xs);
+		padding: var(--space-0-5) var(--space-1-5);
 		border-radius: 4px;
-		margin-left: 4px;
+		margin-left: var(--space-1);
 	}
 
 	.confidence.high {
@@ -706,22 +653,22 @@
 
 	.suggestion-actions {
 		display: flex;
-		gap: 6px;
+		gap: var(--space-1-5);
 	}
 
 	.suggestion-actions .apply-btn {
 		display: flex;
 		align-items: center;
-		gap: 4px;
-		padding: 6px 12px;
+		gap: var(--space-1);
+		padding: var(--space-1-5) var(--space-3);
 		background: #2563eb;
 		color: white;
 		border: none;
 		border-radius: 6px;
-		font-size: 12px;
+		font-size: var(--text-xs);
 		font-weight: 500;
 		cursor: pointer;
-		transition: all 0.15s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.suggestion-actions .apply-btn:hover {
@@ -739,7 +686,7 @@
 		border: 1px solid #cbd5e1;
 		border-radius: 6px;
 		cursor: pointer;
-		transition: all 0.15s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.suggestion-actions .dismiss-btn:hover {
@@ -748,19 +695,19 @@
 	}
 
 	.material-info {
-		padding-top: 8px;
-		border-top: 1px dashed #e2e8f0;
+		padding-top: var(--space-2);
+		border-top: 1px dashed var(--blu-border);
 	}
 
 	.material-tag {
 		display: inline-flex;
 		align-items: center;
-		gap: 6px;
-		padding: 4px 10px;
+		gap: var(--space-1-5);
+		padding: var(--space-1) var(--space-2-5);
 		background: #f0f9ff;
 		border: 1px solid #bae6fd;
 		border-radius: 6px;
-		font-size: 12px;
+		font-size: var(--text-xs);
 		color: #0369a1;
 	}
 
@@ -774,18 +721,18 @@
 	}
 
 	.line-item-edit {
-		padding: 14px;
+		padding: var(--space-3-5);
 		border-top: 1px solid var(--gray-200);
 		background: var(--gray-50);
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: var(--space-3);
 	}
 
 	.line-item-edit .edit-field {
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: var(--space-1-5);
 	}
 
 	.line-item-edit .edit-field.full {
@@ -793,7 +740,7 @@
 	}
 
 	.line-item-edit .edit-field label {
-		font-size: 11px;
+		font-size: var(--text-xs);
 		font-weight: 500;
 		color: var(--gray-500);
 		text-transform: uppercase;
@@ -801,24 +748,24 @@
 	}
 
 	.line-item-edit .edit-field input {
-		padding: 10px 12px;
+		padding: var(--space-2-5) var(--space-3);
 		border: 1px solid var(--gray-200);
 		border-radius: 8px;
-		font-size: 14px;
+		font-size: var(--text-sm);
 		color: var(--gray-900);
 		background: var(--white);
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.line-item-edit .edit-field input:focus {
 		outline: none;
-		border-color: var(--blu-primary, #0066ff);
-		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+		border-color: var(--blu-primary);
+		box-shadow: var(--shadow-input-focus);
 	}
 
 	.line-item-edit .edit-row {
 		display: flex;
-		gap: 10px;
+		gap: var(--space-2-5);
 	}
 
 	.line-item-edit .edit-row .edit-field {
@@ -828,14 +775,14 @@
 	.dimensions-row {
 		display: flex;
 		align-items: center;
-		gap: 12px;
-		padding: 10px 0;
-		margin-top: 4px;
-		border-top: 1px dashed #e2e8f0;
+		gap: var(--space-3);
+		padding: var(--space-2-5) 0;
+		margin-top: var(--space-1);
+		border-top: 1px dashed var(--blu-border);
 	}
 
 	.dimensions-label {
-		font-size: 12px;
+		font-size: var(--text-xs);
 		font-weight: 500;
 		color: var(--gray-500);
 		white-space: nowrap;
@@ -844,16 +791,16 @@
 	.dimensions-inputs {
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: var(--space-2);
 		flex: 1;
 	}
 
 	.dimension-input {
 		width: 60px;
-		padding: 6px 8px;
+		padding: var(--space-1-5) var(--space-2);
 		border: 1px solid #d1d5db;
 		border-radius: 6px;
-		font-size: 13px;
+		font-size: var(--text-sm);
 		text-align: center;
 	}
 
@@ -869,17 +816,17 @@
 	}
 
 	.dimension-unit {
-		font-size: 12px;
+		font-size: var(--text-xs);
 		color: #6b7280;
-		margin-left: 4px;
+		margin-left: var(--space-1);
 	}
 
 	.dimension-result {
-		font-size: 12px;
+		font-size: var(--text-xs);
 		color: var(--data-green);
 		font-weight: 500;
-		margin-left: 8px;
-		padding: 4px 8px;
+		margin-left: var(--space-2);
+		padding: var(--space-1) var(--space-2);
 		background: #ecfdf5;
 		border-radius: 4px;
 	}
@@ -887,20 +834,20 @@
 	.measurement-chips {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 6px;
-		padding-bottom: 4px;
+		gap: var(--space-1-5);
+		padding-bottom: var(--space-1);
 	}
 
 	.measurement-chip {
-		padding: 5px 12px;
+		padding: 5px var(--space-3);
 		border: 1px solid var(--gray-200);
-		border-radius: 20px;
+		border-radius: var(--radius-card);
 		background: var(--gray-100);
 		color: var(--gray-600);
-		font-size: 12px;
+		font-size: var(--text-xs);
 		font-weight: 500;
 		cursor: pointer;
-		transition: all 0.15s ease;
+		transition: all var(--duration-fast) ease;
 		white-space: nowrap;
 	}
 
@@ -910,36 +857,36 @@
 	}
 
 	.measurement-chip.active {
-		background: var(--blu-primary, #0066ff);
+		background: var(--blu-primary);
 		color: var(--white);
-		border-color: var(--blu-primary, #0066ff);
+		border-color: var(--blu-primary);
 	}
 
 	.measurement-chip.active:hover {
-		background: #0052cc;
-		border-color: #0052cc;
+		background: var(--blu-primary-hover);
+		border-color: var(--blu-primary-hover);
 	}
 
 	.line-item-edit .edit-actions {
 		display: flex;
 		justify-content: flex-end;
-		padding-top: 8px;
+		padding-top: var(--space-2);
 		border-top: 1px solid var(--gray-200);
 	}
 
 	.delete-item-btn {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		padding: 8px 12px;
+		gap: var(--space-1-5);
+		padding: var(--space-2) var(--space-3);
 		background: transparent;
 		border: 1px solid #fecaca;
 		border-radius: 8px;
-		color: #dc2626;
-		font-size: 13px;
+		color: var(--data-red-hover);
+		font-size: var(--text-sm);
 		font-weight: 500;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.delete-item-btn:hover {
@@ -949,12 +896,12 @@
 	.tax-summary {
 		background: var(--white);
 		border: 1px solid var(--gray-200);
-		border-radius: 12px;
-		padding: 12px 14px;
-		margin-bottom: 12px;
+		border-radius: var(--radius-input);
+		padding: var(--space-3) var(--space-3-5);
+		margin-bottom: var(--space-3);
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--space-2);
 	}
 
 	.tax-row {
@@ -964,63 +911,63 @@
 	}
 
 	.tax-label {
-		font-size: 13px;
+		font-size: var(--text-sm);
 		color: var(--gray-500);
 		font-weight: 500;
 	}
 
 	.tax-value {
-		font-size: 13px;
+		font-size: var(--text-sm);
 		color: var(--gray-700);
 		font-weight: 500;
 		text-align: right;
 	}
 
 	.tax-value.total {
-		font-size: 15px;
+		font-size: var(--text-base);
 		font-weight: 700;
 		color: var(--data-green);
 	}
 
 	.tax-rate-row {
-		gap: 8px;
+		gap: var(--space-2);
 	}
 
 	.tax-rate-input-wrapper {
 		display: flex;
 		align-items: center;
-		gap: 4px;
+		gap: var(--space-1);
 		margin-left: auto;
-		margin-right: 12px;
+		margin-right: var(--space-3);
 	}
 
 	.tax-rate-input {
 		width: 60px;
-		padding: 6px 8px;
+		padding: var(--space-1-5) var(--space-2);
 		border: 1px solid var(--gray-200);
 		border-radius: 8px;
-		font-size: 13px;
+		font-size: var(--text-sm);
 		text-align: center;
 		color: var(--gray-900);
 		background: var(--gray-50);
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.tax-rate-input:focus {
 		outline: none;
-		border-color: var(--blu-primary, #0066ff);
-		box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+		border-color: var(--blu-primary);
+		box-shadow: var(--shadow-input-focus);
 		background: var(--white);
 	}
 
 	.tax-percent {
-		font-size: 12px;
+		font-size: var(--text-xs);
 		color: var(--gray-400);
 		font-weight: 500;
 	}
 
 	.tax-total-row {
-		padding-top: 8px;
+		padding-top: var(--space-2);
 		border-top: 1px solid var(--gray-200);
 	}
 
@@ -1028,21 +975,21 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 8px;
+		gap: var(--space-2);
 		width: 100%;
-		padding: 12px;
+		padding: var(--space-3);
 		background: rgba(0, 102, 255, 0.06);
 		border: 1px dashed rgba(0, 102, 255, 0.3);
-		border-radius: 10px;
-		color: var(--blu-primary, #0066ff);
-		font-size: 14px;
+		border-radius: var(--radius-sm);
+		color: var(--blu-primary);
+		font-size: var(--text-sm);
 		font-weight: 500;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.add-item-btn:hover {
-		background: rgba(0, 102, 255, 0.1);
-		border-color: var(--blu-primary, #0066ff);
+		background: var(--glass-primary-10);
+		border-color: var(--blu-primary);
 	}
 </style>

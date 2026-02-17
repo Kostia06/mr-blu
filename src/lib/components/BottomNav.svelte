@@ -19,35 +19,23 @@
 
 	function handleNavClick(e: MouseEvent, href: string) {
 		e.preventDefault();
-		// Don't navigate if already on the page
 		if (isActive(href)) return;
 		pageTransition.navigate(href);
 	}
-
-	// Get active index for indicator position
-	const activeIndex = $derived.by(() => {
-		const pathname = $page.url.pathname;
-		if (pathname === '/dashboard') return 1; // Record (center)
-		if (pathname.startsWith('/dashboard/documents')) return 0; // Documents (left)
-		if (pathname.startsWith('/dashboard/settings')) return 2; // Settings (right)
-		return 1; // Default to center
-	});
 </script>
 
 {#if !$isRecordingMode && !$isModalOpen}
 <nav class="bottom-nav" transition:fly={{ y: 100, duration: 300, easing: cubicOut }}>
-	<!-- Animated indicator -->
-	<div class="indicator" style="transform: translateX({activeIndex * 58}px)"></div>
-
 	<a
 		href="/dashboard/documents"
 		class="nav-item"
 		class:active={isActive('/dashboard/documents')}
 		onclick={(e) => handleNavClick(e, '/dashboard/documents')}
-		aria-label={$t('nav.documents')}
 		data-tutorial="nav-documents"
 	>
-		<FileText size={28} strokeWidth={isActive('/dashboard/documents') ? 2 : 1.5} />
+		<span class="nav-icon">
+			<FileText size={24} strokeWidth={1.5} />
+		</span>
 	</a>
 
 	<a
@@ -55,9 +43,10 @@
 		class="nav-item"
 		class:active={isActive('/dashboard')}
 		onclick={(e) => handleNavClick(e, '/dashboard')}
-		aria-label={$t('nav.record')}
 	>
-		<Mic size={28} strokeWidth={isActive('/dashboard') ? 2 : 1.5} />
+		<span class="nav-icon">
+			<Mic size={24} strokeWidth={1.5} />
+		</span>
 	</a>
 
 	<a
@@ -65,10 +54,11 @@
 		class="nav-item"
 		class:active={isActive('/dashboard/settings')}
 		onclick={(e) => handleNavClick(e, '/dashboard/settings')}
-		aria-label={$t('nav.settings')}
 		data-tutorial="nav-settings"
 	>
-		<Settings size={28} strokeWidth={isActive('/dashboard/settings') ? 2 : 1.5} />
+		<span class="nav-icon">
+			<Settings size={24} strokeWidth={1.5} />
+		</span>
 	</a>
 </nav>
 {/if}
@@ -79,48 +69,41 @@
 		bottom: var(--space-5);
 		left: 50%;
 		transform: translateX(-50%);
+		width: calc(100% - var(--space-8));
+		max-width: 220px;
 		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 6px;
-		background: rgba(203, 218, 233, 0.65);
-		backdrop-filter: blur(20px) saturate(150%);
-		-webkit-backdrop-filter: blur(20px) saturate(150%);
-		padding: 6px;
-		padding-bottom: calc(6px + var(--safe-area-bottom));
+		background: rgba(255, 255, 255, 0.4);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		border: 1px solid rgba(255, 255, 255, 0.5);
 		border-radius: var(--radius-full);
+		padding-bottom: var(--safe-area-bottom);
 		box-shadow: 0 4px 24px rgba(0, 40, 100, 0.1);
 		z-index: var(--z-fixed);
+		overflow: hidden;
 		transition: transform var(--duration-normal) var(--ease-out-expo);
-	}
-
-	.indicator {
-		position: absolute;
-		left: 6px;
-		width: 52px;
-		height: 52px;
-		background: rgba(255, 255, 255, 0.6);
-		border-radius: var(--radius-full);
-		transition: transform var(--duration-normal) var(--ease-out-expo);
-		box-shadow: 0 2px 8px rgba(0, 40, 100, 0.08);
 	}
 
 	.nav-item {
-		position: relative;
+		flex: 1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 52px;
-		height: 52px;
+		gap: var(--space-2);
+		padding: var(--space-3-5) var(--space-2);
 		color: var(--gray-500);
 		text-decoration: none;
-		transition: color var(--duration-fast) ease;
-		border-radius: var(--radius-full);
-		z-index: 1;
+		transition: all var(--duration-fast) ease;
+		position: relative;
 	}
 
-	.nav-item:hover {
+.nav-item:hover:not(.active) {
+		background: var(--gray-50);
 		color: var(--gray-700);
+	}
+
+	.nav-item:active:not(.active) {
+		background: var(--gray-100);
 	}
 
 	.nav-item.active {
@@ -129,6 +112,38 @@
 
 	.nav-item:focus-visible {
 		outline: 2px solid var(--blu-primary);
-		outline-offset: 2px;
+		outline-offset: -2px;
+	}
+
+	.nav-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		background: var(--gray-100);
+		border-radius: var(--radius-input);
+		flex-shrink: 0;
+		transition: all var(--duration-fast) ease;
+	}
+
+	.nav-item.active .nav-icon {
+		background: var(--glass-primary-10);
+		color: var(--blu-primary);
+	}
+
+/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.nav-item,
+		.nav-icon {
+			transition: none;
+		}
+	}
+
+	/* Touch targets */
+	@media (pointer: coarse) {
+		.nav-item {
+			min-height: 44px;
+		}
 	}
 </style>

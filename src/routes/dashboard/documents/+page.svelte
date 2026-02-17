@@ -595,7 +595,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: 20px;
+		margin-bottom: var(--space-5);
 		flex-shrink: 0;
 		max-width: var(--page-max-width, 600px);
 		margin-left: auto;
@@ -604,8 +604,8 @@
 	}
 
 	.back-btn {
-		width: var(--btn-height-md, 44px);
-		height: var(--btn-height-md, 44px);
+		width: var(--btn-height-md);
+		height: var(--btn-height-md);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -613,15 +613,15 @@
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		border: none;
-		border-radius: var(--radius-button, 14px);
-		color: var(--gray-600, #475569);
+		border-radius: var(--radius-button);
+		color: var(--blu-text-secondary);
 		cursor: pointer;
-		transition: all var(--duration-fast, 0.15s) ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.back-btn:hover {
 		background: var(--glass-white-70, rgba(255, 255, 255, 0.7));
-		color: var(--gray-900, #0f172a);
+		color: var(--blu-text);
 	}
 
 	.back-btn:active {
@@ -630,9 +630,9 @@
 
 	.page-title {
 		font-family: var(--font-display, system-ui);
-		font-size: 18px;
+		font-size: var(--text-lg);
 		font-weight: 700;
-		color: var(--gray-900, #0f172a);
+		color: var(--blu-text);
 		margin: 0;
 		letter-spacing: -0.02em;
 	}
@@ -650,32 +650,32 @@
 		margin-right: auto;
 		display: flex;
 		align-items: center;
-		margin-bottom: 12px;
+		margin-bottom: var(--space-3);
 		flex-shrink: 0;
 	}
 
 	.search-icon {
 		position: absolute;
-		left: 14px;
-		color: var(--gray-400, #94a3b8);
+		left: var(--space-3-5);
+		color: var(--gray-400);
 		pointer-events: none;
 	}
 
 	.search-input {
 		width: 100%;
-		padding: 12px 40px 12px 42px;
+		padding: var(--space-3) 40px var(--space-3) 42px;
 		background: rgba(255, 255, 255, 0.5);
 		backdrop-filter: blur(20px);
 		-webkit-backdrop-filter: blur(20px);
 		border: none;
-		border-radius: var(--radius-input, 12px);
-		color: var(--gray-900, #0f172a);
-		font-size: 15px;
-		transition: all 0.2s ease;
+		border-radius: var(--radius-input);
+		color: var(--blu-text);
+		font-size: var(--text-base);
+		transition: all var(--duration-fast) ease;
 	}
 
 	.search-input::placeholder {
-		color: var(--gray-400, #94a3b8);
+		color: var(--gray-400);
 	}
 
 	.search-input:focus {
@@ -685,28 +685,28 @@
 
 	.clear-search {
 		position: absolute;
-		right: 12px;
+		right: var(--space-3);
 		width: 24px;
 		height: 24px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--gray-200, #e2e8f0);
+		background: var(--blu-border);
 		border: none;
 		border-radius: 50%;
-		color: var(--gray-500, #64748b);
+		color: var(--blu-text-muted);
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.clear-search:hover {
 		background: var(--gray-300, #cbd5e1);
-		color: var(--gray-900, #0f172a);
+		color: var(--blu-text);
 	}
 
 	/* Type Tabs */
 	.type-tabs-wrapper {
-		margin-bottom: 12px;
+		margin-bottom: var(--space-3);
 		flex-shrink: 0;
 		max-width: var(--page-max-width, 600px);
 		margin-left: auto;
@@ -738,7 +738,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		padding: 80px 20px;
+		padding: 80px var(--space-5);
 		text-align: center;
 	}
 
@@ -753,23 +753,23 @@
 		-webkit-backdrop-filter: blur(20px);
 		border: none;
 		border-radius: 50%;
-		color: var(--blu-primary, #0066ff);
-		margin-bottom: 24px;
-		box-shadow: 0 8px 32px rgba(0, 102, 255, 0.1);
+		color: var(--blu-primary);
+		margin-bottom: var(--space-6);
+		box-shadow: 0 8px 32px var(--glass-primary-10);
 	}
 
 	.empty-title {
 		font-family: var(--font-display, system-ui);
-		font-size: 20px;
+		font-size: var(--text-xl);
 		font-weight: 700;
-		color: var(--gray-900, #0f172a);
-		margin: 0 0 8px;
+		color: var(--blu-text);
+		margin: 0 0 var(--space-2);
 	}
 
 	.empty-subtitle {
-		font-size: 15px;
-		color: var(--gray-500, #64748b);
-		margin: 0 0 28px;
+		font-size: var(--text-base);
+		color: var(--blu-text-muted);
+		margin: 0 0 var(--space-7);
 		max-width: 260px;
 		line-height: 1.5;
 	}
@@ -777,19 +777,19 @@
 	.action-btn {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 14px 24px;
+		gap: var(--space-2);
+		padding: var(--space-3-5) var(--space-6);
 		border: none;
-		border-radius: var(--radius-button, 14px);
-		font-size: 15px;
+		border-radius: var(--radius-button);
+		font-size: var(--text-base);
 		font-weight: 600;
 		text-decoration: none;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.action-btn.primary {
-		background: var(--blu-primary, #0066ff);
+		background: var(--blu-primary);
 		color: white;
 		box-shadow: 0 4px 24px rgba(0, 102, 255, 0.35);
 	}
@@ -800,12 +800,12 @@
 	}
 
 	.action-btn.secondary {
-		background: var(--gray-100, #f1f5f9);
-		color: var(--gray-600, #475569);
+		background: var(--gray-100);
+		color: var(--blu-text-secondary);
 	}
 
 	.action-btn.secondary:hover {
-		background: var(--gray-200, #e2e8f0);
+		background: var(--blu-border);
 	}
 
 	/* Results Header */
@@ -813,42 +813,42 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: 8px;
+		margin-bottom: var(--space-2);
 	}
 
 	.results-count {
-		font-size: 13px;
-		color: var(--gray-500, #64748b);
+		font-size: var(--text-sm);
+		color: var(--blu-text-muted);
 	}
 
 	.filtered-label {
-		color: var(--blu-primary, #0066ff);
+		color: var(--blu-primary);
 	}
 
 	/* Document List */
 	.doc-list {
 		display: flex;
 		flex-direction: column;
-		gap: 24px;
+		gap: var(--space-6);
 	}
 
 	.month-group {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--space-2);
 	}
 
 	/* Clickable month header */
 	.month-header-btn {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 4px;
+		gap: var(--space-2);
+		padding: var(--space-1);
 		background: transparent;
 		border: none;
 		cursor: pointer;
 		width: fit-content;
-		transition: opacity 0.15s ease;
+		transition: opacity var(--duration-fast) ease;
 	}
 
 	.month-header-btn:hover {
@@ -856,28 +856,28 @@
 	}
 
 	.month-label {
-		font-size: 12px;
+		font-size: var(--text-xs);
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: var(--gray-500, #64748b);
+		color: var(--blu-text-muted);
 	}
 
 	.month-count {
-		font-size: 11px;
+		font-size: var(--text-xs);
 		font-weight: 500;
-		color: var(--gray-400, #94a3b8);
+		color: var(--gray-400);
 		background: rgba(148, 163, 184, 0.15);
-		padding: 2px 8px;
-		border-radius: 10px;
+		padding: var(--space-0-5) var(--space-2);
+		border-radius: var(--radius-sm);
 	}
 
 	.month-chevron {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--gray-400, #94a3b8);
-		transition: transform 0.2s ease;
+		color: var(--gray-400);
+		transition: transform var(--duration-fast) ease;
 	}
 
 	.month-chevron.collapsed {
@@ -892,7 +892,7 @@
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.5);
-		border-radius: var(--radius-card, 20px);
+		border-radius: var(--radius-card);
 		overflow: hidden;
 	}
 
@@ -907,12 +907,12 @@
 	.doc-card {
 		display: flex;
 		align-items: center;
-		gap: 14px;
-		padding: 14px 16px;
+		gap: var(--space-3-5);
+		padding: var(--space-3-5) var(--space-4);
 		background: transparent;
 		border: none;
 		text-decoration: none;
-		transition: all 0.2s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.doc-card:hover {
@@ -923,7 +923,7 @@
 	.doc-card-link {
 		display: flex;
 		align-items: center;
-		gap: 14px;
+		gap: var(--space-3-5);
 		flex: 1;
 		min-width: 0;
 		text-decoration: none;
@@ -933,7 +933,7 @@
 	.doc-actions {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: var(--space-1-5);
 		flex-shrink: 0;
 	}
 
@@ -945,27 +945,27 @@
 		justify-content: center;
 		background: var(--glass-white-50, rgba(255, 255, 255, 0.5));
 		border: none;
-		border-radius: 10px;
+		border-radius: var(--radius-sm);
 		cursor: pointer;
-		transition: all 0.15s ease;
+		transition: all var(--duration-fast) ease;
 	}
 
 	.action-icon-btn.edit {
-		color: var(--gray-500, #64748b);
+		color: var(--blu-text-muted);
 	}
 
 	.action-icon-btn.edit:hover {
-		background: rgba(0, 102, 255, 0.1);
-		color: var(--blu-primary, #0066ff);
+		background: var(--glass-primary-10);
+		color: var(--blu-primary);
 	}
 
 	.action-icon-btn.delete {
-		color: var(--gray-400, #94a3b8);
+		color: var(--gray-400);
 	}
 
 	.action-icon-btn.delete:hover {
 		background: rgba(239, 68, 68, 0.1);
-		color: var(--data-red, #ef4444);
+		color: var(--data-red);
 	}
 
 	.doc-icon {
@@ -974,7 +974,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: var(--radius-button, 14px);
+		border-radius: var(--radius-button);
 		flex-shrink: 0;
 	}
 
@@ -985,36 +985,36 @@
 	}
 
 	.doc-icon.estimate {
-		background: rgba(0, 102, 255, 0.1);
-		color: #0066FF;
+		background: var(--glass-primary-10);
+		color: var(--blu-primary);
 	}
 
 	/* Default for contracts */
 	.doc-icon:not(.invoice):not(.estimate) {
-		background: rgba(0, 102, 255, 0.08);
-		color: var(--blu-primary, #0066ff);
+		background: var(--glass-primary-8);
+		color: var(--blu-primary);
 	}
 
 	.doc-info {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: var(--space-1);
 		min-width: 0;
 	}
 
 	.doc-client {
-		font-size: 16px;
+		font-size: var(--text-base);
 		font-weight: 600;
-		color: var(--gray-900, #0f172a);
+		color: var(--blu-text);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
 	.doc-subtitle {
-		font-size: 13px;
-		color: var(--gray-500, #64748b);
+		font-size: var(--text-sm);
+		color: var(--blu-text-muted);
 	}
 
 	.doc-end {
@@ -1025,19 +1025,19 @@
 	}
 
 	.doc-amount {
-		font-size: 16px;
+		font-size: var(--text-base);
 		font-weight: 600;
-		color: var(--data-green, #10b981);
+		color: var(--data-green);
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 400px) {
 		.doc-client {
-			font-size: 15px;
+			font-size: var(--text-base);
 		}
 
 		.doc-amount {
-			font-size: 15px;
+			font-size: var(--text-base);
 		}
 	}
 </style>
