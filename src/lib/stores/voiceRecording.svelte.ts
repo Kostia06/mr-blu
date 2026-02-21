@@ -275,6 +275,10 @@ export function createVoiceRecording() {
 				mediaRecorder.start(100);
 			}
 
+			if (!deepgramApiKey) {
+				await fetchDeepgramKey();
+			}
+
 			if (deepgramApiKey) {
 				connectDeepgram(translateFn);
 			} else {
