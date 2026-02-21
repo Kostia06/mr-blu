@@ -51,6 +51,7 @@
 
 		try {
 			await onConfirm(document.id, document.type);
+			isDeleting = false;
 			handleClose();
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to delete document';
