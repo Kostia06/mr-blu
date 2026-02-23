@@ -22,6 +22,7 @@ import { SecurityPage } from '@/pages/settings/Security'
 import { FeedbackPage } from '@/pages/settings/Feedback'
 import { ClientsPage } from '@/pages/settings/Clients'
 import { ClientDetailPage } from '@/pages/settings/ClientDetail'
+import { AuthCallbackPage } from '@/pages/AuthCallback'
 import { LandingPage } from '@/pages/Landing'
 import { PrivacyPage } from '@/pages/Privacy'
 import { TermsPage } from '@/pages/Terms'
@@ -78,6 +79,7 @@ export function App() {
         <Route path="/terms" component={TermsPage} />
         <Route path="/offline" component={OfflinePage} />
         <Route path="/login" component={LoginPage} />
+        <Route path="/auth/callback" component={AuthCallbackPage} />
         <Route path="/view/:type/:id">
           <Suspense fallback={null}>
             <LazyDocumentViewPage />
