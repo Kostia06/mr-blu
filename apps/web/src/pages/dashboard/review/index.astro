@@ -1,0 +1,53 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { ReviewPage } from '@/components/review/ReviewPage';
+
+const session = Astro.locals.session;
+const user = Astro.locals.user;
+const supabase = Astro.locals.supabase;
+
+if (!session) {
+  return Astro.redirect('/login');
+}
+
+const transcript = Astro.url.searchParams.get('transcript');
+const sessionId = Astro.url.searchParams.get('session');
+const resumeId = Astro.url.searchParams.get('resume');
+
+type EntryMode = 'new' | 'resume' | 'legacy_resume' | 'sessionStorage';
+
+let entryMode: EntryMode = 'sessionStorage';
+let reviewSession: Record<string, unknown> | null = null;
+let transcriptValue: string | undefined;
+
+if (transcript) {
+  entryMode = 'new';
+  transcriptValue = transcript;
+} else if (sessionId) {
+  const { data, error } = await supabase
+    .from('review_sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .eq('user_id', user!.id)
+    .eq('status', 'in_progress')
+    .single();
+
+  if (error || !data) {
+    return Astro.redirect('/dashboard');
+  }
+
+  entryMode = 'resume';
+  reviewSession = data;
+} else if (resumeId) {
+  entryMode = 'legacy_resume';
+}
+---
+
+<DashboardLayout title="Review">
+  <ReviewPage
+    client:load
+    entryMode={entryMode}
+    transcript={transcriptValue}
+    reviewSession={reviewSession}
+  />
+</DashboardLayout>

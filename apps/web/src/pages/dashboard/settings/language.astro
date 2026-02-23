@@ -1,0 +1,11 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { LanguageSettings } from '@/components/settings/LanguageSettings';
+
+const user = Astro.locals.user;
+const session = Astro.locals.session;
+---
+
+<DashboardLayout title="Language">
+  <LanguageSettings client:load user={user} />
+</DashboardLayout>

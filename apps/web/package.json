@@ -1,0 +1,42 @@
+{
+  "name": "@mrblu/web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "wrangler pages dev dist",
+    "build": "tsc -b && vite build",
+    "preview": "wrangler pages dev dist",
+    "deploy": "wrangler pages deploy dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@mrblu/shared": "workspace:*",
+    "@mrblu/supabase": "workspace:*",
+    "@kostia06/pdf-gen": "^1.0.1",
+    "@supabase/supabase-js": "^2.97.0",
+    "@tanstack/react-query": "^5.90.21",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "gsap": "^3.14.2",
+    "jspdf": "^4.2.0",
+    "lucide-react": "^0.575.0",
+    "preact": "^10.27.2",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "wouter": "^3.9.0",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.2",
+    "@tailwindcss/vite": "^4.2.0",
+    "@types/node": "^24.10.1",
+    "tailwindcss": "^4.2.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1",
+    "wrangler": "^4.67.0"
+  }
+}

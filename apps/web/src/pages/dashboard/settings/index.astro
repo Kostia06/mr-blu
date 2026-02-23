@@ -1,0 +1,11 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { SettingsHub } from '@/components/settings/SettingsHub';
+
+const user = Astro.locals.user;
+const session = Astro.locals.session;
+---
+
+<DashboardLayout title="Settings">
+  <SettingsHub client:load user={user} />
+</DashboardLayout>

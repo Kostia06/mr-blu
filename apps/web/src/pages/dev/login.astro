@@ -1,0 +1,12 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { DevLoginForm } from '@/components/dev/DevLoginForm';
+
+if (!import.meta.env.DEV) {
+  return Astro.redirect('/login');
+}
+---
+
+<Layout title="Dev Login">
+  <DevLoginForm client:load />
+</Layout>

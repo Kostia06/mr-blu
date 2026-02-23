@@ -1,0 +1,82 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { DocumentDetail } from '@/components/documents/DocumentDetail';
+
+const session = Astro.locals.session;
+if (!session) {
+  return Astro.redirect('/login');
+}
+
+const supabase = Astro.locals.supabase;
+const userId = session.user.id;
+const documentId = Astro.params.id;
+const docType = Astro.url.searchParams.get('type') || 'invoice';
+
+const profilePromise = supabase
+  .from('profiles')
+  .select('full_name, business_name, email, phone, address, website')
+  .eq('id', userId)
+  .single();
+
+const table = docType === 'contract' ? 'contracts' : 'documents';
+const documentPromise = supabase
+  .from(table)
+  .select('*, clients(name, email, phone, address)')
+  .eq('id', documentId)
+  .eq('user_id', userId)
+  .single();
+
+const [profileResult, documentResult] = await Promise.all([profilePromise, documentPromise]);
+
+if (documentResult.error || !documentResult.data) {
+  return new Response(null, { status: 404, statusText: 'Document not found' });
+}
+
+const profile = profileResult.data;
+const meta = session.user.user_metadata;
+
+if (profile) {
+  if (!profile.full_name) {
+    if (meta?.first_name && meta?.last_name) {
+      profile.full_name = `${meta.first_name} ${meta.last_name}`;
+    } else if (meta?.first_name || meta?.last_name) {
+      profile.full_name = meta.first_name || meta.last_name;
+    }
+  }
+  if (!profile.business_name && meta?.business?.name) {
+    profile.business_name = meta.business.name;
+  }
+  if (!profile.address && meta?.business) {
+    const b = meta.business;
+    profile.address = [b.address, b.city, b.state, b.zip].filter(Boolean).join(', ');
+  }
+  if (!profile.website && meta?.business?.website) {
+    profile.website = meta.business.website;
+  }
+}
+
+const raw = documentResult.data;
+const isContract = docType === 'contract';
+const resolvedType = isContract
+  ? 'contract'
+  : raw.document_type === 'estimate'
+    ? 'estimate'
+    : 'invoice';
+
+const document = {
+  ...raw,
+  type: resolvedType,
+  documentType: isContract ? 'contract' : (raw.document_type || 'invoice'),
+  client: (raw.clients as any)?.name || 'Unknown Client',
+  clientDetails: raw.clients,
+};
+---
+
+<DashboardLayout title="Document">
+  <DocumentDetail
+    client:load
+    document={document}
+    profile={profile}
+    userMetadata={meta}
+  />
+</DashboardLayout>

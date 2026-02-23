@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.mrblu.app",
+        "paths": ["/auth/*", "/view/*", "/dashboard/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.com.mrblu.app"]
+  }
+}

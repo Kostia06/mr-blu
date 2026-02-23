@@ -1,0 +1,10 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { InputSettings } from '@/components/settings/InputSettings';
+
+const user = Astro.locals.user;
+---
+
+<DashboardLayout title="Input Preferences">
+  <InputSettings client:load />
+</DashboardLayout>

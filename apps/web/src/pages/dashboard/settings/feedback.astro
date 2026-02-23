@@ -1,0 +1,10 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { FeedbackSettings } from '@/components/settings/FeedbackSettings';
+
+const user = Astro.locals.user;
+---
+
+<DashboardLayout title="Feedback">
+  <FeedbackSettings client:load />
+</DashboardLayout>

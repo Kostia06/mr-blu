@@ -1,0 +1,10 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { NotificationsSettings } from '@/components/settings/NotificationsSettings';
+
+const user = Astro.locals.user;
+---
+
+<DashboardLayout title="Notifications">
+  <NotificationsSettings client:load user={user} />
+</DashboardLayout>

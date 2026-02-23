@@ -1,0 +1,10 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { SecuritySettings } from '@/components/settings/SecuritySettings';
+
+const user = Astro.locals.user;
+---
+
+<DashboardLayout title="Security">
+  <SecuritySettings client:load user={user} />
+</DashboardLayout>

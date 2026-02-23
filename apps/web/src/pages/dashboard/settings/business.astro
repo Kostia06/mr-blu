@@ -1,0 +1,11 @@
+---
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import { BusinessSettings } from '@/components/settings/BusinessSettings';
+
+const user = Astro.locals.user;
+const session = Astro.locals.session;
+---
+
+<DashboardLayout title="Business">
+  <BusinessSettings client:load user={user} />
+</DashboardLayout>
