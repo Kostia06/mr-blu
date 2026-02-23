@@ -124,8 +124,8 @@ export function SettingsHub({ user }: SettingsHubProps) {
         },
         {
           icon: <Users size={18} strokeWidth={1.5} />,
-          label: 'Clients',
-          value: 'Saved client info',
+          label: t('settings.clients'),
+          value: t('settings.clientsDesc'),
           href: '/dashboard/settings/clients',
         },
         {

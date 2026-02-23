@@ -418,15 +418,15 @@ export function DocumentList({
       const results = await Promise.allSettled(selected.map((d) => deleteDocument(d.id, d.type)));
       const failed = results.filter((r) => r.status === 'rejected').length;
       if (failed > 0) {
-        toast.error(`Failed to delete ${failed} document(s)`);
+        toast.error(t('documents.deleteFailed', { n: String(failed) }));
       } else {
-        toast.success(`Deleted ${selected.length} document(s)`);
+        toast.success(t('documents.deleted', { n: String(selected.length) }));
       }
       setShowBatchDeleteConfirm(false);
       exitSelectMode();
       window.location.reload();
     } catch {
-      toast.error('Failed to delete documents');
+      toast.error(t('documents.deleteError'));
       setIsBatchProcessing(false);
     }
   }, [filteredDocs, selectedIds, toast, exitSelectMode]);
@@ -442,15 +442,15 @@ export function DocumentList({
       );
       const failed = results.filter((r) => r.status === 'rejected').length;
       if (failed > 0) {
-        toast.error(`Failed to send ${failed} document(s)`);
+        toast.error(t('documents.sendFailed', { n: String(failed) }));
       } else {
-        toast.success(`Sent ${sendableSelected.length} document(s)`);
+        toast.success(t('documents.sentCount', { n: String(sendableSelected.length) }));
       }
       setShowBatchSendConfirm(false);
       exitSelectMode();
       window.location.reload();
     } catch {
-      toast.error('Failed to send documents');
+      toast.error(t('documents.sendError'));
       setIsBatchProcessing(false);
     }
   }, [sendableSelected, toast, exitSelectMode]);
@@ -494,9 +494,9 @@ export function DocumentList({
             <button style={styles.backBtn} onClick={exitSelectMode} aria-label="Cancel selection">
               <X size={22} strokeWidth={2} />
             </button>
-            <h1 style={styles.pageTitle}>{selectedCount} selected</h1>
+            <h1 style={styles.pageTitle}>{t('common.selected', { n: String(selectedCount) })}</h1>
             <button style={styles.selectAllBtn} onClick={toggleSelectAll}>
-              {isAllSelected ? 'Deselect' : 'All'}
+              {isAllSelected ? t('common.deselect') : t('common.all')}
             </button>
           </>
         ) : (
@@ -511,7 +511,7 @@ export function DocumentList({
             <h1 style={styles.pageTitle}>{t('documents.title')}</h1>
             {filteredDocs.length > 0 ? (
               <button style={styles.selectBtn} onClick={enterSelectMode}>
-                Select
+                {t('common.select')}
               </button>
             ) : (
               <div style={styles.headerSpacer} />
@@ -734,7 +734,7 @@ export function DocumentList({
               onClick={() => setShowBatchDeleteConfirm(true)}
             >
               <Trash2 size={18} />
-              Delete ({selectedCount})
+              {t('common.delete')} ({selectedCount})
             </button>
             {sendableSelected.length > 0 && (
               <button
@@ -742,7 +742,7 @@ export function DocumentList({
                 onClick={() => setShowBatchSendConfirm(true)}
               >
                 <Send size={18} />
-                Send ({sendableSelected.length})
+                {t('common.send')} ({sendableSelected.length})
               </button>
             )}
           </div>
@@ -754,9 +754,9 @@ export function DocumentList({
         <BatchConfirmModal
           icon={<Trash2 size={32} />}
           iconStyle={batchModalStyles.iconWarning}
-          title={`Delete ${selectedCount} document${selectedCount > 1 ? 's' : ''}?`}
-          subtitle="This action cannot be undone."
-          confirmLabel={isBatchProcessing ? 'Deleting...' : `Delete ${selectedCount}`}
+          title={t('documents.deleteCount', { n: String(selectedCount) })}
+          subtitle={t('common.cannotUndo')}
+          confirmLabel={isBatchProcessing ? t('common.deleting') : t('documents.deleteConfirm', { n: String(selectedCount) })}
           confirmStyle={batchModalStyles.dangerBtn}
           isProcessing={isBatchProcessing}
           onConfirm={handleBatchDelete}
@@ -769,9 +769,9 @@ export function DocumentList({
         <BatchConfirmModal
           icon={<Send size={32} />}
           iconStyle={batchModalStyles.iconSend}
-          title={`Send ${sendableSelected.length} document${sendableSelected.length > 1 ? 's' : ''}?`}
-          subtitle={`Email will be sent to each client's address.${selectedCount > sendableSelected.length ? ` ${selectedCount - sendableSelected.length} skipped (no email or already sent).` : ''}`}
-          confirmLabel={isBatchProcessing ? 'Sending...' : `Send ${sendableSelected.length}`}
+          title={t('documents.sendCount', { n: String(sendableSelected.length) })}
+          subtitle={`${t('documents.sendToClients')}${selectedCount > sendableSelected.length ? ` ${t('documents.sendSkipped', { n: String(selectedCount - sendableSelected.length) })}` : ''}`}
+          confirmLabel={isBatchProcessing ? t('common.sending') : t('documents.sendConfirm', { n: String(sendableSelected.length) })}
           confirmStyle={batchModalStyles.primaryBtn}
           isProcessing={isBatchProcessing}
           onConfirm={handleBatchSend}
