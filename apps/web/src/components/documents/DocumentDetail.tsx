@@ -1075,12 +1075,10 @@ const STYLES = `
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
     padding: var(--page-padding-x, 20px);
     padding-top: calc(12px + var(--safe-area-top, 0px));
-    padding-bottom: 0;
+    padding-bottom: 100px;
   }
 
   .page-header {

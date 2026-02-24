@@ -177,33 +177,64 @@ export function PriceBook() {
 
 				{/* Add button / form */}
 				{showAddForm ? (
-					<div className="flex flex-col gap-2.5 p-4 bg-white/50 backdrop-blur-[12px] border-[1.5px] border-[var(--brand-blue,#0066ff)] rounded-2xl mb-4">
-						<input
-							type="text"
-							value={addName}
-							onInput={(e) => setAddName((e.target as HTMLInputElement).value)}
-							placeholder={t('settings.priceBookName') || 'Material name'}
-							className="w-full border border-black/[0.08] bg-white/80 rounded-[10px] px-3 py-2.5 text-[15px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit] box-border"
-							autoFocus
-						/>
-						<div className="flex gap-2">
-							<select
-								value={addUnit}
-								onChange={(e) => setAddUnit((e.target as HTMLSelectElement).value)}
-								className="shrink-0 w-[100px] border border-black/[0.08] bg-white/80 rounded-[10px] px-2.5 py-2 text-sm text-[var(--gray-700,#334155)] font-[inherit] outline-none"
-							>
-								{Object.entries(MEASUREMENT_LABELS).map(([key, label]) => (
-									<option key={key} value={key}>{label}</option>
-								))}
-							</select>
-							<div className="flex items-center gap-1 flex-1 bg-white/80 border-[1.5px] border-[var(--brand-blue,#0066ff)] rounded-[10px] px-2.5 py-1.5">
-								<span className="text-[15px] font-semibold text-[var(--gray-500,#64748b)]">$</span>
+					<div className="bg-white/60 backdrop-blur-[12px] border-[1.5px] border-[var(--blu-primary,#0066ff)] rounded-2xl p-4 mb-4">
+						<div className="flex items-center justify-between mb-3">
+							<span className="text-sm font-bold text-[var(--blu-primary,#0066ff)]">{t('settings.priceBookAdd') || 'Add Item'}</span>
+							<div className="flex gap-1">
+								<button
+									className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0"
+									onClick={handleAdd}
+									disabled={adding || !addName.trim() || !addRate}
+									aria-label="Save"
+								>
+									{adding ? (
+										<Loader2 size={16} className="animate-spin" />
+									) : (
+										<Check size={16} className="text-emerald-500" />
+									)}
+								</button>
+								<button
+									className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0"
+									onClick={() => setShowAddForm(false)}
+									aria-label="Cancel"
+								>
+									<X size={16} className="text-[#94a3b8]" />
+								</button>
+							</div>
+						</div>
+						<div className="flex flex-col gap-2">
+							<input
+								type="text"
+								value={addName}
+								onInput={(e) => setAddName((e.target as HTMLInputElement).value)}
+								placeholder={t('settings.priceBookName') || 'Material name'}
+								className="w-full border-[1.5px] border-[var(--blu-primary,#0066ff)] bg-white/80 rounded-[10px] px-2.5 py-2 text-[15px] font-semibold text-[var(--gray-900,#0f172a)] outline-none font-[inherit] box-border"
+								autoFocus
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') handleAdd();
+									if (e.key === 'Escape') setShowAddForm(false);
+								}}
+							/>
+							<div className="flex items-center gap-2">
+								<BookOpen size={14} className="text-[var(--gray-400)] shrink-0" />
+								<select
+									value={addUnit}
+									onChange={(e) => setAddUnit((e.target as HTMLSelectElement).value)}
+									className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
+								>
+									{Object.entries(MEASUREMENT_LABELS).map(([key, label]) => (
+										<option key={key} value={key}>{label}</option>
+									))}
+								</select>
+							</div>
+							<div className="flex items-center gap-2">
+								<DollarSign size={14} className="text-[var(--gray-400)] shrink-0" />
 								<input
 									type="number"
 									value={addRate}
 									onInput={(e) => setAddRate((e.target as HTMLInputElement).value)}
 									placeholder="0.00"
-									className="flex-1 border-none bg-transparent text-[15px] font-semibold text-[var(--gray-900,#0f172a)] outline-none font-[inherit] w-full"
+									className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
 									step="0.01"
 									min="0"
 									onKeyDown={(e) => {
@@ -212,23 +243,6 @@ export function PriceBook() {
 									}}
 								/>
 							</div>
-						</div>
-						<div className="flex justify-end gap-2 mt-1">
-							<button
-								className="px-4 py-2 text-[13px] font-medium font-[inherit] text-[var(--gray-500,#64748b)] bg-transparent border border-black/[0.08] rounded-[10px] cursor-pointer"
-								onClick={() => setShowAddForm(false)}
-							>
-								{t('common.cancel') || 'Cancel'}
-							</button>
-							<button
-								className="px-4 py-2 text-[13px] font-semibold font-[inherit] text-white bg-[var(--brand-blue,#0066ff)] border-none rounded-[10px] cursor-pointer"
-								onClick={handleAdd}
-								disabled={adding || !addName.trim() || !addRate}
-							>
-								{adding
-									? t('settings.priceBookSaving') || 'Saving...'
-									: t('settings.priceBookAdd') || 'Add Item'}
-							</button>
 						</div>
 					</div>
 				) : (
