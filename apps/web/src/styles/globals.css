@@ -259,10 +259,10 @@ img, video, canvas, svg {
 }
 
 @media (max-width: 768px) {
-  .bg-blob-1 { width: 360px; height: 360px; top: -120px; right: -90px; }
-  .bg-blob-2 { width: 300px; height: 300px; left: -120px; }
-  .bg-blob-3 { width: 270px; height: 270px; right: -60px; }
-  .bg-blob-4 { width: 240px; height: 240px; bottom: -90px; }
+  .bg-blob-1 { width: 220px; height: 220px; top: -80px; right: -60px; }
+  .bg-blob-2 { width: 180px; height: 180px; left: -80px; }
+  .bg-blob-3 { width: 160px; height: 160px; right: -40px; }
+  .bg-blob-4 { width: 140px; height: 140px; bottom: -60px; }
 }
 
 body {

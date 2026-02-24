@@ -24,8 +24,7 @@ export function BottomNav() {
 
   if (isRecordingMode || isModalOpen || isSelectMode || location.startsWith('/dashboard/review')) return null
 
-  const factor = 2 * activeIndex + 1
-  const indicatorLeft = `calc(6px + ${factor} * (100% - 12px) / 6 - 24px)`
+  const pct = ((2 * activeIndex + 1) / 6) * 100
 
   return (
     <nav
@@ -33,9 +32,13 @@ export function BottomNav() {
       class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[240px] flex items-center bg-white/65 backdrop-blur-[20px] backdrop-saturate-150 rounded-full shadow-[0_4px_24px_rgba(0,40,100,0.12),0_1px_4px_rgba(0,0,0,0.06)] p-1.5 z-[var(--z-fixed)] mb-[env(safe-area-inset-bottom,0px)]"
     >
       <div
-        class="absolute w-12 h-12 rounded-full bg-[rgba(0,102,255,0.12)] transition-[left] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-        style={{ left: indicatorLeft }}
-      />
+        class="absolute inset-1.5 pointer-events-none"
+      >
+        <div
+          class="absolute w-12 h-12 rounded-full bg-[rgba(0,102,255,0.12)] top-0 -translate-x-1/2 transition-[left] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          style={{ left: `${pct}%` }}
+        />
+      </div>
 
       {NAV_ITEMS.map(({ href, Icon, tutorial }, i) => {
         const isActive = i === activeIndex
