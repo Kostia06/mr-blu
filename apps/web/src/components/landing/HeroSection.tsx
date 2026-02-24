@@ -4,54 +4,6 @@ import { HeroHeadline } from './HeroHeadline';
 import { HeroPhone } from './HeroPhone';
 import { useI18nStore } from '@/lib/i18n';
 
-const styles = {
-  hero: {
-    position: 'relative' as const,
-    minHeight: '100svh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '100px 24px 48px',
-    background: '#FFFFFF',
-    overflowX: 'clip' as const,
-  },
-  container: {
-    width: '100%',
-    maxWidth: 480,
-    margin: '0 auto',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    gap: 24,
-  },
-  phoneWrapper: {
-    opacity: 0,
-    transform: 'translateY(30px)',
-  },
-  ctaButton: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '14px 28px',
-    fontSize: 15,
-    fontWeight: 600,
-    textDecoration: 'none',
-    borderRadius: 100,
-    background: 'var(--blu-primary, #0066ff)',
-    color: '#FFFFFF',
-    transition: 'background 0.2s ease, box-shadow 0.2s ease, opacity 0.6s ease',
-    boxShadow: '0 2px 10px rgba(0, 102, 255, 0.25)',
-    opacity: 0,
-  },
-  trustText: {
-    fontSize: 13,
-    fontWeight: 400,
-    color: 'var(--landing-text-secondary, #6B7280)',
-    textAlign: 'center' as const,
-    opacity: 0,
-  },
-};
-
 export function HeroSection() {
   const { t } = useI18nStore();
   const sectionRef = useRef<HTMLElement>(null);
@@ -107,34 +59,27 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section style={styles.hero} id="main-content" ref={sectionRef}>
-      <div style={styles.container}>
+    <section
+      className="relative min-h-svh flex items-center justify-center pt-[100px] px-6 pb-12 bg-white overflow-x-clip"
+      id="main-content"
+      ref={sectionRef}
+    >
+      <div className="w-full max-w-[480px] mx-auto flex flex-col items-center gap-6">
         <HeroHeadline />
 
-        <div className="hero-animate hero-phone-wrap" style={styles.phoneWrapper}>
+        <div className="hero-animate hero-phone-wrap opacity-0 translate-y-[30px]">
           <HeroPhone />
         </div>
 
         <a
           href="/login"
-          className="hero-animate hero-cta"
-          style={styles.ctaButton}
-          onMouseEnter={(e) => {
-            const el = e.currentTarget as HTMLElement;
-            el.style.background = '#0052cc';
-            el.style.boxShadow = '0 4px 20px rgba(0, 102, 255, 0.3)';
-          }}
-          onMouseLeave={(e) => {
-            const el = e.currentTarget as HTMLElement;
-            el.style.background = 'var(--blu-primary, #0066ff)';
-            el.style.boxShadow = '0 2px 10px rgba(0, 102, 255, 0.25)';
-          }}
+          className="hero-animate hero-cta inline-flex items-center gap-2 py-3.5 px-7 text-[15px] font-semibold no-underline rounded-full bg-[var(--blu-primary)] text-white shadow-[0_2px_10px_rgba(0,102,255,0.25)] hover:bg-[#0052cc] hover:shadow-[0_4px_20px_rgba(0,102,255,0.3)] transition-all duration-200 opacity-0"
         >
           <span>{t('landing.hero.ctaPrimary')}</span>
           <ArrowRight size={18} strokeWidth={2.5} />
         </a>
 
-        <p className="hero-animate hero-trust-line" style={styles.trustText}>
+        <p className="hero-animate hero-trust-line text-[13px] font-normal text-[var(--landing-text-secondary)] text-center opacity-0">
           {t('landing.hero.trust1')} &middot; {t('landing.hero.trust2')} &middot; {t('landing.hero.trust3')}
         </p>
       </div>

@@ -1,5 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { Sparkles, FileText, Receipt, AlertCircle, Loader2, Check, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useI18nStore } from '@/lib/i18n';
 import type { SourceDocument, MergeSourceSelection } from '@/lib/review/review-types';
 import { navigateTo } from '@/lib/navigation';
@@ -56,65 +57,79 @@ export function MergeDocumentsFlow({
 
   return (
     <>
-      <style>{keyframes}</style>
-      <div style={styles.content}>
-        <div style={styles.summaryCard}>
-          <div style={styles.summaryHeader}>
-            <Sparkles size={16} style={{ flexShrink: '0' }} />
+      <style>{`@keyframes mdfSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .mdf-spinning { animation: mdfSpin 1s linear infinite; }`}</style>
+      <div class="flex-1 px-[var(--page-padding-x)] max-w-[var(--page-max-width)] mx-auto w-full flex flex-col gap-[var(--section-gap)]">
+        <div class="bg-sky-500/5 border border-sky-500/20 rounded-[var(--radius-card)] p-[var(--space-5)]">
+          <div class="flex items-center gap-[var(--space-2)] mb-[var(--space-2-5)] text-sky-400 text-[var(--text-sm)] font-[var(--font-medium)]">
+            <Sparkles size={16} class="shrink-0" />
             <span>{t('review.mergingDocuments')}</span>
           </div>
-          <p style={styles.summaryText}>{mergeData?.summary || t('review.mergingDocuments')}</p>
+          <p class="text-[var(--text-base)] leading-relaxed text-[var(--gray-700)] m-0">
+            {mergeData?.summary || t('review.mergingDocuments')}
+          </p>
         </div>
 
-        <div style={styles.mergeSelection}>
-          <h3 style={styles.selectionTitle}>{t('review.selectDocsToMerge')}</h3>
-          <p style={styles.selectionSubtitle}>{t('review.chooseFromEachClient')}</p>
+        <div class="mt-5">
+          <h3 class="text-base font-semibold text-[var(--gray-900)] m-0 mb-1.5">
+            {t('review.selectDocsToMerge')}
+          </h3>
+          <p class="text-[13px] text-[var(--gray-500)] m-0 mb-4">
+            {t('review.chooseFromEachClient')}
+          </p>
 
           {mergeSourceSelections.map((sel, index) => (
-            <div key={index} style={styles.mergeSourceSection}>
-              <h4 style={styles.mergeSourceTitle}>
-                <span style={styles.mergeSourceNumber}>{index + 1}</span>
+            <div key={index} class="mb-6 p-4 border border-[var(--gray-200)] rounded-[14px]">
+              <h4 class="flex items-center gap-2.5 text-sm font-semibold text-[var(--gray-900)] m-0 mb-3.5">
+                <span class="w-6 h-6 flex items-center justify-center bg-sky-500/20 text-sky-400 rounded-full text-xs font-bold">
+                  {index + 1}
+                </span>
                 Documents from {sel.clientName}
               </h4>
 
               {sel.isSearching && (
-                <div style={styles.mergeSourceLoading}>
+                <div class="flex items-center gap-2.5 p-4 text-[var(--gray-500)] text-[13px]">
                   <Loader2 size={18} class="mdf-spinning" />
                   <span>{t('review.searching')}</span>
                 </div>
               )}
 
               {!sel.isSearching && sel.documents.length > 0 && (
-                <div style={styles.mergeDocOptions}>
+                <div class="flex flex-col gap-2">
                   {sel.documents.map((doc) => {
                     const isSelected = sel.selectedDoc?.id === doc.id;
                     return (
                       <button
                         key={doc.id}
-                        style={{
-                          ...styles.mergeDocOption,
-                          ...(isSelected ? styles.mergeDocOptionSelected : {}),
-                        }}
+                        class={cn(
+                          'flex items-center gap-3 px-3.5 py-3 bg-[var(--white)] border border-[var(--gray-200)] rounded-xl text-left transition-all duration-200 cursor-pointer hover:bg-[var(--gray-50)]',
+                          isSelected && 'bg-sky-500/15 border-sky-500/40'
+                        )}
                         onClick={() => onSelectDocument(index, doc)}
                       >
                         <div
-                          style={{
-                            ...styles.mergeDocIcon,
-                            ...(doc.type === 'invoice'
-                              ? { background: 'rgba(16, 185, 129, 0.15)', color: 'var(--data-green)' }
+                          class={cn(
+                            'w-9 h-9 flex items-center justify-center rounded-[10px] shrink-0',
+                            doc.type === 'invoice'
+                              ? 'bg-emerald-500/15 text-[var(--data-green)]'
                               : doc.type === 'estimate'
-                                ? { background: 'rgba(168, 85, 247, 0.15)', color: '#a855f7' }
-                                : {}),
-                          }}
+                                ? 'bg-purple-500/15 text-purple-500'
+                                : 'bg-sky-500/15 text-sky-400'
+                          )}
                         >
                           {doc.type === 'invoice' ? <Receipt size={16} /> : <FileText size={16} />}
                         </div>
-                        <div style={styles.mergeDocInfo}>
-                          <span style={styles.mergeDocTitle}>{doc.title}</span>
-                          <span style={styles.mergeDocMeta}>{formatQueryDate(doc.date)}</span>
+                        <div class="flex-1 flex flex-col gap-0.5 min-w-0">
+                          <span class="text-[13px] font-medium text-[var(--gray-900)] overflow-hidden text-ellipsis whitespace-nowrap">
+                            {doc.title}
+                          </span>
+                          <span class="text-[11px] text-[var(--gray-500)]">
+                            {formatQueryDate(doc.date)}
+                          </span>
                         </div>
-                        <div style={styles.mergeDocAmount}>{formatQueryAmount(doc.amount)}</div>
-                        {isSelected && <Check size={16} style={{ color: '#38bdf8', flexShrink: '0' }} />}
+                        <div class="text-sm font-semibold text-[var(--data-green)]">
+                          {formatQueryAmount(doc.amount)}
+                        </div>
+                        {isSelected && <Check size={16} class="text-sky-400 shrink-0" />}
                       </button>
                     );
                   })}
@@ -122,7 +137,7 @@ export function MergeDocumentsFlow({
               )}
 
               {!sel.isSearching && sel.documents.length === 0 && (
-                <div style={styles.mergeNoDocs}>
+                <div class="flex items-center gap-2.5 p-4 text-[var(--gray-500)] text-[13px]">
                   <AlertCircle size={18} />
                   <span>{t('review.noDocsForClient', { client: sel.clientName })}</span>
                 </div>
@@ -130,14 +145,12 @@ export function MergeDocumentsFlow({
             </div>
           ))}
 
-          <div style={styles.mergeActions}>
+          <div class="flex gap-3 mt-6">
             <button
-              style={{
-                ...styles.btn,
-                ...styles.btnPrimary,
-                flex: '1',
-                ...(allMergeSourcesSelected ? {} : styles.btnDisabled),
-              }}
+              class={cn(
+                'flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border-none bg-gradient-to-br from-[#0066ff] to-[#0052cc] text-white shadow-[0_4px_12px_rgba(0,102,255,0.25)]',
+                !allMergeSourcesSelected && 'opacity-50 cursor-not-allowed'
+              )}
               disabled={!allMergeSourcesSelected}
               onClick={onConfirmMerge}
             >
@@ -145,7 +158,7 @@ export function MergeDocumentsFlow({
               Merge {selectedCount} Document{selectedCount !== 1 ? 's' : ''}
             </button>
             <button
-              style={{ ...styles.btn, ...styles.btnSecondary, flex: '1' }}
+              class="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 bg-[var(--gray-100)] text-[var(--gray-600)] border border-[var(--gray-200)] hover:bg-[var(--gray-200)]"
               onClick={() => navigateTo('/dashboard')}
             >
               Cancel
@@ -156,191 +169,3 @@ export function MergeDocumentsFlow({
     </>
   );
 }
-
-const keyframes = `
-@keyframes mdfSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.mdf-spinning { animation: mdfSpin 1s linear infinite; }
-`;
-
-const styles: Record<string, Record<string, string>> = {
-  content: {
-    flex: '1',
-    padding: 'var(--page-padding-x)',
-    maxWidth: 'var(--page-max-width)',
-    margin: '0 auto',
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--section-gap)',
-  },
-  summaryCard: {
-    background: 'rgba(14, 165, 233, 0.05)',
-    border: '1px solid rgba(14, 165, 233, 0.2)',
-    borderRadius: 'var(--radius-card)',
-    padding: 'var(--space-5)',
-  },
-  summaryHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-2)',
-    marginBottom: 'var(--space-2-5)',
-    color: '#38bdf8',
-    fontSize: 'var(--text-sm)',
-    fontWeight: 'var(--font-medium)',
-  },
-  summaryText: {
-    fontSize: 'var(--text-base)',
-    lineHeight: '1.5',
-    color: 'var(--gray-700)',
-    margin: '0',
-  },
-  selectionTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: 'var(--gray-900)',
-    margin: '0 0 6px',
-  },
-  selectionSubtitle: {
-    fontSize: '13px',
-    color: 'var(--gray-500)',
-    margin: '0 0 16px',
-  },
-  mergeSelection: {
-    marginTop: '20px',
-  },
-  mergeSourceSection: {
-    marginBottom: '24px',
-    padding: '16px',
-    background: 'transparent',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '14px',
-  },
-  mergeSourceTitle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    fontSize: '14px',
-    fontWeight: '600',
-    color: 'var(--gray-900)',
-    margin: '0 0 14px',
-  },
-  mergeSourceNumber: {
-    width: '24px',
-    height: '24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(14, 165, 233, 0.2)',
-    color: '#38bdf8',
-    borderRadius: '50%',
-    fontSize: '12px',
-    fontWeight: '700',
-  },
-  mergeSourceLoading: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '16px',
-    color: 'var(--gray-500)',
-    fontSize: '13px',
-  },
-  mergeDocOptions: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  mergeDocOption: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px 14px',
-    background: 'var(--white)',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '12px',
-    textAlign: 'left',
-    transition: 'all 0.2s ease',
-    cursor: 'pointer',
-  },
-  mergeDocOptionSelected: {
-    background: 'rgba(14, 165, 233, 0.15)',
-    borderColor: 'rgba(14, 165, 233, 0.4)',
-  },
-  mergeDocIcon: {
-    width: '36px',
-    height: '36px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(14, 165, 233, 0.15)',
-    borderRadius: '10px',
-    color: '#38bdf8',
-    flexShrink: '0',
-  },
-  mergeDocInfo: {
-    flex: '1',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-    minWidth: '0',
-  },
-  mergeDocTitle: {
-    fontSize: '13px',
-    fontWeight: '500',
-    color: 'var(--gray-900)',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  mergeDocMeta: {
-    fontSize: '11px',
-    color: 'var(--gray-500)',
-  },
-  mergeDocAmount: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: 'var(--data-green)',
-  },
-  mergeNoDocs: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '16px',
-    color: 'var(--gray-500)',
-    fontSize: '13px',
-  },
-  mergeActions: {
-    display: 'flex',
-    gap: '12px',
-    marginTop: '24px',
-  },
-  btn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    padding: '14px 20px',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    border: 'none',
-  },
-  btnPrimary: {
-    background: 'linear-gradient(135deg, #0066ff, #0052cc)',
-    color: 'white',
-    boxShadow: '0 4px 12px rgba(0, 102, 255, 0.25)',
-  },
-  btnSecondary: {
-    background: 'var(--gray-100)',
-    color: 'var(--gray-600)',
-    border: '1px solid var(--gray-200)',
-  },
-  btnDisabled: {
-    opacity: '0.5',
-    cursor: 'not-allowed',
-  },
-};

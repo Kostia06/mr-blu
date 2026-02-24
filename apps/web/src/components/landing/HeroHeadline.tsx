@@ -1,48 +1,6 @@
 import { useEffect, useRef, useMemo } from 'preact/hooks';
 import { useI18nStore } from '@/lib/i18n';
-
-const styles = {
-  container: {
-    textAlign: 'center' as const,
-    position: 'relative' as const,
-  },
-  headline: {
-    fontFamily: 'var(--font-display)',
-    fontSize: 'clamp(3rem, 10vw, 5.5rem)',
-    fontWeight: 700,
-    lineHeight: 1.05,
-    letterSpacing: '-0.04em',
-    color: 'var(--landing-text, #0A0A0A)',
-    margin: '0 0 24px 0',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-  },
-  word: {
-    display: 'block',
-    opacity: 0,
-    transform: 'translateY(20px)',
-  },
-  highlight: {
-    display: 'block',
-    background: 'linear-gradient(135deg, #0066ff 0%, #0ea5e9 50%, #6366f1 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    opacity: 0,
-    transform: 'translateY(20px)',
-  },
-  subheadline: {
-    fontFamily: 'var(--font-body)',
-    fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-    fontWeight: 400,
-    lineHeight: 1.6,
-    color: 'var(--landing-text-secondary, #6B7280)',
-    maxWidth: 440,
-    margin: '0 auto',
-    opacity: 0,
-  },
-};
+import { cn } from '@/lib/utils';
 
 export function HeroHeadline() {
   const { t } = useI18nStore();
@@ -101,19 +59,21 @@ export function HeroHeadline() {
   }, []);
 
   return (
-    <div style={styles.container} ref={containerRef}>
-      <h1 style={styles.headline}>
+    <div className="text-center relative" ref={containerRef}>
+      <h1 className="font-[var(--font-display)] text-[clamp(3rem,10vw,5.5rem)] font-bold leading-[1.05] -tracking-[0.04em] text-[var(--landing-text)] mb-6 flex flex-col items-center">
         {words.map((word) => (
           <span
             key={word.text}
-            className="hero-word"
-            style={word.highlight ? styles.highlight : styles.word}
+            className={cn(
+              "hero-word block opacity-0 translate-y-5",
+              word.highlight && "bg-gradient-to-br from-[#0066ff] via-[#0ea5e9] to-[#6366f1] bg-clip-text text-transparent"
+            )}
           >
             {word.text}
           </span>
         ))}
       </h1>
-      <p className="hero-sub" style={styles.subheadline}>
+      <p className="hero-sub font-[var(--font-body)] text-[clamp(1rem,2.5vw,1.25rem)] font-normal leading-[1.6] text-[var(--landing-text-secondary)] max-w-[440px] mx-auto opacity-0">
         {t('landing.hero.subheadline')}
       </p>
     </div>

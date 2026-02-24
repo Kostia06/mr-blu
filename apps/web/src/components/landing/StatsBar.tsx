@@ -7,37 +7,6 @@ interface Stat {
   suffix?: string;
 }
 
-const styles = {
-  bar: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 40,
-  },
-  statItem: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    textAlign: 'center' as const,
-  },
-  statValue: {
-    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-    fontSize: 'clamp(2rem, 5vw, 3rem)',
-    fontWeight: 700,
-    color: 'var(--landing-text, #0A0A0A)',
-    letterSpacing: '-0.02em',
-    lineHeight: 1,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontWeight: 500,
-    color: 'var(--landing-text-secondary, #6B7280)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.06em',
-    marginTop: 4,
-  },
-};
-
 export function StatsBar() {
   const { t } = useI18nStore();
   const barRef = useRef<HTMLDivElement>(null);
@@ -95,13 +64,15 @@ export function StatsBar() {
   }, [stats]);
 
   return (
-    <div style={styles.bar} ref={barRef} data-reveal>
+    <div className="flex items-center justify-center gap-10" ref={barRef} data-reveal>
       {stats.map((stat, i) => (
-        <div key={stat.label} style={styles.statItem}>
-          <span style={styles.statValue}>
+        <div key={stat.label} className="flex flex-col items-center text-center">
+          <span className="font-[var(--font-mono)] text-[clamp(2rem,5vw,3rem)] font-bold text-[var(--landing-text)] -tracking-[0.02em] leading-none">
             {displayValues[i]}{stat.suffix || ''}
           </span>
-          <span style={styles.statLabel}>{stat.label}</span>
+          <span className="text-xs font-medium text-[var(--landing-text-secondary)] uppercase tracking-[0.06em] mt-1">
+            {stat.label}
+          </span>
         </div>
       ))}
     </div>

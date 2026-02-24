@@ -6,6 +6,7 @@ import {
   Info,
   ChevronDown,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { navigateTo } from '@/lib/navigation';
 
 interface ErrorLog {
@@ -104,24 +105,29 @@ export function ErrorsPage({ errors, totalCount, page, limit, severity }: Errors
   );
 
   return (
-    <main class="admin-page">
-      <header class="page-header">
+    <main class="min-h-screen bg-transparent">
+      <header class="sticky top-0 z-[100] flex items-center gap-3 px-[var(--page-padding-x,20px)] pt-[calc(12px+var(--safe-area-top,0px))] pb-3 bg-transparent">
         <button
-          class="back-btn"
+          class="w-10 h-10 flex items-center justify-center bg-white/50 backdrop-blur-xl border-none rounded-[14px] text-slate-600 cursor-pointer transition-all hover:bg-white/70"
           onClick={() => navigateTo('/dashboard')}
           aria-label="Back to dashboard"
         >
           <ChevronLeft size={22} strokeWidth={2} />
         </button>
-        <h1 class="page-title">Error Logs</h1>
-        <div class="header-spacer" />
+        <h1 class="flex-1 text-xl font-bold text-slate-900 m-0">Error Logs</h1>
+        <div class="w-10" />
       </header>
 
-      <div class="page-content">
+      <div class="px-[var(--page-padding-x,20px)] max-w-[800px] mx-auto">
         {/* Filters */}
-        <div class="filters">
+        <div class="flex gap-2 flex-wrap mb-4">
           <button
-            class={`filter-btn ${!severity ? 'active' : ''}`}
+            class={cn(
+              'py-2 px-4 border-none rounded-full text-[13px] font-medium cursor-pointer transition-all capitalize',
+              !severity
+                ? 'bg-[var(--blu-primary,#0066ff)] text-white'
+                : 'bg-white/50 text-slate-600 hover:bg-white/70'
+            )}
             onClick={() => filterBySeverity(null)}
           >
             All
@@ -129,9 +135,14 @@ export function ErrorsPage({ errors, totalCount, page, limit, severity }: Errors
           {SEVERITIES.map((sev) => (
             <button
               key={sev}
-              class={`filter-btn ${severity === sev ? 'active' : ''}`}
+              class={cn(
+                'py-2 px-4 border-none rounded-full text-[13px] font-medium cursor-pointer transition-all capitalize',
+                severity === sev
+                  ? 'text-white'
+                  : 'bg-white/50 text-slate-600 hover:bg-white/70'
+              )}
               onClick={() => filterBySeverity(sev)}
-              style={{ '--severity-color': getSeverityColor(sev) } as any}
+              style={severity === sev ? { background: getSeverityColor(sev) } : undefined}
             >
               {sev}
             </button>
@@ -139,15 +150,17 @@ export function ErrorsPage({ errors, totalCount, page, limit, severity }: Errors
         </div>
 
         {/* Stats */}
-        <div class="stats">
-          <span class="stats-count">
+        <div class="flex items-center gap-3 mb-4 text-[13px] text-slate-500">
+          <span>
             {totalCount} error{totalCount !== 1 ? 's' : ''}
           </span>
-          {severity && <span class="stats-filter">Filtered by: {severity}</span>}
+          {severity && (
+            <span class="text-[var(--blu-primary,#0066ff)]">Filtered by: {severity}</span>
+          )}
         </div>
 
         {/* Error List */}
-        <div class="error-list">
+        <div class="flex flex-col gap-3">
           {errors.map((error) => {
             const Icon = getSeverityIcon(error.severity);
             const isExpanded = expandedErrors.has(error.id);
@@ -155,42 +168,47 @@ export function ErrorsPage({ errors, totalCount, page, limit, severity }: Errors
             return (
               <div
                 key={error.id}
-                class={`error-card ${isExpanded ? 'expanded' : ''}`}
+                class="bg-white/60 backdrop-blur-xl rounded-[20px] overflow-hidden"
               >
-                <button class="error-header" onClick={() => toggleError(error.id)}>
-                  <span class="error-icon" style={{ color: getSeverityColor(error.severity) }}>
+                <button
+                  class="flex items-start gap-3 w-full p-4 bg-transparent border-none text-left cursor-pointer"
+                  onClick={() => toggleError(error.id)}
+                >
+                  <span class="shrink-0 mt-0.5" style={{ color: getSeverityColor(error.severity) }}>
                     <Icon size={20} />
                   </span>
-                  <div class="error-info">
-                    <span class="error-type">{error.error_type}</span>
-                    <span class="error-message">{error.message}</span>
-                    <span class="error-meta">
+                  <div class="flex-1 min-w-0 flex flex-col gap-1">
+                    <span class="text-sm font-semibold text-slate-900">{error.error_type}</span>
+                    <span class="text-[13px] text-slate-600 truncate">{error.message}</span>
+                    <span class="text-xs text-slate-400">
                       {formatDate(error.created_at)} · {error.request_method || 'N/A'}{' '}
                       {error.request_path || ''}
                     </span>
                   </div>
-                  <span class={`expand-icon ${isExpanded ? 'rotated' : ''}`}>
+                  <span class={cn('shrink-0 text-slate-400 transition-transform duration-200', isExpanded && 'rotate-180')}>
                     <ChevronDown size={18} />
                   </span>
                 </button>
 
                 {isExpanded && (
-                  <div class="error-details">
+                  <div class="px-4 pb-4 border-t border-slate-100">
                     {error.stack && (
-                      <div class="detail-section">
-                        <h4>Stack Trace</h4>
-                        <pre class="stack-trace">{error.stack}</pre>
+                      <div class="mt-3">
+                        <h4 class="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Stack Trace</h4>
+                        <pre class="bg-slate-900 text-slate-100 p-3 rounded-[10px] text-[11px] font-mono overflow-x-auto whitespace-pre-wrap break-all max-h-[200px] m-0">
+                          {error.stack}
+                        </pre>
                       </div>
                     )}
-                    <div class="detail-section">
-                      <h4>Details</h4>
-                      <div class="detail-grid">
-                        <span class="detail-label">User ID:</span>
-                        <span class="detail-value">{error.user_id || 'N/A'}</span>
-                        <span class="detail-label">Status Code:</span>
-                        <span class="detail-value">{error.status_code || 'N/A'}</span>
-                        <span class="detail-label">Severity:</span>
-                        <span class="detail-value">{error.severity}</span>
+                    <div class="mt-3">
+                      <h4 class="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Details</h4>
+                      <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
+                        <span class="text-slate-500">User ID:</span>
+                        <span class="text-slate-900 font-mono">{error.user_id || 'N/A'}</span>
+                        <span class="text-slate-500">Status Code:</span>
+                        <span class="text-slate-900 font-mono">{error.status_code || 'N/A'}</span>
+                        <span class="text-slate-500">Severity:</span>
+                        <span class="text-slate-900 font-mono">{error.severity}</span>
                       </div>
                     </div>
                   </div>
@@ -200,7 +218,7 @@ export function ErrorsPage({ errors, totalCount, page, limit, severity }: Errors
           })}
 
           {errors.length === 0 && (
-            <div class="empty-state">
+            <div class="flex flex-col items-center gap-3 py-12 px-6 text-slate-400">
               <Info size={48} />
               <p>No errors found</p>
             </div>
@@ -209,274 +227,29 @@ export function ErrorsPage({ errors, totalCount, page, limit, severity }: Errors
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div class="pagination">
+          <div class="flex items-center justify-center gap-4 mt-6">
             {page > 1 && (
-              <button class="page-btn" onClick={() => goToPage(page - 1)}>
+              <button
+                class="py-2 px-4 bg-[var(--blu-primary,#0066ff)] border-none rounded-[10px] text-white text-[13px] font-medium cursor-pointer transition-all hover:opacity-90"
+                onClick={() => goToPage(page - 1)}
+              >
                 Previous
               </button>
             )}
-            <span class="page-info">
+            <span class="text-[13px] text-slate-500">
               Page {page} of {totalPages}
             </span>
             {page < totalPages && (
-              <button class="page-btn" onClick={() => goToPage(page + 1)}>
+              <button
+                class="py-2 px-4 bg-[var(--blu-primary,#0066ff)] border-none rounded-[10px] text-white text-[13px] font-medium cursor-pointer transition-all hover:opacity-90"
+                onClick={() => goToPage(page + 1)}
+              >
                 Next
               </button>
             )}
           </div>
         )}
       </div>
-
-      <style>{`
-        .admin-page {
-          min-height: 100vh;
-          background: transparent;
-        }
-
-        .page-header {
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px var(--page-padding-x, 20px);
-          padding-top: calc(12px + var(--safe-area-top, 0px));
-          background: transparent;
-        }
-
-        .back-btn {
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(255, 255, 255, 0.5);
-          backdrop-filter: blur(20px);
-          border: none;
-          border-radius: 14px;
-          color: var(--gray-600, #475569);
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .back-btn:hover {
-          background: rgba(255, 255, 255, 0.7);
-        }
-
-        .page-title {
-          flex: 1;
-          font-size: 20px;
-          font-weight: 700;
-          color: var(--gray-900, #0f172a);
-          margin: 0;
-        }
-
-        .header-spacer {
-          width: 40px;
-        }
-
-        .page-content {
-          padding: var(--page-padding-x, 20px);
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .filters {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 16px;
-        }
-
-        .filter-btn {
-          padding: 8px 16px;
-          background: rgba(255, 255, 255, 0.5);
-          border: none;
-          border-radius: 100px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--gray-600, #475569);
-          cursor: pointer;
-          transition: all 0.2s ease;
-          text-transform: capitalize;
-        }
-
-        .filter-btn:hover {
-          background: rgba(255, 255, 255, 0.7);
-        }
-
-        .filter-btn.active {
-          background: var(--severity-color, var(--blu-primary, #0066ff));
-          color: white;
-        }
-
-        .stats {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 16px;
-          font-size: 13px;
-          color: var(--gray-500, #64748b);
-        }
-
-        .stats-filter {
-          color: var(--blu-primary, #0066ff);
-        }
-
-        .error-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .error-card {
-          background: rgba(255, 255, 255, 0.6);
-          backdrop-filter: blur(20px);
-          border-radius: 20px;
-          overflow: hidden;
-        }
-
-        .error-header {
-          display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          width: 100%;
-          padding: 16px;
-          background: transparent;
-          border: none;
-          text-align: left;
-          cursor: pointer;
-        }
-
-        .error-icon {
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-
-        .error-info {
-          flex: 1;
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .error-type {
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--gray-900, #0f172a);
-        }
-
-        .error-message {
-          font-size: 13px;
-          color: var(--gray-600, #475569);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .error-meta {
-          font-size: 12px;
-          color: var(--gray-400, #94a3b8);
-        }
-
-        .expand-icon {
-          flex-shrink: 0;
-          color: var(--gray-400, #94a3b8);
-          transition: transform 0.2s ease;
-        }
-
-        .expand-icon.rotated {
-          transform: rotate(180deg);
-        }
-
-        .error-details {
-          padding: 0 16px 16px;
-          border-top: 1px solid var(--gray-100, #f1f5f9);
-        }
-
-        .detail-section {
-          margin-top: 12px;
-        }
-
-        .detail-section h4 {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--gray-500, #64748b);
-          margin: 0 0 8px;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .stack-trace {
-          background: var(--gray-900, #0f172a);
-          color: var(--gray-100, #f1f5f9);
-          padding: 12px;
-          border-radius: 10px;
-          font-size: 11px;
-          font-family: monospace;
-          overflow-x: auto;
-          white-space: pre-wrap;
-          word-break: break-all;
-          max-height: 200px;
-          margin: 0;
-        }
-
-        .detail-grid {
-          display: grid;
-          grid-template-columns: auto 1fr;
-          gap: 4px 12px;
-          font-size: 13px;
-        }
-
-        .detail-label {
-          color: var(--gray-500, #64748b);
-        }
-
-        .detail-value {
-          color: var(--gray-900, #0f172a);
-          font-family: monospace;
-        }
-
-        .empty-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          padding: 48px 24px;
-          color: var(--gray-400, #94a3b8);
-        }
-
-        .pagination {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 16px;
-          margin-top: 24px;
-        }
-
-        .page-btn {
-          padding: 8px 16px;
-          background: var(--blu-primary, #0066ff);
-          border: none;
-          border-radius: 10px;
-          color: white;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .page-btn:hover {
-          opacity: 0.9;
-        }
-
-        .page-info {
-          font-size: 13px;
-          color: var(--gray-500, #64748b);
-        }
-      `}</style>
     </main>
   );
 }

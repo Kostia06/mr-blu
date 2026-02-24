@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useI18nStore } from '@/lib/i18n';
 
 type SummaryVariant = 'default' | 'info-query' | 'clone-mode' | 'send-mode';
@@ -9,84 +10,57 @@ interface SummaryCardProps {
   label?: string;
 }
 
-const variantConfig: Record<SummaryVariant, { bg: string; border: string; accent: string; iconBg: string }> = {
+const variantClasses: Record<SummaryVariant, {
+  container: string;
+  icon: string;
+  accent: string;
+}> = {
   default: {
-    bg: 'rgba(245, 158, 11, 0.05)',
-    border: 'rgba(245, 158, 11, 0.15)',
-    accent: '#b45309',
-    iconBg: 'rgba(245, 158, 11, 0.12)',
+    container: 'bg-amber-500/5 border-amber-500/15',
+    icon: 'bg-amber-500/[0.12] text-amber-700',
+    accent: 'text-amber-700',
   },
   'info-query': {
-    bg: 'rgba(168, 85, 247, 0.05)',
-    border: 'rgba(168, 85, 247, 0.15)',
-    accent: '#7c3aed',
-    iconBg: 'rgba(168, 85, 247, 0.12)',
+    container: 'bg-purple-500/5 border-purple-500/15',
+    icon: 'bg-purple-500/[0.12] text-violet-600',
+    accent: 'text-violet-600',
   },
   'clone-mode': {
-    bg: 'rgba(59, 130, 246, 0.05)',
-    border: 'rgba(59, 130, 246, 0.15)',
-    accent: '#2563eb',
-    iconBg: 'rgba(59, 130, 246, 0.12)',
+    container: 'bg-blue-500/5 border-blue-500/15',
+    icon: 'bg-blue-500/[0.12] text-blue-600',
+    accent: 'text-blue-600',
   },
   'send-mode': {
-    bg: 'rgba(139, 92, 246, 0.05)',
-    border: 'rgba(139, 92, 246, 0.15)',
-    accent: '#7c3aed',
-    iconBg: 'rgba(139, 92, 246, 0.12)',
+    container: 'bg-violet-500/5 border-violet-500/15',
+    icon: 'bg-violet-500/[0.12] text-violet-600',
+    accent: 'text-violet-600',
   },
 };
 
 export function SummaryCard({ summary, variant = 'default', label }: SummaryCardProps) {
   const { t } = useI18nStore();
-  const config = variantConfig[variant];
+  const classes = variantClasses[variant];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '12px',
-        padding: '14px 16px',
-        background: config.bg,
-        border: `1px solid ${config.border}`,
-        borderRadius: '14px',
-      }}
-    >
+    <div class={cn('flex gap-3 px-4 py-3.5 border rounded-[14px]', classes.container)}>
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '32px',
-          height: '32px',
-          borderRadius: '10px',
-          background: config.iconBg,
-          color: config.accent,
-          flexShrink: '0',
-        }}
+        class={cn(
+          'flex items-center justify-center w-8 h-8 rounded-[10px] shrink-0',
+          classes.icon
+        )}
       >
         <Sparkles size={16} />
       </div>
-      <div style={{ flex: '1', minWidth: '0' }}>
+      <div class="flex-1 min-w-0">
         <div
-          style={{
-            fontSize: '12px',
-            fontWeight: '600',
-            color: config.accent,
-            letterSpacing: '0.02em',
-            textTransform: 'uppercase',
-            marginBottom: '4px',
-          }}
+          class={cn(
+            'text-xs font-semibold tracking-wide uppercase mb-1',
+            classes.accent
+          )}
         >
           {label || t('review.iUnderstood')}
         </div>
-        <p
-          style={{
-            fontSize: '14px',
-            lineHeight: '1.5',
-            color: 'var(--gray-700, #334155)',
-            margin: '0',
-          }}
-        >
+        <p class="text-sm leading-relaxed text-[var(--gray-700,#334155)] m-0">
           {summary || t('review.processingRequest')}
         </p>
       </div>

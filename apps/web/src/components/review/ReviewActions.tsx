@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
+import { cn } from '@/lib/utils';
 import type { LucideIcon } from '@/lib/types/lucide';
 import { useI18nStore } from '@/lib/i18n';
 import {
@@ -169,7 +170,7 @@ export function ReviewActions({
 
   function renderActionIcon(action: ActionStep, config: ActionConfig) {
     if (action.status === 'in_progress') {
-      return <Loader2 size={20} class="spinning" />;
+      return <Loader2 size={20} class="animate-spin" />;
     }
     if (action.status === 'completed') {
       return <Check size={20} />;
@@ -183,10 +184,13 @@ export function ReviewActions({
 
   function renderActionButtons(action: ActionStep, isEditing: boolean) {
     return (
-      <div class="action-buttons">
+      <div class="flex items-center gap-2">
         {onActionHasEditableData(action) && action.status === 'pending' && !isExecuting && (
           <button
-            class={`action-edit${isEditing ? ' active' : ''}`}
+            class={cn(
+              'w-10 h-10 flex items-center justify-center bg-[var(--gray-200)] border-none rounded-lg text-[var(--gray-500)] cursor-pointer transition-all duration-200 hover:bg-[var(--gray-300)] hover:text-[var(--gray-900)]',
+              isEditing && 'bg-sky-500/20 text-sky-400'
+            )}
             onClick={() => toggleActionEdit(action.id)}
             aria-label="Edit action"
           >
@@ -196,7 +200,7 @@ export function ReviewActions({
 
         {action.status === 'pending' && !isExecuting && (
           <button
-            class="action-play"
+            class="w-10 h-10 flex items-center justify-center bg-sky-500/15 rounded-[10px] text-sky-500 border-none cursor-pointer transition-all duration-200 hover:bg-sky-500/25 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={() => onExecuteAction(action)}
             disabled={hasValidationErrors}
             aria-label="Execute action"
@@ -208,14 +212,17 @@ export function ReviewActions({
         {action.status === 'failed' && !isExecuting && (
           <>
             <button
-              class={`action-edit${isEditing ? ' active' : ''}`}
+              class={cn(
+                'w-10 h-10 flex items-center justify-center bg-[var(--gray-200)] border-none rounded-lg text-[var(--gray-500)] cursor-pointer transition-all duration-200 hover:bg-[var(--gray-300)] hover:text-[var(--gray-900)]',
+                isEditing && 'bg-sky-500/20 text-sky-400'
+              )}
               onClick={() => toggleActionEdit(action.id)}
               aria-label="Edit and retry action"
             >
               <Pencil size={14} />
             </button>
             <button
-              class="action-retry"
+              class="w-10 h-10 flex items-center justify-center bg-red-500/15 border-none rounded-[10px] text-red-500 cursor-pointer transition-all duration-200 hover:bg-red-500/25 hover:scale-105"
               onClick={() => onRetryAction(action)}
               aria-label="Retry action"
             >
@@ -225,7 +232,7 @@ export function ReviewActions({
         )}
 
         {action.status === 'completed' && (
-          <div class="action-done">
+          <div class="w-10 h-10 flex items-center justify-center bg-emerald-500/15 rounded-[10px] text-emerald-400">
             <Check size={16} />
           </div>
         )}
@@ -237,18 +244,26 @@ export function ReviewActions({
     if (action.type === 'create_document') {
       return (
         <>
-          <div class="edit-form-field">
-            <span class="edit-form-label">{t('review.documentType')}</span>
-            <div class="doc-type-toggle">
+          <div class="mt-3">
+            <span class="block text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide mb-1.5">
+              {t('review.documentType')}
+            </span>
+            <div class="flex gap-2">
               <button
-                class={`doc-type-btn${data.documentType === 'invoice' ? ' active' : ''}`}
+                class={cn(
+                  'flex-1 flex items-center justify-center gap-2 p-3 bg-transparent border border-[var(--gray-200)] rounded-[10px] text-[var(--gray-500)] text-[13px] font-medium cursor-pointer transition-all duration-200 hover:bg-[var(--gray-100)] hover:text-[var(--gray-900)]',
+                  data.documentType === 'invoice' && 'bg-sky-500/15 border-sky-500/30 text-sky-400'
+                )}
                 onClick={() => handleDocumentTypeChange('invoice')}
               >
                 <Receipt size={16} />
                 Invoice
               </button>
               <button
-                class={`doc-type-btn${data.documentType === 'estimate' ? ' active' : ''}`}
+                class={cn(
+                  'flex-1 flex items-center justify-center gap-2 p-3 bg-transparent border border-[var(--gray-200)] rounded-[10px] text-[var(--gray-500)] text-[13px] font-medium cursor-pointer transition-all duration-200 hover:bg-[var(--gray-100)] hover:text-[var(--gray-900)]',
+                  data.documentType === 'estimate' && 'bg-sky-500/15 border-sky-500/30 text-sky-400'
+                )}
                 onClick={() => handleDocumentTypeChange('estimate')}
               >
                 <FileText size={16} />
@@ -257,9 +272,9 @@ export function ReviewActions({
             </div>
           </div>
 
-          <div class="edit-form-field-row">
-            <div class="edit-form-field half">
-              <label for={`action-client-firstname-${action.id}`}>
+          <div class="flex gap-3 mt-3">
+            <div class="flex-1 mt-0">
+              <label for={`action-client-firstname-${action.id}`} class="block text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide mb-1.5">
                 {t('profile.firstName')}
               </label>
               <input
@@ -270,10 +285,11 @@ export function ReviewActions({
                   handleClientFieldChange('firstName', (e.target as HTMLInputElement).value)
                 }
                 placeholder={t('placeholder.firstName')}
+                class="w-full px-3 py-2.5 bg-[var(--white)] border border-[var(--gray-200)] rounded-[10px] text-[var(--gray-900)] text-sm font-inherit transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.08)]"
               />
             </div>
-            <div class="edit-form-field half">
-              <label for={`action-client-lastname-${action.id}`}>
+            <div class="flex-1 mt-0">
+              <label for={`action-client-lastname-${action.id}`} class="block text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide mb-1.5">
                 {t('profile.lastName')}
               </label>
               <input
@@ -284,21 +300,30 @@ export function ReviewActions({
                   handleClientFieldChange('lastName', (e.target as HTMLInputElement).value)
                 }
                 placeholder={t('placeholder.lastName')}
+                class="w-full px-3 py-2.5 bg-[var(--white)] border border-[var(--gray-200)] rounded-[10px] text-[var(--gray-900)] text-sm font-inherit transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.08)]"
               />
             </div>
           </div>
 
-          <div class="edit-form-field">
-            <span class="edit-form-label">{t('review.totalAmountLabel')}</span>
-            <div class="amount-display">{formatCurrency(calculatedTotal)}</div>
-            <span class="field-hint">{t('review.totalAmountHint')}</span>
+          <div class="mt-3">
+            <span class="block text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide mb-1.5">
+              {t('review.totalAmountLabel')}
+            </span>
+            <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-lg font-bold text-center">
+              {formatCurrency(calculatedTotal)}
+            </div>
+            <span class="block mt-1.5 text-[11px] text-[var(--gray-500)]">
+              {t('review.totalAmountHint')}
+            </span>
           </div>
 
-          <div class="edit-form-field">
-            <span class="edit-form-label">{t('review.saveShareOptions')}</span>
-            <div class="save-options">
+          <div class="mt-3">
+            <span class="block text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide mb-1.5">
+              {t('review.saveShareOptions')}
+            </span>
+            <div class="flex flex-col gap-2.5">
               <button
-                class="save-option-btn"
+                class="flex-1 flex flex-col items-center gap-1 px-3 py-3.5 bg-transparent border border-[var(--gray-200)] rounded-xl text-[var(--gray-600)] text-[13px] font-medium cursor-pointer transition-all duration-200 hover:bg-[var(--gray-100)] hover:border-slate-300 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={async () => {
                   await onHandleDownloadPDF();
                   setEditingActionId(null);
@@ -307,10 +332,10 @@ export function ReviewActions({
               >
                 <Download size={16} />
                 <span>{t('review.download')}</span>
-                <span class="save-hint">{t('review.saveAsPdf')}</span>
+                <span class="text-[10px] font-normal text-[var(--gray-400)]">{t('review.saveAsPdf')}</span>
               </button>
               <button
-                class="save-option-btn view-link"
+                class="flex-1 flex flex-col items-center gap-1 px-3 py-3.5 bg-transparent border border-[var(--gray-200)] rounded-xl text-[var(--gray-600)] text-[13px] font-medium cursor-pointer transition-all duration-200 hover:bg-[var(--gray-100)] hover:border-slate-300 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={onOpenViewLinkModal}
                 disabled={hasValidationErrors || copyLinkStatus === 'loading'}
               >
@@ -320,10 +345,10 @@ export function ReviewActions({
                   <Eye size={16} />
                 )}
                 <span>{t('review.viewLink')}</span>
-                <span class="save-hint">{t('review.getShareableLink')}</span>
+                <span class="text-[10px] font-normal text-[var(--gray-400)]">{t('review.getShareableLink')}</span>
               </button>
               <button
-                class="save-option-btn primary"
+                class="flex-1 flex flex-col items-center gap-1 px-3 py-3.5 bg-sky-500/15 border border-sky-500/30 rounded-xl text-sky-400 text-[13px] font-medium cursor-pointer transition-all duration-200 hover:bg-sky-500/25 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={async () => {
                   await onSaveDocument(action.id);
                   setEditingActionId(null);
@@ -332,7 +357,7 @@ export function ReviewActions({
               >
                 <Database size={16} />
                 <span>{t('review.save')}</span>
-                <span class="save-hint">{t('review.storeInDatabase')}</span>
+                <span class="text-[10px] font-normal text-sky-400/60">{t('review.storeInDatabase')}</span>
               </button>
             </div>
           </div>
@@ -343,8 +368,10 @@ export function ReviewActions({
     if (action.type === 'send_email') {
       return (
         <>
-          <div class="edit-form-field">
-            <label for={`action-email-${action.id}`}>{t('review.recipientEmail')}</label>
+          <div class="mt-3">
+            <label for={`action-email-${action.id}`} class="block text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide mb-1.5">
+              {t('review.recipientEmail')}
+            </label>
             <input
               id={`action-email-${action.id}`}
               type="email"
@@ -353,18 +380,21 @@ export function ReviewActions({
                 onUpdateActionRecipient(action, (e.target as HTMLInputElement).value)
               }
               placeholder={t('placeholder.email')}
+              class="w-full px-3 py-2.5 bg-[var(--white)] border border-[var(--gray-200)] rounded-[10px] text-[var(--gray-900)] text-sm font-inherit transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.08)]"
             />
             {data.client.email && action.details.recipient !== data.client.email && (
               <button
-                class="use-client-btn"
+                class="mt-2 px-2.5 py-1.5 bg-sky-500/10 border-none rounded-md text-sky-400 text-[11px] cursor-pointer transition-all duration-200 hover:bg-sky-500/20"
                 onClick={() => onUpdateActionRecipient(action, data.client.email || '')}
               >
                 Use client email ({data.client.email})
               </button>
             )}
           </div>
-          <div class="edit-form-field">
-            <label for={`action-email-msg-${action.id}`}>{t('review.customMessage')}</label>
+          <div class="mt-3">
+            <label for={`action-email-msg-${action.id}`} class="block text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide mb-1.5">
+              {t('review.customMessage')}
+            </label>
             <input
               id={`action-email-msg-${action.id}`}
               type="text"
@@ -373,6 +403,7 @@ export function ReviewActions({
                 handleActionMessageChange(action.id, (e.target as HTMLInputElement).value)
               }
               placeholder={t('placeholder.addNote')}
+              class="w-full px-3 py-2.5 bg-[var(--white)] border border-[var(--gray-200)] rounded-[10px] text-[var(--gray-900)] text-sm font-inherit transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.08)]"
             />
           </div>
         </>
@@ -383,747 +414,176 @@ export function ReviewActions({
   }
 
   return (
-    <>
-      <style>{componentStyles}</style>
-      <div class="actions-section">
-        <h3 class="section-title">{t('review.actions')}</h3>
+    <div class="bg-gradient-to-br from-emerald-500/[0.06] to-emerald-600/[0.04] p-4 rounded-[var(--radius-card)]">
+      <h3 class="text-sm font-semibold text-[var(--gray-500)] uppercase tracking-wider m-0 mb-3">
+        {t('review.actions')}
+      </h3>
 
-        {/* Profile Completeness Warning */}
-        {showProfileWarning && profileMissingFields.length > 0 && (
-          <div class="profile-warning" ref={warningRef}>
-            <div class="warning-content">
-              <AlertTriangle size={20} />
-              <div class="warning-text">
-                <p class="warning-title">{t('review.completeProfile')}</p>
-                <ul class="missing-fields">
-                  {profileMissingFields.map((field) => (
-                    <li key={field}>{field}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div class="warning-actions">
-              <button class="warning-btn secondary" onClick={handleSendAnywayClick}>
-                {t('review.sendAnyway')}
-              </button>
-              <button class="warning-btn primary" onClick={handleGoToProfileClick}>
-                {t('review.goToProfile')}
-              </button>
+      {/* Profile Completeness Warning */}
+      {showProfileWarning && profileMissingFields.length > 0 && (
+        <div class="bg-gradient-to-br from-amber-100 to-amber-200 border border-amber-500 rounded-xl p-4 mb-4" ref={warningRef}>
+          <div class="flex gap-3 text-amber-900">
+            <AlertTriangle size={20} />
+            <div class="flex-1">
+              <p class="font-semibold m-0 mb-2 text-sm">{t('review.completeProfile')}</p>
+              <ul class="m-0 pl-5 text-[13px] text-amber-700">
+                {profileMissingFields.map((field) => (
+                  <li key={field} class="my-0.5">{field}</li>
+                ))}
+              </ul>
             </div>
           </div>
-        )}
-
-        <div class="action-list">
-          {sortedActions.map((action, index) => {
-            const config = actionConfig[action.type] || DEFAULT_CONFIG;
-            const isEditing = editingActionId === action.id;
-
-            return (
-              <div
-                key={action.id}
-                class={`action-card${action.status === 'completed' ? ' completed' : ''}${action.status === 'in_progress' ? ' in-progress' : ''}${action.status === 'failed' ? ' failed' : ''}`}
-              >
-                <div class="action-main">
-                  <div class="action-number">{index + 1}</div>
-
-                  <div
-                    class="action-icon"
-                    style={{ '--action-color': config.color } as Record<string, string>}
-                  >
-                    {renderActionIcon(action, config)}
-                  </div>
-
-                  <div class="action-content">
-                    <span class="action-label">{t(config.labelKey)}</span>
-                    <span class="action-desc">{onGetActionDescription(action)}</span>
-                    {action.status === 'failed' && action.error && (
-                      <span class="action-error">{action.error}</span>
-                    )}
-                  </div>
-
-                  {renderActionButtons(action, isEditing)}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Action edit modal */}
-        {(() => {
-          const editAction = editingActionId
-            ? sortedActions.find((a) => a.id === editingActionId)
-            : undefined;
-          if (!editAction) return null;
-          const editConfig = actionConfig[editAction.type] || DEFAULT_CONFIG;
-          return (
-            <ReviewModal
-              open={true}
-              title={t(editConfig.labelKey)}
-              onClose={() => setEditingActionId(null)}
+          <div class="flex gap-2 mt-3 pl-8">
+            <button
+              class="px-4 py-3 rounded-[10px] text-sm font-semibold cursor-pointer transition-all duration-150 active:scale-[0.97] bg-transparent border border-amber-600 text-amber-900 hover:bg-amber-600/10"
+              onClick={handleSendAnywayClick}
             >
-              <div class="action-edit-form">
-                {renderEditForm(editAction)}
-                <button
-                  class="done-edit-btn"
-                  onClick={() => setEditingActionId(null)}
-                >
-                  <Check size={14} />
-                  {t('common.done')}
-                </button>
-              </div>
-            </ReviewModal>
-          );
-        })()}
+              {t('review.sendAnyway')}
+            </button>
+            <button
+              class="px-4 py-3 rounded-[10px] text-sm font-semibold cursor-pointer transition-all duration-150 active:scale-[0.97] bg-amber-500 border-none text-white hover:bg-amber-600"
+              onClick={handleGoToProfileClick}
+            >
+              {t('review.goToProfile')}
+            </button>
+          </div>
+        </div>
+      )}
 
-        {!showActionTypePicker ? (
-          <button
-            class="add-action-btn"
-            onClick={() => setShowActionTypePicker(true)}
+      <div class="flex flex-col gap-2.5">
+        {sortedActions.map((action, index) => {
+          const config = actionConfig[action.type] || DEFAULT_CONFIG;
+          const isEditing = editingActionId === action.id;
+
+          return (
+            <div
+              key={action.id}
+              class={cn(
+                'flex flex-col bg-[var(--white,#fff)] border border-[var(--gray-200)] rounded-[14px] transition-all duration-200 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]',
+                action.status !== 'completed' && action.status !== 'in_progress' && action.status !== 'failed' && 'hover:border-[var(--gray-300,#cbd5e1)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
+                action.status === 'completed' && 'bg-emerald-500/[0.08] border-emerald-500/20',
+                action.status === 'in_progress' && 'bg-sky-500/[0.08] border-sky-500/30',
+                action.status === 'failed' && 'bg-red-500/[0.08] border-red-500/20'
+              )}
+            >
+              <div class="flex items-center gap-3 px-4 py-3.5">
+                <div
+                  class={cn(
+                    'w-6 h-6 flex items-center justify-center bg-[var(--gray-200)] rounded-lg text-xs font-bold text-[var(--gray-500)]',
+                    action.status === 'completed' && 'bg-emerald-500/20 text-emerald-400'
+                  )}
+                >
+                  {index + 1}
+                </div>
+
+                <div
+                  class={cn(
+                    'w-10 h-10 flex items-center justify-center rounded-xl',
+                    action.status === 'completed'
+                      ? 'bg-emerald-500/15 text-emerald-400'
+                      : ''
+                  )}
+                  style={action.status !== 'completed' ? {
+                    '--action-color': config.color,
+                    background: `color-mix(in srgb, ${config.color} 15%, transparent)`,
+                    color: config.color,
+                  } as Record<string, string> : undefined}
+                >
+                  {renderActionIcon(action, config)}
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <span class="block text-sm font-semibold text-[var(--gray-900)]">
+                    {t(config.labelKey)}
+                  </span>
+                  <span class="block text-xs text-[var(--gray-500)] overflow-hidden text-ellipsis whitespace-nowrap">
+                    {onGetActionDescription(action)}
+                  </span>
+                  {action.status === 'failed' && action.error && (
+                    <span class="block text-[11px] text-red-500 mt-0.5">{action.error}</span>
+                  )}
+                </div>
+
+                {renderActionButtons(action, isEditing)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Action edit modal */}
+      {(() => {
+        const editAction = editingActionId
+          ? sortedActions.find((a) => a.id === editingActionId)
+          : undefined;
+        if (!editAction) return null;
+        const editConfig = actionConfig[editAction.type] || DEFAULT_CONFIG;
+        return (
+          <ReviewModal
+            open={true}
+            title={t(editConfig.labelKey)}
+            onClose={() => setEditingActionId(null)}
           >
-            <Plus size={16} />
-            {t('review.addAction')}
-          </button>
-        ) : (
-          <div class="action-type-picker">
-            <div class="picker-header">
-              <span class="picker-title">{t('review.chooseActionType')}</span>
+            <div class="flex flex-col pt-1">
+              {renderEditForm(editAction)}
               <button
-                class="picker-close"
-                onClick={() => setShowActionTypePicker(false)}
+                class="flex items-center justify-center gap-1.5 w-full mt-4 p-3 bg-[var(--blu-primary,#0066ff)] border-none rounded-xl text-white text-sm font-semibold cursor-pointer transition-all duration-150 shadow-[0_2px_8px_rgba(0,102,255,0.25)] hover:bg-[#0055dd] hover:shadow-[0_4px_12px_rgba(0,102,255,0.3)] active:scale-[0.98]"
+                onClick={() => setEditingActionId(null)}
               >
-                <X size={16} />
+                <Check size={14} />
+                {t('common.done')}
               </button>
             </div>
-            <div class="picker-options">
-              {Object.entries(actionConfig).map(([type, config]) => {
-                const IconComponent = config.icon;
-                return (
-                  <button
-                    key={type}
-                    class="picker-option"
-                    onClick={() => onAddAction(type as ActionStep['type'])}
-                  >
-                    <div
-                      class="picker-icon"
-                      style={{
-                        color: config.color,
-                        background: `${config.color}1a`,
-                      }}
-                    >
-                      <IconComponent size={18} />
-                    </div>
-                    <span>{t(config.labelKey)}</span>
-                  </button>
-                );
-              })}
-            </div>
+          </ReviewModal>
+        );
+      })()}
+
+      {!showActionTypePicker ? (
+        <button
+          class="flex items-center justify-center gap-2 w-full p-3 mt-3 border-2 border-dashed border-emerald-500/40 rounded-[10px] bg-transparent text-emerald-500 text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-emerald-500/[0.08] hover:border-emerald-500 active:scale-[0.98] active:bg-emerald-500/[0.12]"
+          onClick={() => setShowActionTypePicker(true)}
+        >
+          <Plus size={16} />
+          {t('review.addAction')}
+        </button>
+      ) : (
+        <div class="mt-3 bg-white border border-[var(--gray-200)] rounded-[14px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[13px] font-semibold text-[var(--gray-500)] uppercase tracking-wider">
+              {t('review.chooseActionType')}
+            </span>
+            <button
+              class="bg-transparent border-none text-[var(--gray-400)] cursor-pointer p-1 rounded-md hover:bg-[var(--gray-100)] hover:text-[var(--gray-600)]"
+              onClick={() => setShowActionTypePicker(false)}
+            >
+              <X size={16} />
+            </button>
           </div>
-        )}
-      </div>
-    </>
+          <div class="flex flex-col gap-1.5">
+            {Object.entries(actionConfig).map(([type, config]) => {
+              const IconComponent = config.icon;
+              return (
+                <button
+                  key={type}
+                  class="flex items-center gap-3 px-4 py-3.5 border border-[#eee] rounded-[10px] bg-white cursor-pointer text-sm font-medium text-[var(--gray-700)] transition-all duration-150 hover:bg-[var(--gray-50)] hover:border-[var(--gray-300)]"
+                  onClick={() => onAddAction(type as ActionStep['type'])}
+                >
+                  <div
+                    class="flex items-center justify-center w-[34px] h-[34px] rounded-lg shrink-0"
+                    style={{
+                      color: config.color,
+                      background: `${config.color}1a`,
+                    }}
+                  >
+                    <IconComponent size={18} />
+                  </div>
+                  <span>{t(config.labelKey)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
-
-const componentStyles = `
-  .actions-section {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(5, 150, 105, 0.04));
-    padding: 16px;
-    border-radius: var(--radius-card);
-  }
-
-  .section-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: 0 0 12px;
-  }
-
-  .profile-warning {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border: 1px solid #f59e0b;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-
-  .warning-content {
-    display: flex;
-    gap: 12px;
-    color: #92400e;
-  }
-
-  .warning-text {
-    flex: 1;
-  }
-
-  .warning-title {
-    font-weight: 600;
-    margin: 0 0 8px;
-    font-size: 14px;
-  }
-
-  .missing-fields {
-    margin: 0;
-    padding-left: 20px;
-    font-size: 13px;
-    color: #b45309;
-  }
-
-  .missing-fields li {
-    margin: 2px 0;
-  }
-
-  .warning-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    padding-left: 32px;
-  }
-
-  .warning-btn {
-    padding: 12px 16px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .warning-btn:active {
-    transform: scale(0.97);
-  }
-
-  .warning-btn.secondary {
-    background: transparent;
-    border: 1px solid #d97706;
-    color: #92400e;
-  }
-
-  .warning-btn.secondary:hover {
-    background: rgba(217, 119, 6, 0.1);
-  }
-
-  .warning-btn.primary {
-    background: #f59e0b;
-    border: none;
-    color: white;
-  }
-
-  .warning-btn.primary:hover {
-    background: #d97706;
-  }
-
-  .action-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .action-card {
-    display: flex;
-    flex-direction: column;
-    background: var(--white, #fff);
-    border: 1px solid var(--gray-200);
-    border-radius: 14px;
-    transition: all 0.2s ease;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  }
-
-  .action-card:hover:not(.completed):not(.in-progress):not(.failed) {
-    border-color: var(--gray-300, #cbd5e1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  }
-
-  .action-main {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-  }
-
-  .action-card.completed {
-    background: rgba(16, 185, 129, 0.08);
-    border-color: rgba(16, 185, 129, 0.2);
-  }
-
-  .action-card.in-progress {
-    background: rgba(14, 165, 233, 0.08);
-    border-color: rgba(14, 165, 233, 0.3);
-  }
-
-  .action-card.failed {
-    background: rgba(239, 68, 68, 0.08);
-    border-color: rgba(239, 68, 68, 0.2);
-  }
-
-  .action-number {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--gray-200);
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--gray-500);
-  }
-
-  .action-card.completed .action-number {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
-  }
-
-  .action-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--action-color) 15%, transparent);
-    border-radius: 12px;
-    color: var(--action-color);
-  }
-
-  .action-card.completed .action-icon {
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-  }
-
-  .action-content {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .action-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--gray-900);
-  }
-
-  .action-desc {
-    display: block;
-    font-size: 12px;
-    color: var(--gray-500);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .action-play {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(14, 165, 233, 0.15);
-    border-radius: 10px;
-    color: #0ea5e9;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .action-play:hover:not(:disabled) {
-    background: rgba(14, 165, 233, 0.25);
-    transform: scale(1.05);
-  }
-
-  .action-play:active:not(:disabled) {
-    transform: scale(0.95);
-  }
-
-  .action-play:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .action-done {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(16, 185, 129, 0.15);
-    border-radius: 10px;
-    color: #34d399;
-  }
-
-  .action-buttons {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .action-edit {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--gray-200);
-    border: none;
-    border-radius: 8px;
-    color: var(--gray-500);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .action-edit:hover {
-    background: var(--gray-300);
-    color: var(--gray-900);
-  }
-
-  .action-edit.active {
-    background: rgba(14, 165, 233, 0.2);
-    color: #38bdf8;
-  }
-
-  .action-edit-form {
-    display: flex;
-    flex-direction: column;
-    padding: 4px 0 0;
-  }
-
-  .edit-form-field-row {
-    display: flex;
-    gap: 12px;
-    margin-top: 12px;
-  }
-
-  .edit-form-field-row .edit-form-field.half {
-    flex: 1;
-    margin-top: 0;
-  }
-
-  .edit-form-field {
-    margin-top: 12px;
-  }
-
-  .edit-form-field label,
-  .edit-form-field .edit-form-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-bottom: 6px;
-  }
-
-  .edit-form-field input {
-    width: 100%;
-    padding: 10px 12px;
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 10px;
-    color: var(--gray-900);
-    font-size: 14px;
-    font-family: inherit;
-    transition: all 0.2s ease;
-  }
-
-  .edit-form-field input:focus {
-    outline: none;
-    border-color: var(--blu-primary, #0066ff);
-    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
-  }
-
-  .use-client-btn {
-    margin-top: 8px;
-    padding: 6px 10px;
-    background: rgba(14, 165, 233, 0.1);
-    border: none;
-    border-radius: 6px;
-    color: #38bdf8;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .use-client-btn:hover {
-    background: rgba(14, 165, 233, 0.2);
-  }
-
-  .done-edit-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    margin-top: 16px;
-    padding: 12px;
-    background: var(--blu-primary, #0066ff);
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.25);
-  }
-
-  .done-edit-btn:hover {
-    background: #0055dd;
-    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
-  }
-
-  .done-edit-btn:active {
-    transform: scale(0.98);
-  }
-
-  .doc-type-toggle {
-    display: flex;
-    gap: 8px;
-  }
-
-  .doc-type-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    background: transparent;
-    border: 1px solid var(--gray-200);
-    border-radius: 10px;
-    color: var(--gray-500);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .doc-type-btn.active {
-    background: rgba(14, 165, 233, 0.15);
-    border-color: rgba(14, 165, 233, 0.3);
-    color: #38bdf8;
-  }
-
-  .doc-type-btn:hover:not(.active) {
-    background: var(--gray-100);
-    color: var(--gray-900);
-  }
-
-  .amount-display {
-    padding: 12px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: 8px;
-    color: #34d399;
-    font-size: 18px;
-    font-weight: 700;
-    text-align: center;
-  }
-
-  .field-hint {
-    display: block;
-    margin-top: 6px;
-    font-size: 11px;
-    color: var(--gray-500);
-  }
-
-  .save-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .save-option-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 14px 12px;
-    background: transparent;
-    border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    color: var(--gray-600);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .save-option-btn:hover:not(:disabled) {
-    background: var(--gray-100);
-    border-color: #cbd5e1;
-  }
-
-  .save-option-btn:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-
-  .save-option-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .save-option-btn.primary {
-    background: rgba(14, 165, 233, 0.15);
-    border-color: rgba(14, 165, 233, 0.3);
-    color: #38bdf8;
-  }
-
-  .save-option-btn.primary:hover:not(:disabled) {
-    background: rgba(14, 165, 233, 0.25);
-  }
-
-  .save-hint {
-    font-size: 10px;
-    font-weight: 400;
-    color: var(--gray-400);
-  }
-
-  .save-option-btn.primary .save-hint {
-    color: rgba(56, 189, 248, 0.6);
-  }
-
-  .add-action-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 12px;
-    margin-top: 12px;
-    border: 2px dashed rgba(16, 185, 129, 0.4);
-    border-radius: 10px;
-    background: transparent;
-    color: #10b981;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .add-action-btn:hover {
-    background: rgba(16, 185, 129, 0.08);
-    border-color: #10b981;
-  }
-
-  .add-action-btn:active {
-    transform: scale(0.98);
-    background: rgba(16, 185, 129, 0.12);
-  }
-
-  .action-type-picker {
-    margin-top: 12px;
-    background: white;
-    border: 1px solid var(--gray-200);
-    border-radius: 14px;
-    padding: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
-
-  .picker-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-
-  .picker-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .picker-close {
-    background: none;
-    border: none;
-    color: var(--gray-400);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-  }
-
-  .picker-close:hover {
-    background: var(--gray-100);
-    color: var(--gray-600);
-  }
-
-  .picker-options {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .picker-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border: 1px solid var(--gray-150, #eee);
-    border-radius: 10px;
-    background: white;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--gray-700);
-    transition: all 0.15s ease;
-  }
-
-  .picker-option:hover {
-    background: var(--gray-50);
-    border-color: var(--gray-300);
-  }
-
-  .picker-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    flex-shrink: 0;
-  }
-
-  .action-retry {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(239, 68, 68, 0.15);
-    border: none;
-    border-radius: 10px;
-    color: #ef4444;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .action-retry:hover {
-    background: rgba(239, 68, 68, 0.25);
-    transform: scale(1.05);
-  }
-
-  .action-error {
-    display: block;
-    font-size: 11px;
-    color: #ef4444;
-    margin-top: 2px;
-  }
-
-  .spinning {
-    animation: spin 1s linear infinite;
-  }
-
-  .animate-spin {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;

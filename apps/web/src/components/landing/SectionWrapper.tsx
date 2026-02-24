@@ -1,4 +1,5 @@
 import type { ComponentChildren } from 'preact';
+import { cn } from '@/lib/utils';
 
 interface SectionWrapperProps {
   id?: string;
@@ -13,25 +14,16 @@ export function SectionWrapper({
   scene = false,
   children,
 }: SectionWrapperProps) {
-  const style: Record<string, string | number> = {
-    width: '100%',
-    padding: scene ? '0 24px' : '100px 24px',
-    background: '#FFFFFF',
-  };
-
-  const innerStyle: Record<string, string | number> = {
-    width: '100%',
-    maxWidth: 1280,
-    margin: '0 auto',
-  };
-
   return (
     <section
       id={id}
-      className={`${scene ? 'landing-scene' : ''} ${className}`.trim()}
-      style={style}
+      className={cn(
+        "w-full px-6 bg-white",
+        scene ? "landing-scene" : "py-[100px]",
+        className
+      )}
     >
-      <div style={innerStyle}>{children}</div>
+      <div className="w-full max-w-7xl mx-auto">{children}</div>
     </section>
   );
 }

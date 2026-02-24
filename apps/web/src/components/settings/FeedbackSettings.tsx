@@ -2,132 +2,12 @@ import { useState, useMemo, useCallback } from 'preact/hooks';
 import { Send, CheckCircle } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader';
+import { cn } from '@/lib/utils';
 
 type Category = 'bug' | 'feature' | 'general' | 'praise';
 
 const MAX_CHARS = 2000;
 const CATEGORIES: Category[] = ['bug', 'feature', 'general', 'praise'];
-
-const styles = {
-  page: {
-    minHeight: '100vh',
-    background: 'transparent',
-  },
-  content: {
-    padding: 'var(--page-padding-x, 20px)',
-    maxWidth: 'var(--page-max-width, 600px)',
-    margin: '0 auto',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    justifyContent: 'center',
-    gap: 'var(--section-gap, 24px)',
-    minHeight: 'calc(100vh - 80px)',
-    paddingBottom: 100,
-  },
-  categorySelector: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    gap: 8,
-  },
-  categoryPill: {
-    padding: '8px 18px',
-    background: 'var(--glass-white-50, rgba(255, 255, 255, 0.5))',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    border: '1px solid var(--glass-white-30, rgba(255, 255, 255, 0.3))',
-    borderRadius: 100,
-    fontSize: 14,
-    fontWeight: 500,
-    color: 'var(--gray-600, #475569)',
-    cursor: 'pointer',
-    transition: 'all var(--duration-fast, 150ms) ease',
-  },
-  categoryPillSelected: {
-    background: 'var(--blu-primary, #0066ff)',
-    borderColor: 'var(--blu-primary, #0066ff)',
-    color: 'white',
-  },
-  textareaWrapper: {
-    position: 'relative' as const,
-  },
-  textarea: {
-    width: '100%',
-    minHeight: 160,
-    padding: 16,
-    background: 'var(--glass-white-50, rgba(255, 255, 255, 0.5))',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid var(--glass-white-30, rgba(255, 255, 255, 0.3))',
-    borderRadius: 'var(--radius-input, 12px)',
-    fontFamily: 'inherit',
-    fontSize: 15,
-    lineHeight: 1.6,
-    color: 'var(--gray-900, #0f172a)',
-    resize: 'vertical' as const,
-    transition: 'border-color var(--duration-fast, 150ms) ease',
-    boxSizing: 'border-box' as const,
-  },
-  textareaOverLimit: {
-    borderColor: 'var(--red-500, #ef4444)',
-  },
-  charCount: {
-    position: 'absolute' as const,
-    bottom: 12,
-    right: 14,
-    fontSize: 12,
-    color: 'var(--gray-400, #94a3b8)',
-    pointerEvents: 'none' as const,
-  },
-  charCountOverLimit: {
-    color: 'var(--red-500, #ef4444)',
-  },
-  submitBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    width: '100%',
-    padding: '14px 24px',
-    background: 'var(--blu-primary, #0066ff)',
-    border: 'none',
-    borderRadius: 'var(--radius-button, 14px)',
-    fontSize: 15,
-    fontWeight: 600,
-    color: 'white',
-    cursor: 'pointer',
-    transition: 'all var(--duration-fast, 150ms) ease',
-  },
-  submitBtnDisabled: {
-    opacity: 0.5,
-    cursor: 'not-allowed',
-  },
-  successState: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '64px 24px',
-    textAlign: 'center' as const,
-  },
-  successIcon: {
-    width: 88,
-    height: 88,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(0, 102, 255, 0.08)',
-    borderRadius: '50%',
-    color: 'var(--blu-primary, #0066ff)',
-    marginBottom: 20,
-  },
-  successText: {
-    fontSize: 16,
-    fontWeight: 500,
-    color: 'var(--gray-600, #475569)',
-    margin: 0,
-    lineHeight: 1.5,
-  },
-};
 
 export function FeedbackSettings() {
   const { t } = useI18nStore();
@@ -172,14 +52,16 @@ export function FeedbackSettings() {
 
   if (isSubmitted) {
     return (
-      <main style={styles.page}>
+      <main className="min-h-screen bg-transparent">
         {renderHeader()}
-        <div style={styles.content}>
-          <div style={styles.successState}>
-            <div style={styles.successIcon}>
+        <div className="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col justify-center gap-[var(--section-gap,24px)] min-h-[calc(100vh-80px)] pb-[100px]">
+          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+            <div className="w-[88px] h-[88px] flex items-center justify-center bg-[rgba(0,102,255,0.08)] rounded-full text-[var(--blu-primary,#0066ff)] mb-5">
               <CheckCircle size={48} strokeWidth={1.5} />
             </div>
-            <p style={styles.successText}>{t('feedback.thanks')}</p>
+            <p className="text-base font-medium text-[var(--gray-600,#475569)] m-0 leading-[1.5]">
+              {t('feedback.thanks')}
+            </p>
           </div>
         </div>
       </main>
@@ -187,18 +69,18 @@ export function FeedbackSettings() {
   }
 
   return (
-    <main style={styles.page}>
+    <main className="min-h-screen bg-transparent">
       {renderHeader()}
 
-      <div style={styles.content}>
-        <div style={styles.categorySelector}>
+      <div className="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col justify-center gap-[var(--section-gap,24px)] min-h-[calc(100vh-80px)] pb-[100px]">
+        <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
-              style={{
-                ...styles.categoryPill,
-                ...(category === cat ? styles.categoryPillSelected : {}),
-              }}
+              className={cn(
+                'px-[18px] py-2 bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[8px] border border-[var(--glass-white-30,rgba(255,255,255,0.3))] rounded-full text-sm font-medium text-[var(--gray-600,#475569)] cursor-pointer transition-all duration-150',
+                category === cat && 'bg-[var(--blu-primary,#0066ff)] border-[var(--blu-primary,#0066ff)] text-white'
+              )}
               onClick={() => setCategory(cat)}
               aria-pressed={category === cat}
             >
@@ -207,31 +89,33 @@ export function FeedbackSettings() {
           ))}
         </div>
 
-        <div style={styles.textareaWrapper}>
+        <div className="relative">
           <textarea
-            style={{
-              ...styles.textarea,
-              ...(isOverLimit ? styles.textareaOverLimit : {}),
-            }}
+            className={cn(
+              'w-full min-h-[160px] p-4 bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[12px] border border-[var(--glass-white-30,rgba(255,255,255,0.3))] rounded-[var(--radius-input,12px)] font-[inherit] text-[15px] leading-[1.6] text-[var(--gray-900,#0f172a)] resize-y transition-[border-color] duration-150 box-border',
+              isOverLimit && 'border-[var(--red-500,#ef4444)]'
+            )}
             value={comment}
             onInput={(e) => setComment((e.target as HTMLTextAreaElement).value)}
             placeholder={t('feedback.placeholder')}
             rows={6}
             maxLength={MAX_CHARS}
           />
-          <div style={{
-            ...styles.charCount,
-            ...(isOverLimit ? styles.charCountOverLimit : {}),
-          }}>
+          <div
+            className={cn(
+              'absolute bottom-3 right-3.5 text-xs text-[var(--gray-400,#94a3b8)] pointer-events-none',
+              isOverLimit && 'text-[var(--red-500,#ef4444)]'
+            )}
+          >
             {charCount}/{MAX_CHARS}
           </div>
         </div>
 
         <button
-          style={{
-            ...styles.submitBtn,
-            ...(!canSubmit ? styles.submitBtnDisabled : {}),
-          }}
+          className={cn(
+            'flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-[var(--blu-primary,#0066ff)] border-none rounded-[var(--radius-button,14px)] text-[15px] font-semibold text-white cursor-pointer transition-all duration-150',
+            !canSubmit && 'opacity-50 cursor-not-allowed'
+          )}
           onClick={handleSubmit}
           disabled={!canSubmit}
         >

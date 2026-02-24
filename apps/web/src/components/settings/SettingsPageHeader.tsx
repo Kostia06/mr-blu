@@ -16,59 +16,18 @@ export function SettingsPageHeader({
   right,
 }: SettingsPageHeaderProps) {
   return (
-    <header style={headerStyles.root}>
+    <header className="sticky top-0 z-[var(--z-sticky,40)] flex items-center justify-between px-[var(--page-padding-x,20px)] py-[var(--space-3,12px)] pt-[calc(var(--space-3,12px)+var(--safe-area-top,0px))] bg-transparent max-w-[var(--page-max-width,600px)] mx-auto w-full">
       <button
-        style={headerStyles.backBtn}
+        className="w-[var(--btn-height-md,40px)] h-[var(--btn-height-md,40px)] flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[12px] border-none rounded-[var(--radius-button,14px)] text-[var(--gray-600,#475569)] cursor-pointer"
         onClick={() => navigateTo(backHref)}
         aria-label={backLabel}
       >
         <ChevronLeft size={22} strokeWidth={2} />
       </button>
-      <h1 style={headerStyles.title}>{title}</h1>
-      {right ?? <div style={headerStyles.spacer} />}
+      <h1 className="font-[var(--font-display,system-ui)] text-lg font-bold text-[var(--gray-900,#0f172a)] m-0 tracking-[-0.02em]">
+        {title}
+      </h1>
+      {right ?? <div className="w-10" />}
     </header>
   );
 }
-
-const headerStyles: Record<string, Record<string, string | number>> = {
-  root: {
-    position: 'sticky',
-    top: 0,
-    zIndex: 'var(--z-sticky, 40)' as unknown as number,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 'var(--space-3, 12px) var(--page-padding-x, 20px)',
-    paddingTop: 'calc(var(--space-3, 12px) + var(--safe-area-top, 0px))',
-    background: 'transparent',
-    maxWidth: 'var(--page-max-width, 600px)',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    width: '100%',
-  },
-  backBtn: {
-    width: 'var(--btn-height-md, 40px)',
-    height: 'var(--btn-height-md, 40px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'var(--glass-white-50, rgba(255,255,255,0.5))',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: 'none',
-    borderRadius: 'var(--radius-button, 14px)',
-    color: 'var(--gray-600, #475569)',
-    cursor: 'pointer',
-  },
-  title: {
-    fontFamily: 'var(--font-display, system-ui)',
-    fontSize: 18,
-    fontWeight: 700,
-    color: 'var(--gray-900, #0f172a)',
-    margin: 0,
-    letterSpacing: '-0.02em',
-  },
-  spacer: {
-    width: 40,
-  },
-};

@@ -1,7 +1,7 @@
-import { CheckCircle, XCircle, Info, X } from 'lucide-react';
-import { useToastStore } from '@/stores/toastStore';
+import { CheckCircle, XCircle, Info, X } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 
-type ToastType = 'success' | 'error' | 'info';
+type ToastType = 'success' | 'error' | 'info'
 
 const TOAST_CONFIG: Record<ToastType, { Icon: typeof CheckCircle; accent: string; bg: string }> = {
   success: {
@@ -19,112 +19,49 @@ const TOAST_CONFIG: Record<ToastType, { Icon: typeof CheckCircle; accent: string
     accent: '#0066ff',
     bg: 'rgba(0, 102, 255, 0.08)',
   },
-};
+}
 
 export function Toaster() {
-  const { toasts, dismiss } = useToastStore();
+  const { toasts, dismiss } = useToastStore()
 
-  if (toasts.length === 0) return null;
+  if (toasts.length === 0) return null
 
   return (
     <>
-      <div class="toaster-container">
+      <div class="fixed top-[calc(16px+env(safe-area-inset-top,0px))] left-1/2 -translate-x-1/2 z-[900] w-[calc(100%-32px)] max-w-[380px] flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => {
-          const { Icon, accent, bg } = TOAST_CONFIG[toast.type];
+          const { Icon, accent, bg } = TOAST_CONFIG[toast.type]
 
           return (
-            <div key={toast.id} class="toast-item" role="alert" style={{ '--toast-accent': accent, '--toast-bg': bg } as any}>
-              <div class="toast-icon">
+            <div
+              key={toast.id}
+              class="pointer-events-auto flex items-center gap-2.5 px-3 py-2.5 bg-white/82 backdrop-blur-[20px] backdrop-saturate-[180%] border border-white/60 rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.5)] animate-[toast-enter_0.35s_cubic-bezier(0.16,1,0.3,1)_forwards] motion-reduce:animate-none"
+              role="alert"
+              style={{ '--toast-accent': accent, '--toast-bg': bg } as any}
+            >
+              <div
+                class="shrink-0 w-[30px] h-[30px] flex items-center justify-center rounded-[9px]"
+                style={{ background: bg, color: accent }}
+              >
                 <Icon size={18} strokeWidth={2} />
               </div>
-              <span class="toast-message">{toast.message}</span>
+              <span class="flex-1 text-[13.5px] font-medium leading-[1.35] text-[#1a1a2e] tracking-[-0.01em]">
+                {toast.message}
+              </span>
               <button
                 type="button"
-                class="toast-dismiss"
+                class="shrink-0 w-[26px] h-[26px] flex items-center justify-center rounded-lg border-none bg-transparent text-slate-400 cursor-pointer p-0 transition-[background,color] duration-150 ease-out hover:bg-black/5 hover:text-slate-600"
                 onClick={() => dismiss(toast.id)}
                 aria-label="Dismiss"
               >
                 <X size={14} strokeWidth={2} />
               </button>
             </div>
-          );
+          )
         })}
       </div>
 
       <style>{`
-        .toaster-container {
-          position: fixed;
-          top: calc(16px + env(safe-area-inset-top, 0px));
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 900;
-          width: calc(100% - 32px);
-          max-width: 380px;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          pointer-events: none;
-        }
-
-        .toast-item {
-          pointer-events: auto;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 12px;
-          background: rgba(255, 255, 255, 0.82);
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border: 1px solid rgba(255, 255, 255, 0.6);
-          border-radius: 14px;
-          box-shadow:
-            0 4px 20px rgba(0, 0, 0, 0.08),
-            inset 0 1px 0 rgba(255, 255, 255, 0.5);
-          animation: toast-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .toast-icon {
-          flex-shrink: 0;
-          width: 30px;
-          height: 30px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 9px;
-          background: var(--toast-bg);
-          color: var(--toast-accent);
-        }
-
-        .toast-message {
-          flex: 1;
-          font-size: 13.5px;
-          font-weight: 500;
-          line-height: 1.35;
-          color: #1a1a2e;
-          letter-spacing: -0.01em;
-        }
-
-        .toast-dismiss {
-          flex-shrink: 0;
-          width: 26px;
-          height: 26px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 8px;
-          border: none;
-          background: transparent;
-          color: #94a3b8;
-          cursor: pointer;
-          padding: 0;
-          transition: background 0.15s ease, color 0.15s ease;
-        }
-
-        .toast-dismiss:hover {
-          background: rgba(0, 0, 0, 0.05);
-          color: #475569;
-        }
-
         @keyframes toast-enter {
           from {
             opacity: 0;
@@ -135,11 +72,7 @@ export function Toaster() {
             transform: translateY(0) scale(1);
           }
         }
-
-        @media (prefers-reduced-motion: reduce) {
-          .toast-item { animation: none; }
-        }
       `}</style>
     </>
-  );
+  )
 }

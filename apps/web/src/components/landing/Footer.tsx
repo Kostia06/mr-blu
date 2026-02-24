@@ -1,114 +1,48 @@
 import { useI18nStore } from '@/lib/i18n';
-
-const styles = {
-  footer: {
-    borderTop: '1px solid #F3F4F6',
-    padding: '32px 24px',
-    background: '#FFFFFF',
-  },
-  container: {
-    maxWidth: 1280,
-    margin: '0 auto',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap' as const,
-    gap: 16,
-  },
-  links: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 20,
-  },
-  link: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    textDecoration: 'none',
-    transition: 'color 0.2s ease',
-  },
-  copyright: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    margin: 0,
-  },
-  langToggle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  langButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: 12,
-    fontWeight: 500,
-    cursor: 'pointer',
-    padding: '4px 8px',
-    borderRadius: 4,
-    transition: 'color 0.2s ease, background 0.2s ease',
-  },
-};
+import { cn } from '@/lib/utils';
 
 export function Footer() {
   const { locale, setLocale, t } = useI18nStore();
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer style={styles.footer}>
-      <div style={styles.container}>
-        <div style={styles.links}>
-          <a
-            href="/terms"
-            style={styles.link}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#0A0A0A'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = '#9CA3AF'; }}
-          >
+    <footer className="border-t border-gray-100 py-8 px-6 bg-white">
+      <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-5">
+          <a href="/terms" className="text-xs text-gray-400 no-underline hover:text-[#0A0A0A] transition-colors duration-200">
             {t('landing.footer.terms')}
           </a>
-          <a
-            href="/privacy"
-            style={styles.link}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#0A0A0A'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = '#9CA3AF'; }}
-          >
+          <a href="/privacy" className="text-xs text-gray-400 no-underline hover:text-[#0A0A0A] transition-colors duration-200">
             {t('landing.footer.privacy')}
           </a>
-          <a
-            href="mailto:soporte@mrblu.com"
-            style={styles.link}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#0A0A0A'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = '#9CA3AF'; }}
-          >
+          <a href="mailto:soporte@mrblu.com" className="text-xs text-gray-400 no-underline hover:text-[#0A0A0A] transition-colors duration-200">
             {t('landing.footer.contact')}
           </a>
         </div>
 
-        <div style={styles.langToggle}>
+        <div className="flex items-center gap-2 text-xs text-gray-400">
           <button
-            style={{
-              ...styles.langButton,
-              color: locale === 'en' ? '#0A0A0A' : '#9CA3AF',
-              fontWeight: locale === 'en' ? 600 : 400,
-            }}
+            className={cn(
+              "bg-transparent border-none text-xs cursor-pointer py-1 px-2 rounded transition-colors duration-200",
+              locale === 'en' ? "text-[#0A0A0A] font-semibold" : "text-gray-400 font-medium"
+            )}
             onClick={() => setLocale('en')}
           >
             EN
           </button>
-          <span style={{ color: '#D1D5DB' }}>|</span>
+          <span className="text-gray-300">|</span>
           <button
-            style={{
-              ...styles.langButton,
-              color: locale === 'es' ? '#0A0A0A' : '#9CA3AF',
-              fontWeight: locale === 'es' ? 600 : 400,
-            }}
+            className={cn(
+              "bg-transparent border-none text-xs cursor-pointer py-1 px-2 rounded transition-colors duration-200",
+              locale === 'es' ? "text-[#0A0A0A] font-semibold" : "text-gray-400 font-medium"
+            )}
             onClick={() => setLocale('es')}
           >
             ES
           </button>
         </div>
 
-        <p style={styles.copyright}>
+        <p className="text-xs text-gray-400">
           &copy; {currentYear} mrblu. {t('landing.footer.copyright')}
         </p>
       </div>

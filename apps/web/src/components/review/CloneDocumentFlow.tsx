@@ -1,4 +1,5 @@
 import { Sparkles, FileText, Receipt, AlertCircle, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useI18nStore } from '@/lib/i18n';
 import type { SourceDocument } from '@/lib/review/review-types';
 import { navigateTo } from '@/lib/navigation';
@@ -43,17 +44,14 @@ function formatQueryDate(dateString: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function getSuggestionMatchStyle(
-  similarity: number,
-  t: (key: string) => string
-): { label: string; style: Record<string, string> } {
+function getSuggestionMatchClasses(similarity: number): { label: string; classes: string } {
   if (similarity >= 0.7) {
-    return { label: t('review.highMatch'), style: { background: 'rgba(16, 185, 129, 0.2)', color: 'var(--data-green)' } };
+    return { label: 'review.highMatch', classes: 'bg-emerald-500/20 text-[var(--data-green)]' };
   }
   if (similarity >= 0.5) {
-    return { label: t('review.goodMatch'), style: { background: 'rgba(14, 165, 233, 0.2)', color: '#38bdf8' } };
+    return { label: 'review.goodMatch', classes: 'bg-sky-500/20 text-sky-400' };
   }
-  return { label: t('review.possibleMatch'), style: { background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' } };
+  return { label: 'review.possibleMatch', classes: 'bg-amber-500/20 text-amber-300' };
 }
 
 export function CloneDocumentFlow({
@@ -68,53 +66,65 @@ export function CloneDocumentFlow({
 
   return (
     <>
-      <style>{keyframes}</style>
-      <div style={styles.content}>
-        <div style={styles.summaryCard}>
-          <div style={styles.summaryHeader}>
-            <Sparkles size={16} style={{ flexShrink: '0' }} />
+      <style>{`@keyframes cdfSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .cdf-spinning { animation: cdfSpin 1s linear infinite; color: var(--blu-primary, #0066ff); }`}</style>
+      <div class="flex-1 px-[var(--page-padding-x)] max-w-[var(--page-max-width)] mx-auto w-full flex flex-col gap-[var(--section-gap)]">
+        <div class="bg-purple-500/5 border border-purple-500/20 rounded-[var(--radius-card)] p-[var(--space-5)]">
+          <div class="flex items-center gap-[var(--space-2)] mb-[var(--space-2-5)] text-purple-500 text-[var(--text-sm)] font-[var(--font-medium)]">
+            <Sparkles size={16} class="shrink-0" />
             <span>{t('review.cloningDocument')}</span>
           </div>
-          <p style={styles.summaryText}>{cloneData?.summary || 'Finding document to clone...'}</p>
+          <p class="text-[var(--text-base)] leading-relaxed text-[var(--gray-700)] m-0">
+            {cloneData?.summary || 'Finding document to clone...'}
+          </p>
         </div>
 
         {isSearching && (
-          <div style={styles.queryLoading}>
+          <div class="flex flex-col items-center justify-center gap-4 py-[60px] px-[var(--page-padding-x,20px)] text-[var(--gray-500)]">
             <Loader2 size={24} class="cdf-spinning" />
-            <span style={{ fontSize: '14px' }}>{t('review.searchingFor', { client: cloneData?.sourceClient })}</span>
+            <span class="text-sm">{t('review.searchingFor', { client: cloneData?.sourceClient })}</span>
           </div>
         )}
 
         {!isSearching && sourceDocuments.length > 0 && (
-          <div style={styles.docSelection}>
-            <h3 style={styles.selectionTitle}>{t('review.selectDocumentToClone')}</h3>
-            <p style={styles.selectionSubtitle}>
+          <div class="mt-5">
+            <h3 class="text-base font-semibold text-[var(--gray-900)] m-0 mb-1.5">
+              {t('review.selectDocumentToClone')}
+            </h3>
+            <p class="text-[13px] text-[var(--gray-500)] m-0 mb-4">
               {t('review.foundDocuments', {
                 n: sourceDocuments.length,
                 client: cloneData?.sourceClient,
               })}
             </p>
 
-            <div style={styles.sourceDocList}>
+            <div class="flex flex-col gap-2.5">
               {sourceDocuments.map((doc) => (
-                <button key={doc.id} style={styles.sourceDocCard} onClick={() => onSelectDocument(doc)}>
+                <button
+                  key={doc.id}
+                  class="flex items-center gap-3.5 px-4 py-3.5 bg-transparent border border-[var(--gray-200)] rounded-[14px] text-left transition-all duration-200 cursor-pointer hover:bg-[var(--gray-50)] hover:border-[var(--gray-300)]"
+                  onClick={() => onSelectDocument(doc)}
+                >
                   <div
-                    style={{
-                      ...styles.sourceDocIcon,
-                      ...(doc.type === 'invoice'
-                        ? { background: 'rgba(16, 185, 129, 0.15)', color: 'var(--data-green)' }
-                        : { background: 'rgba(168, 85, 247, 0.15)', color: '#a855f7' }),
-                    }}
+                    class={cn(
+                      'w-11 h-11 flex items-center justify-center rounded-xl shrink-0',
+                      doc.type === 'invoice'
+                        ? 'bg-emerald-500/15 text-[var(--data-green)]'
+                        : 'bg-purple-500/15 text-purple-500'
+                    )}
                   >
                     {doc.type === 'invoice' ? <Receipt size={20} /> : <FileText size={20} />}
                   </div>
-                  <div style={styles.sourceDocInfo}>
-                    <span style={styles.sourceDocTitle}>{doc.title}</span>
-                    <span style={styles.sourceDocMeta}>
+                  <div class="flex-1 flex flex-col gap-0.5 min-w-0">
+                    <span class="text-sm font-medium text-[var(--gray-900)] overflow-hidden text-ellipsis whitespace-nowrap">
+                      {doc.title}
+                    </span>
+                    <span class="text-xs text-[var(--gray-500)]">
                       {doc.client} &bull; {formatQueryDate(doc.date)}
                     </span>
                   </div>
-                  <div style={styles.sourceDocAmount}>{formatQueryAmount(doc.amount)}</div>
+                  <div class="text-[15px] font-semibold text-[var(--data-green)]">
+                    {formatQueryAmount(doc.amount)}
+                  </div>
                 </button>
               ))}
             </div>
@@ -122,26 +132,30 @@ export function CloneDocumentFlow({
         )}
 
         {!isSearching && sourceDocuments.length === 0 && (
-          <div style={styles.noDocsFound}>
+          <div class="flex flex-col items-center py-10 px-5 text-center text-[var(--gray-500)]">
             <AlertCircle size={32} />
-            <p style={{ margin: '12px 0 20px', fontSize: '14px' }}>
+            <p class="my-3 mb-5 text-sm">
               {t('review.noDocumentsFor', { client: cloneData?.sourceClient })}
             </p>
 
             {clientSuggestions.length > 0 ? (
-              <div style={styles.cloneSuggestions}>
-                <p style={styles.cloneSuggestionsLabel}>{t('review.speechMisheard')}</p>
-                <div style={styles.cloneSuggestionsList}>
+              <div class="mt-4 w-full max-w-[320px]">
+                <p class="text-[13px] text-[var(--gray-500)] mb-3 text-center">
+                  {t('review.speechMisheard')}
+                </p>
+                <div class="flex flex-col gap-2">
                   {clientSuggestions.map((suggestion, index) => {
-                    const match = getSuggestionMatchStyle(suggestion.similarity, t);
+                    const match = getSuggestionMatchClasses(suggestion.similarity);
                     return (
                       <button
                         key={index}
-                        style={styles.cloneSuggestionBtn}
+                        class="flex items-center justify-between px-4 py-3 bg-transparent border border-[var(--gray-200)] rounded-xl text-[var(--gray-900)] text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-[var(--gray-50)] hover:border-[var(--gray-300)]"
                         onClick={() => onSelectClient(suggestion.name)}
                       >
-                        <span style={styles.suggestName}>{suggestion.name}</span>
-                        <span style={{ ...styles.suggestMatch, ...match.style }}>{match.label}</span>
+                        <span class="flex-1 text-left">{suggestion.name}</span>
+                        <span class={cn('text-[10px] font-semibold px-2 py-0.5 rounded-md uppercase', match.classes)}>
+                          {t(match.label)}
+                        </span>
                       </button>
                     );
                   })}
@@ -149,7 +163,7 @@ export function CloneDocumentFlow({
               </div>
             ) : (
               <button
-                style={{ ...styles.btn, ...styles.btnSecondary }}
+                class="flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border-none bg-[var(--gray-100)] text-[var(--gray-600)] border border-[var(--gray-200)] hover:bg-[var(--gray-200)]"
                 onClick={() => navigateTo('/dashboard')}
               >
                 Back to Dashboard
@@ -161,186 +175,3 @@ export function CloneDocumentFlow({
     </>
   );
 }
-
-const keyframes = `
-@keyframes cdfSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.cdf-spinning { animation: cdfSpin 1s linear infinite; color: var(--blu-primary, #0066ff); }
-`;
-
-const styles: Record<string, Record<string, string>> = {
-  content: {
-    flex: '1',
-    padding: 'var(--page-padding-x)',
-    maxWidth: 'var(--page-max-width)',
-    margin: '0 auto',
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--section-gap)',
-  },
-  summaryCard: {
-    borderColor: 'rgba(168, 85, 247, 0.2)',
-    background: 'rgba(168, 85, 247, 0.05)',
-    borderRadius: 'var(--radius-card)',
-    padding: 'var(--space-5)',
-    border: '1px solid rgba(168, 85, 247, 0.2)',
-  },
-  summaryHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-2)',
-    marginBottom: 'var(--space-2-5)',
-    color: '#a855f7',
-    fontSize: 'var(--text-sm)',
-    fontWeight: 'var(--font-medium)',
-  },
-  summaryText: {
-    fontSize: 'var(--text-base)',
-    lineHeight: '1.5',
-    color: 'var(--gray-700)',
-    margin: '0',
-  },
-  queryLoading: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '16px',
-    padding: '60px var(--page-padding-x, 20px)',
-    color: 'var(--gray-500)',
-  },
-  docSelection: {
-    marginTop: '20px',
-  },
-  selectionTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: 'var(--gray-900)',
-    margin: '0 0 6px',
-  },
-  selectionSubtitle: {
-    fontSize: '13px',
-    color: 'var(--gray-500)',
-    margin: '0 0 16px',
-  },
-  sourceDocList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  sourceDocCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '14px',
-    padding: '14px 16px',
-    background: 'transparent',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '14px',
-    textAlign: 'left',
-    transition: 'all 0.2s ease',
-    cursor: 'pointer',
-  },
-  sourceDocIcon: {
-    width: '44px',
-    height: '44px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '12px',
-    flexShrink: '0',
-  },
-  sourceDocInfo: {
-    flex: '1',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-    minWidth: '0',
-  },
-  sourceDocTitle: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: 'var(--gray-900)',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  sourceDocMeta: {
-    fontSize: '12px',
-    color: 'var(--gray-500)',
-  },
-  sourceDocAmount: {
-    fontSize: '15px',
-    fontWeight: '600',
-    color: 'var(--data-green)',
-  },
-  noDocsFound: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '40px 20px',
-    textAlign: 'center',
-    color: 'var(--gray-500)',
-  },
-  cloneSuggestions: {
-    marginTop: '16px',
-    width: '100%',
-    maxWidth: '320px',
-  },
-  cloneSuggestionsLabel: {
-    fontSize: '13px',
-    color: 'var(--gray-500)',
-    marginBottom: '12px',
-    textAlign: 'center',
-  },
-  cloneSuggestionsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  cloneSuggestionBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '12px 16px',
-    background: 'transparent',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '12px',
-    color: 'var(--gray-900)',
-    fontSize: '14px',
-    fontWeight: '500',
-    transition: 'all 0.2s ease',
-    cursor: 'pointer',
-  },
-  suggestName: {
-    flex: '1',
-    textAlign: 'left',
-  },
-  suggestMatch: {
-    fontSize: '10px',
-    fontWeight: '600',
-    padding: '3px 8px',
-    borderRadius: '6px',
-    textTransform: 'uppercase',
-  },
-  btn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    padding: '14px 20px',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    border: 'none',
-  },
-  btnSecondary: {
-    background: 'var(--gray-100)',
-    color: 'var(--gray-600)',
-    border: '1px solid var(--gray-200)',
-  },
-};

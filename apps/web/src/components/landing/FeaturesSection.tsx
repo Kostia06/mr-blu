@@ -4,43 +4,6 @@ import { FeatureCard } from './FeatureCard';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useI18nStore } from '@/lib/i18n';
 
-const styles = {
-  section: {
-    width: '100%',
-    padding: '80px 24px',
-    background: '#FFFFFF',
-  },
-  container: {
-    width: '100%',
-    maxWidth: 480,
-    margin: '0 auto',
-  },
-  header: {
-    textAlign: 'center' as const,
-    marginBottom: 40,
-  },
-  title: {
-    fontFamily: 'var(--font-display)',
-    fontSize: 'clamp(1.5rem, 5vw, 2rem)',
-    fontWeight: 700,
-    color: 'var(--landing-text, #0A0A0A)',
-    margin: '0 0 12px 0',
-    letterSpacing: '-0.02em',
-  },
-  description: {
-    fontSize: 15,
-    color: 'var(--landing-text-secondary, #6B7280)',
-    maxWidth: 400,
-    margin: '0 auto',
-    lineHeight: 1.6,
-  },
-  grid: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: 16,
-  },
-};
-
 export function FeaturesSection() {
   const { t } = useI18nStore();
   const containerRef = useScrollReveal<HTMLDivElement>({ stagger: 0.08 });
@@ -56,14 +19,18 @@ export function FeaturesSection() {
   );
 
   return (
-    <section id="features" style={styles.section}>
-      <div style={styles.container} ref={containerRef}>
-        <div style={styles.header} data-reveal>
-          <h2 style={styles.title}>{t('landing.features.title')}</h2>
-          <p style={styles.description}>{t('landing.features.description')}</p>
+    <section id="features" className="w-full py-20 px-6 bg-white">
+      <div className="w-full max-w-[480px] mx-auto" ref={containerRef}>
+        <div className="text-center mb-10" data-reveal>
+          <h2 className="font-[var(--font-display)] text-[clamp(1.5rem,5vw,2rem)] font-bold text-[var(--landing-text)] mb-3 -tracking-[0.02em]">
+            {t('landing.features.title')}
+          </h2>
+          <p className="text-[15px] text-[var(--landing-text-secondary)] max-w-[400px] mx-auto leading-[1.6]">
+            {t('landing.features.description')}
+          </p>
         </div>
 
-        <div style={styles.grid}>
+        <div className="flex flex-col gap-4">
           {features.map((feature) => (
             <FeatureCard key={feature.title} {...feature} />
           ))}

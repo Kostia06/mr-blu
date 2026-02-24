@@ -7,11 +7,11 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div style={{ position: 'relative', height: '100dvh', overflow: 'hidden' }}>
+    <div class="relative h-dvh overflow-hidden">
       {/* Background decoration */}
       <div
         aria-hidden="true"
-        style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}
+        class="fixed inset-0 z-0 pointer-events-none overflow-hidden"
       >
         <div class="bg-blob bg-blob-1" />
         <div class="bg-blob bg-blob-2" />
@@ -19,7 +19,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div class="bg-blob bg-blob-4" />
       </div>
 
-      <main style={{ position: 'relative', zIndex: 1, height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <main class="relative z-[1] h-full overflow-y-auto [-webkit-overflow-scrolling:touch]">
         {children}
       </main>
 

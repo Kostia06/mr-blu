@@ -8,6 +8,7 @@ import {
 	Loader2,
 	BookOpen,
 	DollarSign,
+	Plus,
 } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader';
@@ -15,6 +16,7 @@ import {
 	listPricing,
 	deletePricing,
 	updatePricing,
+	addPricing,
 } from '@/lib/api/pricing';
 
 interface PricingEntry {
@@ -61,6 +63,11 @@ export function PriceBook() {
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editRate, setEditRate] = useState('');
 	const [deletingId, setDeletingId] = useState<string | null>(null);
+	const [showAddForm, setShowAddForm] = useState(false);
+	const [addName, setAddName] = useState('');
+	const [addUnit, setAddUnit] = useState('unit');
+	const [addRate, setAddRate] = useState('');
+	const [adding, setAdding] = useState(false);
 
 	const fetchEntries = useCallback(async () => {
 		setLoading(true);
@@ -123,79 +130,172 @@ export function PriceBook() {
 		}
 	}
 
+	async function handleAdd() {
+		const rate = parseFloat(addRate);
+		if (!addName.trim() || isNaN(rate) || rate <= 0) return;
+
+		setAdding(true);
+		try {
+			const entry = await addPricing({
+				name: addName.trim(),
+				unit: addUnit,
+				unitPrice: rate,
+			});
+			if (entry) {
+				setEntries((prev) => [entry, ...prev]);
+				setAddName('');
+				setAddUnit('unit');
+				setAddRate('');
+				setShowAddForm(false);
+			}
+		} catch {
+			// silently fail
+		} finally {
+			setAdding(false);
+		}
+	}
+
 	return (
-		<main style={styles.page}>
+		<main className="min-h-screen bg-transparent">
 			<SettingsPageHeader
 				title={t('settings.priceBook') || 'Price Book'}
 				backLabel="Back to settings"
 			/>
 
-			<div style={styles.content}>
+			<div className="px-5 pb-[100px] max-w-[600px] w-full mx-auto">
 				{/* Search */}
-				<div style={styles.searchWrap}>
-					<Search size={16} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
+				<div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-[14px] mb-4">
+					<Search size={16} className="text-[var(--gray-400,#94a3b8)] shrink-0" />
 					<input
 						type="text"
 						value={search}
 						onInput={(e) => setSearch((e.target as HTMLInputElement).value)}
 						placeholder={t('settings.priceBookSearch') || 'Search materials...'}
-						style={styles.searchInput}
+						className="flex-1 border-none bg-transparent text-[15px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
 					/>
 				</div>
 
+				{/* Add button / form */}
+				{showAddForm ? (
+					<div className="flex flex-col gap-2.5 p-4 bg-white/50 backdrop-blur-[12px] border-[1.5px] border-[var(--brand-blue,#0066ff)] rounded-2xl mb-4">
+						<input
+							type="text"
+							value={addName}
+							onInput={(e) => setAddName((e.target as HTMLInputElement).value)}
+							placeholder={t('settings.priceBookName') || 'Material name'}
+							className="w-full border border-black/[0.08] bg-white/80 rounded-[10px] px-3 py-2.5 text-[15px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit] box-border"
+							autoFocus
+						/>
+						<div className="flex gap-2">
+							<select
+								value={addUnit}
+								onChange={(e) => setAddUnit((e.target as HTMLSelectElement).value)}
+								className="shrink-0 w-[100px] border border-black/[0.08] bg-white/80 rounded-[10px] px-2.5 py-2 text-sm text-[var(--gray-700,#334155)] font-[inherit] outline-none"
+							>
+								{Object.entries(MEASUREMENT_LABELS).map(([key, label]) => (
+									<option key={key} value={key}>{label}</option>
+								))}
+							</select>
+							<div className="flex items-center gap-1 flex-1 bg-white/80 border-[1.5px] border-[var(--brand-blue,#0066ff)] rounded-[10px] px-2.5 py-1.5">
+								<span className="text-[15px] font-semibold text-[var(--gray-500,#64748b)]">$</span>
+								<input
+									type="number"
+									value={addRate}
+									onInput={(e) => setAddRate((e.target as HTMLInputElement).value)}
+									placeholder="0.00"
+									className="flex-1 border-none bg-transparent text-[15px] font-semibold text-[var(--gray-900,#0f172a)] outline-none font-[inherit] w-full"
+									step="0.01"
+									min="0"
+									onKeyDown={(e) => {
+										if (e.key === 'Enter') handleAdd();
+										if (e.key === 'Escape') setShowAddForm(false);
+									}}
+								/>
+							</div>
+						</div>
+						<div className="flex justify-end gap-2 mt-1">
+							<button
+								className="px-4 py-2 text-[13px] font-medium font-[inherit] text-[var(--gray-500,#64748b)] bg-transparent border border-black/[0.08] rounded-[10px] cursor-pointer"
+								onClick={() => setShowAddForm(false)}
+							>
+								{t('common.cancel') || 'Cancel'}
+							</button>
+							<button
+								className="px-4 py-2 text-[13px] font-semibold font-[inherit] text-white bg-[var(--brand-blue,#0066ff)] border-none rounded-[10px] cursor-pointer"
+								onClick={handleAdd}
+								disabled={adding || !addName.trim() || !addRate}
+							>
+								{adding
+									? t('settings.priceBookSaving') || 'Saving...'
+									: t('settings.priceBookAdd') || 'Add Item'}
+							</button>
+						</div>
+					</div>
+				) : (
+					<button
+						className="flex items-center justify-center gap-1.5 w-full px-4 py-3 text-sm font-semibold font-[inherit] text-[var(--brand-blue,#0066ff)] bg-[rgba(0,102,255,0.06)] border-[1.5px] border-dashed border-[rgba(0,102,255,0.25)] rounded-[14px] cursor-pointer mb-4"
+						onClick={() => setShowAddForm(true)}
+					>
+						<Plus size={16} />
+						<span>{t('settings.priceBookAdd') || 'Add Item'}</span>
+					</button>
+				)}
+
 				{loading ? (
-					<div style={styles.emptyState}>
-						<Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: 'var(--brand-blue, #0066ff)' }} />
+					<div className="flex flex-col items-center justify-center gap-3 px-5 py-[60px] text-center">
+						<Loader2 size={32} className="animate-spin text-[var(--brand-blue,#0066ff)]" />
 					</div>
 				) : filtered.length === 0 ? (
-					<div style={styles.emptyState}>
-						<BookOpen size={40} style={{ color: 'var(--gray-300, #cbd5e1)' }} />
-						<p style={styles.emptyText}>
+					<div className="flex flex-col items-center justify-center gap-3 px-5 py-[60px] text-center">
+						<BookOpen size={40} className="text-[var(--gray-300,#cbd5e1)]" />
+						<p className="m-0 text-[15px] font-medium text-[var(--gray-500,#64748b)]">
 							{search
 								? t('settings.priceBookNoResults') || 'No matching materials'
 								: t('settings.priceBookEmpty') || 'No saved prices yet'}
 						</p>
-						<p style={styles.emptyHint}>
+						<p className="m-0 text-[13px] text-[var(--gray-400,#94a3b8)] max-w-[280px]">
 							{t('settings.priceBookHint') || 'Prices are saved automatically when you approve documents'}
 						</p>
 					</div>
 				) : (
-					<div style={styles.list}>
+					<div className="flex flex-col gap-2.5">
 						{filtered.map((entry) => (
-							<div key={entry.id} style={styles.card}>
-								<div style={styles.cardHeader}>
-									<div style={styles.materialInfo}>
-										<DollarSign size={16} style={{ color: 'var(--brand-blue, #0066ff)' }} />
-										<span style={styles.materialName}>{entry.material}</span>
-										<span style={styles.measureBadge}>
+							<div key={entry.id} className="bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-2xl p-4">
+								<div className="flex items-center justify-between mb-2.5">
+									<div className="flex items-center gap-2 min-w-0 flex-1">
+										<DollarSign size={16} className="text-[var(--brand-blue,#0066ff)]" />
+										<span className="text-[15px] font-semibold text-[var(--gray-900,#0f172a)] capitalize whitespace-nowrap overflow-hidden text-ellipsis">
+											{entry.material}
+										</span>
+										<span className="text-[11px] font-medium text-[var(--brand-blue,#0066ff)] bg-[rgba(0,102,255,0.08)] px-2 py-0.5 rounded-[20px] whitespace-nowrap shrink-0">
 											{MEASUREMENT_LABELS[entry.measurement_type] || entry.measurement_type}
 										</span>
 									</div>
-									<div style={styles.cardActions}>
+									<div className="flex items-center gap-1 shrink-0">
 										{editingId === entry.id ? (
 											<>
-												<button style={styles.iconBtn} onClick={() => saveEdit(entry.id)} aria-label="Save">
-													<Check size={16} style={{ color: '#10b981' }} />
+												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={() => saveEdit(entry.id)} aria-label="Save">
+													<Check size={16} className="text-[#10b981]" />
 												</button>
-												<button style={styles.iconBtn} onClick={cancelEdit} aria-label="Cancel">
-													<X size={16} style={{ color: '#94a3b8' }} />
+												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={cancelEdit} aria-label="Cancel">
+													<X size={16} className="text-[#94a3b8]" />
 												</button>
 											</>
 										) : (
 											<>
-												<button style={styles.iconBtn} onClick={() => startEdit(entry)} aria-label="Edit">
-													<Pencil size={14} style={{ color: '#64748b' }} />
+												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={() => startEdit(entry)} aria-label="Edit">
+													<Pencil size={14} className="text-[#64748b]" />
 												</button>
 												<button
-													style={styles.iconBtn}
+													className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0"
 													onClick={() => handleDelete(entry.id)}
 													disabled={deletingId === entry.id}
 													aria-label="Delete"
 												>
 													{deletingId === entry.id ? (
-														<Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+														<Loader2 size={14} className="animate-spin" />
 													) : (
-														<Trash2 size={14} style={{ color: '#ef4444' }} />
+														<Trash2 size={14} className="text-[#ef4444]" />
 													)}
 												</button>
 											</>
@@ -203,17 +303,19 @@ export function PriceBook() {
 									</div>
 								</div>
 
-								<div style={styles.cardBody}>
+								<div>
 									{editingId === entry.id ? (
-										<div style={styles.editRow}>
-											<span style={styles.rateLabel}>Rate per {MEASUREMENT_LABELS[entry.measurement_type] || 'unit'}:</span>
-											<div style={styles.editInputWrap}>
-												<span style={styles.dollarPrefix}>$</span>
+										<div className="flex items-center gap-2.5 mb-2">
+											<span className="text-[13px] text-[var(--gray-500,#64748b)] whitespace-nowrap">
+												Rate per {MEASUREMENT_LABELS[entry.measurement_type] || 'unit'}:
+											</span>
+											<div className="flex items-center gap-1 flex-1 bg-white/80 border-[1.5px] border-[var(--brand-blue,#0066ff)] rounded-[10px] px-2.5 py-1.5">
+												<span className="text-[15px] font-semibold text-[var(--gray-500,#64748b)]">$</span>
 												<input
 													type="number"
 													value={editRate}
 													onInput={(e) => setEditRate((e.target as HTMLInputElement).value)}
-													style={styles.editInput}
+													className="flex-1 border-none bg-transparent text-[15px] font-semibold text-[var(--gray-900,#0f172a)] outline-none font-[inherit] w-full"
 													step="0.01"
 													min="0"
 													autoFocus
@@ -225,22 +327,22 @@ export function PriceBook() {
 											</div>
 										</div>
 									) : (
-										<div style={styles.rateRow}>
-											<span style={styles.rateValue}>
+										<div className="flex items-baseline gap-1 mb-2">
+											<span className="text-[22px] font-bold text-[var(--gray-900,#0f172a)] tracking-[-0.02em]">
 												{formatRate(entry.rate_per_unit)}
 											</span>
-											<span style={styles.rateUnit}>
+											<span className="text-[13px] text-[var(--gray-500,#64748b)]">
 												/ {MEASUREMENT_LABELS[entry.measurement_type] || 'unit'}
 											</span>
 										</div>
 									)}
 
-									<div style={styles.metaRow}>
-										<span style={styles.metaItem}>
+									<div className="flex items-center gap-2">
+										<span className="text-xs text-[var(--gray-400,#94a3b8)]">
 											Used {entry.usage_count}x
 										</span>
-										<span style={styles.metaDot} />
-										<span style={styles.metaItem}>
+										<span className="w-[3px] h-[3px] rounded-full bg-[var(--gray-300,#cbd5e1)]" />
+										<span className="text-xs text-[var(--gray-400,#94a3b8)]">
 											{formatDate(entry.last_used_at)}
 										</span>
 									</div>
@@ -250,203 +352,10 @@ export function PriceBook() {
 					</div>
 				)}
 
-				<p style={styles.countText}>
+				<p className="text-center text-xs text-[var(--gray-400,#94a3b8)] mt-4">
 					{filtered.length} {filtered.length === 1 ? 'material' : 'materials'}
 				</p>
 			</div>
-
-			<style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 		</main>
 	);
 }
-
-const styles: Record<string, Record<string, string | number>> = {
-	page: {
-		minHeight: '100vh',
-		background: 'transparent',
-	},
-	content: {
-		padding: '0 20px 100px',
-		maxWidth: 600,
-		width: '100%',
-		margin: '0 auto',
-	},
-	searchWrap: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: '10px',
-		padding: '10px 14px',
-		background: 'rgba(255,255,255,0.5)',
-		backdropFilter: 'blur(12px)',
-		border: '1px solid rgba(255,255,255,0.5)',
-		borderRadius: 14,
-		marginBottom: 16,
-	},
-	searchInput: {
-		flex: 1,
-		border: 'none',
-		background: 'transparent',
-		fontSize: 15,
-		color: 'var(--gray-900, #0f172a)',
-		outline: 'none',
-		fontFamily: 'inherit',
-	},
-	emptyState: {
-		display: 'flex',
-		flexDirection: 'column',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 12,
-		padding: '60px 20px',
-		textAlign: 'center',
-	},
-	emptyText: {
-		margin: 0,
-		fontSize: 15,
-		fontWeight: 500,
-		color: 'var(--gray-500, #64748b)',
-	},
-	emptyHint: {
-		margin: 0,
-		fontSize: 13,
-		color: 'var(--gray-400, #94a3b8)',
-		maxWidth: 280,
-	},
-	list: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: 10,
-	},
-	card: {
-		background: 'rgba(255,255,255,0.5)',
-		backdropFilter: 'blur(12px)',
-		border: '1px solid rgba(255,255,255,0.5)',
-		borderRadius: 16,
-		padding: 16,
-	},
-	cardHeader: {
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		marginBottom: 10,
-	},
-	materialInfo: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 8,
-		minWidth: 0,
-		flex: 1,
-	},
-	materialName: {
-		fontSize: 15,
-		fontWeight: 600,
-		color: 'var(--gray-900, #0f172a)',
-		textTransform: 'capitalize',
-		whiteSpace: 'nowrap',
-		overflow: 'hidden',
-		textOverflow: 'ellipsis',
-	},
-	measureBadge: {
-		fontSize: 11,
-		fontWeight: 500,
-		color: 'var(--brand-blue, #0066ff)',
-		background: 'rgba(0, 102, 255, 0.08)',
-		padding: '2px 8px',
-		borderRadius: 20,
-		whiteSpace: 'nowrap',
-		flexShrink: 0,
-	},
-	cardActions: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 4,
-		flexShrink: 0,
-	},
-	iconBtn: {
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		width: 32,
-		height: 32,
-		border: 'none',
-		background: 'transparent',
-		borderRadius: 8,
-		cursor: 'pointer',
-		padding: 0,
-	},
-	cardBody: {},
-	rateRow: {
-		display: 'flex',
-		alignItems: 'baseline',
-		gap: 4,
-		marginBottom: 8,
-	},
-	rateValue: {
-		fontSize: 22,
-		fontWeight: 700,
-		color: 'var(--gray-900, #0f172a)',
-		letterSpacing: '-0.02em',
-	},
-	rateUnit: {
-		fontSize: 13,
-		color: 'var(--gray-500, #64748b)',
-	},
-	editRow: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 10,
-		marginBottom: 8,
-	},
-	rateLabel: {
-		fontSize: 13,
-		color: 'var(--gray-500, #64748b)',
-		whiteSpace: 'nowrap',
-	},
-	editInputWrap: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 4,
-		flex: 1,
-		background: 'rgba(255,255,255,0.8)',
-		border: '1.5px solid var(--brand-blue, #0066ff)',
-		borderRadius: 10,
-		padding: '6px 10px',
-	},
-	dollarPrefix: {
-		fontSize: 15,
-		fontWeight: 600,
-		color: 'var(--gray-500, #64748b)',
-	},
-	editInput: {
-		flex: 1,
-		border: 'none',
-		background: 'transparent',
-		fontSize: 15,
-		fontWeight: 600,
-		color: 'var(--gray-900, #0f172a)',
-		outline: 'none',
-		fontFamily: 'inherit',
-		width: '100%',
-	},
-	metaRow: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 8,
-	},
-	metaItem: {
-		fontSize: 12,
-		color: 'var(--gray-400, #94a3b8)',
-	},
-	metaDot: {
-		width: 3,
-		height: 3,
-		borderRadius: '50%',
-		background: 'var(--gray-300, #cbd5e1)',
-	},
-	countText: {
-		textAlign: 'center',
-		fontSize: 12,
-		color: 'var(--gray-400, #94a3b8)',
-		marginTop: 16,
-	},
-};

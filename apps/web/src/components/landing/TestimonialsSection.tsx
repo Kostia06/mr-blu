@@ -3,47 +3,6 @@ import { StatsBar } from './StatsBar';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useI18nStore } from '@/lib/i18n';
 
-const styles = {
-  section: {
-    width: '100%',
-    padding: '100px 24px',
-    background: '#FFFFFF',
-  },
-  container: {
-    width: '100%',
-    maxWidth: 560,
-    margin: '0 auto',
-  },
-  statsWrapper: {
-    marginBottom: 64,
-  },
-  testimonial: {
-    paddingLeft: 24,
-    borderLeft: '2px solid #E5E7EB',
-  },
-  quote: {
-    fontFamily: 'var(--font-body)',
-    fontSize: 'clamp(1.125rem, 2.5vw, 1.375rem)',
-    fontWeight: 400,
-    lineHeight: 1.7,
-    color: 'var(--landing-text, #0A0A0A)',
-    margin: '0 0 24px 0',
-    fontStyle: 'italic' as const,
-  },
-  authorName: {
-    fontWeight: 600,
-    color: 'var(--landing-text, #0A0A0A)',
-    fontSize: 15,
-    display: 'block',
-  },
-  authorRole: {
-    fontSize: 13,
-    color: 'var(--landing-text-secondary, #6B7280)',
-    display: 'block',
-    marginTop: 2,
-  },
-};
-
 export function TestimonialsSection() {
   const { t } = useI18nStore();
   const containerRef = useScrollReveal<HTMLDivElement>({ stagger: 0.15 });
@@ -58,17 +17,23 @@ export function TestimonialsSection() {
   );
 
   return (
-    <section id="testimonials" style={styles.section}>
-      <div style={styles.container} ref={containerRef}>
-        <div style={styles.statsWrapper} data-reveal>
+    <section id="testimonials" className="w-full py-[100px] px-6 bg-white">
+      <div className="w-full max-w-[560px] mx-auto" ref={containerRef}>
+        <div className="mb-16" data-reveal>
           <StatsBar />
         </div>
 
-        <div style={styles.testimonial} data-reveal>
-          <blockquote style={styles.quote}>"{testimonial.quote}"</blockquote>
+        <div className="pl-6 border-l-2 border-gray-200" data-reveal>
+          <blockquote className="font-[var(--font-body)] text-[clamp(1.125rem,2.5vw,1.375rem)] font-normal leading-[1.7] text-[var(--landing-text)] mb-6 italic">
+            "{testimonial.quote}"
+          </blockquote>
           <div>
-            <span style={styles.authorName}>{testimonial.author}</span>
-            <span style={styles.authorRole}>{testimonial.role}</span>
+            <span className="font-semibold text-[var(--landing-text)] text-[15px] block">
+              {testimonial.author}
+            </span>
+            <span className="text-[13px] text-[var(--landing-text-secondary)] block mt-0.5">
+              {testimonial.role}
+            </span>
           </div>
         </div>
       </div>
