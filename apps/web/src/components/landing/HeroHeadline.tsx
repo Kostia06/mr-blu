@@ -1,98 +1,121 @@
-import { useState, useEffect, useMemo } from 'preact/hooks';
+import { useEffect, useRef, useMemo } from 'preact/hooks';
 import { useI18nStore } from '@/lib/i18n';
 
-interface Word {
-	text: string;
-	highlight?: boolean;
-}
-
-interface HeroHeadlineProps {
-	words?: Word[];
-}
-
 const styles = {
-	container: {
-		textAlign: 'center' as const,
-		position: 'relative' as const,
-		transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-		transitionDelay: '0.1s',
-	},
-	headline: {
-		fontFamily: 'var(--font-display)',
-		fontSize: 'clamp(2.5rem, 8vw, 5rem)',
-		fontWeight: 700,
-		lineHeight: 1.1,
-		letterSpacing: '-0.03em',
-		color: 'var(--gray-900, #0f172a)',
-		margin: '0 0 24px 0',
-	},
-	word: {
-		display: 'inline-block',
-	},
-	highlight: {
-		display: 'inline-block',
-		background: 'linear-gradient(135deg, #0066ff 0%, #0ea5e9 50%, #6366f1 100%)',
-		WebkitBackgroundClip: 'text',
-		WebkitTextFillColor: 'transparent',
-		backgroundClip: 'text',
-	},
-	subheadline: {
-		fontFamily: 'var(--font-body)',
-		fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-		fontWeight: 400,
-		lineHeight: 1.6,
-		color: 'var(--gray-600, #475569)',
-		maxWidth: 540,
-		margin: '0 auto',
-	},
+  container: {
+    textAlign: 'center' as const,
+    position: 'relative' as const,
+  },
+  headline: {
+    fontFamily: 'var(--font-display)',
+    fontSize: 'clamp(3rem, 10vw, 5.5rem)',
+    fontWeight: 700,
+    lineHeight: 1.05,
+    letterSpacing: '-0.04em',
+    color: 'var(--landing-text, #0A0A0A)',
+    margin: '0 0 24px 0',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+  },
+  word: {
+    display: 'block',
+    opacity: 0,
+    transform: 'translateY(20px)',
+  },
+  highlight: {
+    display: 'block',
+    background: 'linear-gradient(135deg, #0066ff 0%, #0ea5e9 50%, #6366f1 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    opacity: 0,
+    transform: 'translateY(20px)',
+  },
+  subheadline: {
+    fontFamily: 'var(--font-body)',
+    fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+    fontWeight: 400,
+    lineHeight: 1.6,
+    color: 'var(--landing-text-secondary, #6B7280)',
+    maxWidth: 440,
+    margin: '0 auto',
+    opacity: 0,
+  },
 };
 
-export function HeroHeadline({ words: wordsProp }: HeroHeadlineProps) {
-	const { t } = useI18nStore();
-	const [visible, setVisible] = useState(false);
+export function HeroHeadline() {
+  const { t } = useI18nStore();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-	const words = useMemo(
-		() =>
-			wordsProp ?? [
-				{ text: t('landing.hero.word1') },
-				{ text: t('landing.hero.word2'), highlight: true },
-				{ text: t('landing.hero.word3') },
-			],
-		[wordsProp, t]
-	);
+  const words = useMemo(
+    () => [
+      { text: t('landing.hero.word1') },
+      { text: t('landing.hero.word2'), highlight: true },
+      { text: t('landing.hero.word3') },
+    ],
+    [t]
+  );
 
-	const subheadline = useMemo(() => t('landing.hero.subheadline'), [t]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
-	useEffect(() => {
-		requestAnimationFrame(() => {
-			setVisible(true);
-		});
-	}, []);
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const node = containerRef.current;
+    if (!node) return;
 
-	const containerStyle = {
-		...styles.container,
-		opacity: visible ? 1 : 0,
-		transform: visible ? 'translateY(0)' : 'translateY(16px)',
-	};
+    if (prefersReducedMotion) {
+      node.querySelectorAll<HTMLElement>('.hero-word').forEach((el) => {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      const sub = node.querySelector<HTMLElement>('.hero-sub');
+      if (sub) {
+        sub.style.opacity = '1';
+      }
+      return;
+    }
 
-	return (
-		<div style={containerStyle}>
-			<h1 style={styles.headline}>
-				{words.map((word, wordIndex) => (
-					<>
-						<span
-							key={word.text}
-							style={word.highlight ? styles.highlight : styles.word}
-						>
-							{word.text}
-						</span>
-						{wordIndex < words.length - 1 && (
-							<span style={{ display: 'inline' }}>&nbsp;</span>
-						)}
-					</>
-				))}
-			</h1>
-			<p style={styles.subheadline}>{subheadline}</p>
-		</div>
-	);
+    import('gsap').then(({ gsap }) => {
+      const wordEls = node.querySelectorAll('.hero-word');
+      const sub = node.querySelector('.hero-sub');
+
+      gsap.to(wordEls, {
+        y: 0,
+        opacity: 1,
+        duration: 0.7,
+        ease: 'power3.out',
+        stagger: 0.12,
+        delay: 0.1,
+      });
+
+      if (sub) {
+        gsap.to(sub, {
+          opacity: 1,
+          duration: 0.6,
+          ease: 'power2.out',
+          delay: 0.5,
+        });
+      }
+    });
+  }, []);
+
+  return (
+    <div style={styles.container} ref={containerRef}>
+      <h1 style={styles.headline}>
+        {words.map((word) => (
+          <span
+            key={word.text}
+            className="hero-word"
+            style={word.highlight ? styles.highlight : styles.word}
+          >
+            {word.text}
+          </span>
+        ))}
+      </h1>
+      <p className="hero-sub" style={styles.subheadline}>
+        {t('landing.hero.subheadline')}
+      </p>
+    </div>
+  );
 }

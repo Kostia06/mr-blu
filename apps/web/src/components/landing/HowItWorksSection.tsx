@@ -1,131 +1,96 @@
-import { useRef, useState, useEffect, useMemo } from 'preact/hooks';
-import { Mic, FileText, Send } from 'lucide-react';
+import { useMemo } from 'preact/hooks';
 import { StepCard } from './StepCard';
-import { StepConnector } from './StepConnector';
-import { SectionWrapper } from './SectionWrapper';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useI18nStore } from '@/lib/i18n';
 
 const styles = {
-	container: {
-		width: '100%',
-	},
-	header: {
-		textAlign: 'center' as const,
-		marginBottom: 60,
-	},
-	title: {
-		fontFamily: 'var(--font-display)',
-		fontSize: 'clamp(2rem, 5vw, 3rem)',
-		fontWeight: 700,
-		color: 'var(--gray-900, #0f172a)',
-		margin: '0 0 16px 0',
-		letterSpacing: '-0.02em',
-	},
-	description: {
-		fontSize: 18,
-		color: 'var(--gray-600, #475569)',
-		maxWidth: 480,
-		margin: '0 auto',
-		lineHeight: 1.6,
-	},
-	stepsContainer: {
-		display: 'flex',
-		flexDirection: 'column' as const,
-		width: '100%',
-		alignItems: 'center',
-		gap: 24,
-	},
+  section: {
+    width: '100%',
+    background: '#FFFFFF',
+  },
+  container: {
+    width: '100%',
+    maxWidth: 360,
+    margin: '0 auto',
+  },
+  header: {
+    textAlign: 'center' as const,
+    marginBottom: 48,
+  },
+  title: {
+    fontFamily: 'var(--font-display)',
+    fontSize: 'clamp(1.5rem, 5vw, 2rem)',
+    fontWeight: 700,
+    color: 'var(--landing-text, #0A0A0A)',
+    margin: '0 0 12px 0',
+    letterSpacing: '-0.02em',
+  },
+  description: {
+    fontSize: 15,
+    color: 'var(--landing-text-secondary, #6B7280)',
+    maxWidth: 340,
+    margin: '0 auto',
+    lineHeight: 1.6,
+  },
+  stepsContainer: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 0,
+    position: 'relative' as const,
+  },
+  stepWrapper: {
+    position: 'relative' as const,
+    paddingLeft: 0,
+    paddingBottom: 32,
+  },
+  stepWrapperLast: {
+    position: 'relative' as const,
+    paddingLeft: 0,
+    paddingBottom: 0,
+  },
+  verticalLine: {
+    position: 'absolute' as const,
+    left: 17,
+    top: 36,
+    bottom: 0,
+    width: 1,
+    background: '#E5E7EB',
+  },
 };
 
-const SECTION_CSS = `
-@media (min-width: 900px) {
-	.hiw-steps-container {
-		flex-direction: row !important;
-		justify-content: center;
-		gap: 0 !important;
-	}
-}
-`;
-
 export function HowItWorksSection() {
-	const { t } = useI18nStore();
-	const sectionRef = useRef<HTMLDivElement>(null);
-	const [animated, setAnimated] = useState(false);
+  const { t } = useI18nStore();
+  const containerRef = useScrollReveal<HTMLDivElement>({ stagger: 0.15 });
 
-	const steps = useMemo(
-		() => [
-			{
-				step: 1,
-				title: t('landing.howItWorks.step1Title'),
-				description: t('landing.howItWorks.step1Desc'),
-				icon: Mic,
-			},
-			{
-				step: 2,
-				title: t('landing.howItWorks.step2Title'),
-				description: t('landing.howItWorks.step2Desc'),
-				icon: FileText,
-			},
-			{
-				step: 3,
-				title: t('landing.howItWorks.step3Title'),
-				description: t('landing.howItWorks.step3Desc'),
-				icon: Send,
-			},
-		],
-		[t]
-	);
+  const steps = useMemo(
+    () => [
+      { step: 1, title: t('landing.howItWorks.step1Title'), description: t('landing.howItWorks.step1Desc') },
+      { step: 2, title: t('landing.howItWorks.step2Title'), description: t('landing.howItWorks.step2Desc') },
+      { step: 3, title: t('landing.howItWorks.step3Title'), description: t('landing.howItWorks.step3Desc') },
+    ],
+    [t]
+  );
 
-	useEffect(() => {
-		if (typeof window === 'undefined') return;
+  return (
+    <section id="how-it-works" className="landing-scene" style={styles.section}>
+      <div style={styles.container} ref={containerRef}>
+        <div style={styles.header} data-reveal>
+          <h2 style={styles.title}>{t('landing.howItWorks.title')}</h2>
+          <p style={styles.description}>{t('landing.howItWorks.description')}</p>
+        </div>
 
-		import('gsap').then(({ gsap }) => {
-			import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
-				gsap.registerPlugin(ScrollTrigger);
-
-				const node = sectionRef.current;
-				if (!node) return;
-
-				ScrollTrigger.create({
-					trigger: node,
-					start: 'top 70%',
-					onEnter: () => {
-						setAnimated(true);
-						const cards = node.querySelectorAll('.step-card');
-						gsap.fromTo(
-							cards,
-							{ y: 40, opacity: 0 },
-							{ y: 0, opacity: 1, duration: 0.6, ease: 'power2.out', stagger: 0.2 }
-						);
-					},
-					once: true,
-				});
-			});
-		});
-	}, []);
-
-	return (
-		<SectionWrapper id="how-it-works" background="gray">
-			<style>{SECTION_CSS}</style>
-			<div style={styles.container} ref={sectionRef}>
-				<div style={styles.header}>
-					<h2 style={styles.title}>{t('landing.howItWorks.title')}</h2>
-					<p style={styles.description}>{t('landing.howItWorks.description')}</p>
-				</div>
-
-				<div className="hiw-steps-container" style={styles.stepsContainer}>
-					{steps.map((stepData, i) => (
-						<>
-							<div key={stepData.step}>
-								<StepCard {...stepData} />
-							</div>
-							{i < steps.length - 1 && (
-								<StepConnector animated={animated} delay={0.4 + i * 0.3} />
-							)}
-						</>
-					))}
-				</div>
-			</div>
-		</SectionWrapper>
-	);
+        <div style={styles.stepsContainer}>
+          {steps.map((stepData, i) => {
+            const isLast = i === steps.length - 1;
+            return (
+              <div key={stepData.step} style={isLast ? styles.stepWrapperLast : styles.stepWrapper}>
+                {!isLast && <div style={styles.verticalLine} />}
+                <StepCard {...stepData} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }

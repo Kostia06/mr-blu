@@ -1,211 +1,143 @@
-import { useState, useEffect } from 'preact/hooks';
-import { ArrowRight, LayoutDashboard } from 'lucide-react';
+import { useRef, useEffect } from 'preact/hooks';
+import { ArrowRight } from 'lucide-react';
 import { HeroHeadline } from './HeroHeadline';
 import { HeroPhone } from './HeroPhone';
 import { useI18nStore } from '@/lib/i18n';
 
-interface HeroSectionProps {
-	isAuthenticated?: boolean;
-}
-
-const HERO_CSS = `
-@media (min-width: 1024px) {
-	.hero-container {
-		max-width: 1280px !important;
-		flex-direction: row !important;
-		gap: 60px !important;
-		justify-content: center;
-	}
-	.hero-content {
-		order: 0 !important;
-		align-items: flex-start !important;
-		text-align: left !important;
-		flex: 1;
-		max-width: 560px;
-	}
-	.hero-content h1 {
-		text-align: left;
-	}
-	.hero-content p {
-		margin-left: 0;
-	}
-	.hero-visual {
-		order: 0 !important;
-		flex-shrink: 0;
-		width: auto !important;
-	}
-	.hero-cta-container {
-		justify-content: flex-start !important;
-	}
-}
-
-.hero-trust {
-	display: flex;
-	align-items: center;
-	gap: 20px;
-	margin-top: 24px;
-	flex-wrap: wrap;
-	justify-content: center;
-}
-@media (min-width: 1024px) {
-	.hero-trust { justify-content: flex-start; }
-}
-.hero-trust span {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: 13px;
-	font-weight: 500;
-	color: var(--gray-500, #64748b);
-}
-.hero-trust-dot {
-	width: 5px;
-	height: 5px;
-	border-radius: 50%;
-	background: var(--data-green, #10b981);
-	flex-shrink: 0;
-}
-`;
-
 const styles = {
-	hero: {
-		position: 'relative' as const,
-		minHeight: '100vh',
-		display: 'flex',
-		alignItems: 'center',
-		padding: '120px 24px 80px',
-		overflowX: 'clip' as const,
-		background: 'transparent',
-	},
-	heroContainer: {
-		position: 'relative' as const,
-		zIndex: 2,
-		width: '100%',
-		maxWidth: 600,
-		margin: '0 auto',
-		display: 'flex',
-		flexDirection: 'column' as const,
-		gap: 40,
-		alignItems: 'center',
-	},
-	heroContent: {
-		display: 'flex',
-		flexDirection: 'column' as const,
-		alignItems: 'center',
-		textAlign: 'center' as const,
-		order: 1,
-	},
-	ctaContainer: {
-		display: 'flex',
-		justifyContent: 'center',
-		marginTop: 32,
-	},
-	ctaBtn: {
-		display: 'inline-flex',
-		alignItems: 'center',
-		gap: 8,
-		padding: '16px 32px',
-		fontSize: 15,
-		fontWeight: 600,
-		textDecoration: 'none',
-		borderRadius: 100,
-		background: 'var(--blu-primary, #0066ff)',
-		color: 'white',
-		transition: 'box-shadow 0.2s ease, background 0.2s ease, opacity 0.6s ease',
-		transitionDelay: '0.4s',
-	},
-	heroVisual: {
-		display: 'flex',
-		flexDirection: 'column' as const,
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: '100%',
-		order: -1,
-		transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-		transitionDelay: '0.2s',
-	},
+  hero: {
+    position: 'relative' as const,
+    minHeight: '100svh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '100px 24px 48px',
+    background: '#FFFFFF',
+    overflowX: 'clip' as const,
+  },
+  container: {
+    width: '100%',
+    maxWidth: 480,
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: 24,
+  },
+  phoneWrapper: {
+    opacity: 0,
+    transform: 'translateY(30px)',
+  },
+  ctaButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '14px 28px',
+    fontSize: 15,
+    fontWeight: 600,
+    textDecoration: 'none',
+    borderRadius: 100,
+    background: 'var(--blu-primary, #0066ff)',
+    color: '#FFFFFF',
+    transition: 'background 0.2s ease, box-shadow 0.2s ease, opacity 0.6s ease',
+    boxShadow: '0 2px 10px rgba(0, 102, 255, 0.25)',
+    opacity: 0,
+  },
+  trustText: {
+    fontSize: 13,
+    fontWeight: 400,
+    color: 'var(--landing-text-secondary, #6B7280)',
+    textAlign: 'center' as const,
+    opacity: 0,
+  },
 };
 
-export function HeroSection({ isAuthenticated = false }: HeroSectionProps) {
-	const { t } = useI18nStore();
-	const [visible, setVisible] = useState(false);
+export function HeroSection() {
+  const { t } = useI18nStore();
+  const sectionRef = useRef<HTMLElement>(null);
 
-	useEffect(() => {
-		requestAnimationFrame(() => {
-			setVisible(true);
-		});
-	}, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
-	const ctaBtnStyle = {
-		...styles.ctaBtn,
-		opacity: visible ? 1 : 0,
-	};
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const node = sectionRef.current;
+    if (!node) return;
 
-	const heroVisualStyle = {
-		...styles.heroVisual,
-		opacity: visible ? 1 : 0,
-		transform: visible ? 'translateY(0)' : 'translateY(24px)',
-	};
+    if (prefersReducedMotion) {
+      node.querySelectorAll<HTMLElement>('.hero-animate').forEach((el) => {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      return;
+    }
 
-	return (
-		<section style={styles.hero} id="main-content">
-			<style>{HERO_CSS}</style>
-			<div className="hero-container" style={styles.heroContainer}>
-				<div className="hero-content" style={styles.heroContent}>
-					<HeroHeadline />
-					<div className="hero-cta-container" style={styles.ctaContainer}>
-						{isAuthenticated ? (
-							<a
-								href="/dashboard"
-								style={ctaBtnStyle}
-								onMouseEnter={(e) => {
-									const el = e.currentTarget as HTMLElement;
-									el.style.background = '#0052cc';
-									el.style.boxShadow = '0 4px 20px rgba(0, 102, 255, 0.3)';
-								}}
-								onMouseLeave={(e) => {
-									const el = e.currentTarget as HTMLElement;
-									el.style.background = 'var(--blu-primary, #0066ff)';
-									el.style.boxShadow = 'none';
-								}}
-							>
-								<LayoutDashboard size={18} strokeWidth={2.5} />
-								<span>{t('landing.hero.ctaDashboard')}</span>
-							</a>
-						) : (
-							<a
-								href="/login"
-								style={ctaBtnStyle}
-								onMouseEnter={(e) => {
-									const el = e.currentTarget as HTMLElement;
-									el.style.background = '#0052cc';
-									el.style.boxShadow = '0 4px 20px rgba(0, 102, 255, 0.3)';
-								}}
-								onMouseLeave={(e) => {
-									const el = e.currentTarget as HTMLElement;
-									el.style.background = 'var(--blu-primary, #0066ff)';
-									el.style.boxShadow = 'none';
-								}}
-							>
-								<span>{t('landing.hero.ctaPrimary')}</span>
-								<ArrowRight size={18} strokeWidth={2.5} />
-							</a>
-						)}
-					</div>
+    import('gsap').then(({ gsap }) => {
+      const phone = node.querySelector('.hero-phone-wrap');
+      const cta = node.querySelector('.hero-cta');
+      const trust = node.querySelector('.hero-trust-line');
 
-					{!isAuthenticated && (
-						<div className="hero-trust">
-							<span><div className="hero-trust-dot" />{t('landing.hero.trust1')}</span>
-							<span><div className="hero-trust-dot" />{t('landing.hero.trust2')}</span>
-							<span><div className="hero-trust-dot" />{t('landing.hero.trust3')}</span>
-						</div>
-					)}
-				</div>
+      if (phone) {
+        gsap.to(phone, {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: 'power3.out',
+          delay: 0.6,
+        });
+      }
 
-				<div className="hero-visual" style={heroVisualStyle}>
-					<HeroPhone />
-				</div>
-			</div>
-		</section>
-	);
+      if (cta) {
+        gsap.to(cta, {
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power2.out',
+          delay: 1,
+        });
+      }
+
+      if (trust) {
+        gsap.to(trust, {
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power2.out',
+          delay: 1.2,
+        });
+      }
+    });
+  }, []);
+
+  return (
+    <section style={styles.hero} id="main-content" ref={sectionRef}>
+      <div style={styles.container}>
+        <HeroHeadline />
+
+        <div className="hero-animate hero-phone-wrap" style={styles.phoneWrapper}>
+          <HeroPhone />
+        </div>
+
+        <a
+          href="/login"
+          className="hero-animate hero-cta"
+          style={styles.ctaButton}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget as HTMLElement;
+            el.style.background = '#0052cc';
+            el.style.boxShadow = '0 4px 20px rgba(0, 102, 255, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget as HTMLElement;
+            el.style.background = 'var(--blu-primary, #0066ff)';
+            el.style.boxShadow = '0 2px 10px rgba(0, 102, 255, 0.25)';
+          }}
+        >
+          <span>{t('landing.hero.ctaPrimary')}</span>
+          <ArrowRight size={18} strokeWidth={2.5} />
+        </a>
+
+        <p className="hero-animate hero-trust-line" style={styles.trustText}>
+          {t('landing.hero.trust1')} &middot; {t('landing.hero.trust2')} &middot; {t('landing.hero.trust3')}
+        </p>
+      </div>
+    </section>
+  );
 }

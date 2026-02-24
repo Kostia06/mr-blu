@@ -858,6 +858,9 @@ export const translations: Translations = {
 		'landing.phone.security': 'Security',
 		'landing.phone.on': 'On',
 		'landing.phone.off': 'Off',
+		'landing.phone.priceBook': 'Price Book',
+		'landing.phone.clientBook': 'Client Book',
+		'landing.phone.addNew': 'Add',
 
 		// Suggestions Panel
 		'suggestions.needInspiration': 'Need inspiration?',
@@ -1818,6 +1821,9 @@ export const translations: Translations = {
 		'landing.phone.security': 'Seguridad',
 		'landing.phone.on': 'S\u00ed',
 		'landing.phone.off': 'No',
+		'landing.phone.priceBook': 'Lista de Precios',
+		'landing.phone.clientBook': 'Clientes',
+		'landing.phone.addNew': 'Agregar',
 
 		// Tutorial System
 		'tutorial.startModal.title': 'Tour R\u00e1pido de Mr. Blu',
