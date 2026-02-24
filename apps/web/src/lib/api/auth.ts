@@ -25,6 +25,20 @@ export async function loginWithOtp(email: string): Promise<LoginResult> {
   return { message: 'Magic link sent' };
 }
 
+export async function verifyOtp(email: string, token: string): Promise<DevLoginResult> {
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email',
+  });
+
+  if (error) {
+    throw new AuthError(error.message);
+  }
+
+  return { session: data.session };
+}
+
 export async function devLogin(email: string, password: string): Promise<DevLoginResult> {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,

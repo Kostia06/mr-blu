@@ -8,11 +8,11 @@ export function HeroPhone() {
           <div className="absolute bg-[#2a2a2e] rounded-sm z-10 -left-0.5 top-[155px] w-[3px] h-9" />
           <div className="absolute bg-[#2a2a2e] rounded-sm z-10 -right-0.5 top-[125px] w-[3px] h-[50px]" />
 
-          <div className="relative rounded-[33px] min-[480px]:rounded-[37px] md:rounded-[41px] overflow-hidden aspect-[9/19.5] bg-[#c8ddf0]">
+          <div className="relative rounded-[33px] min-[480px]:rounded-[37px] md:rounded-[41px] overflow-hidden aspect-[1080/2048] bg-[#c8ddf0]">
             <img
               src="/phone-screenshot.jpg"
               alt="mrblu app — tap to record voice and create invoices"
-              className="absolute inset-0 w-full h-full object-cover object-center block select-none"
+              className="absolute inset-0 w-full h-full object-fill block select-none"
               loading="eager"
               draggable={false}
             />

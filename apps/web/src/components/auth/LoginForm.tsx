@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'preact/hooks'
 import { Mail, Loader2, ArrowLeft, Send, RefreshCw, Zap, Lock } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
 import { loginWithOtp, devLogin, AuthError } from '@/lib/api/auth';
+import { cn } from '@/lib/utils';
 
 const IS_DEV = import.meta.env.DEV;
 
@@ -119,41 +120,44 @@ export function LoginForm({ urlError }: LoginFormProps) {
   }, [email, password]);
 
   return (
-    <div class="login-page">
+    <div class="login-page relative min-h-screen min-h-dvh bg-[var(--white,#dbe8f4)] flex flex-col items-center justify-center p-6 max-[480px]:p-5 overflow-hidden">
       {/* Background Blobs */}
-      <div class="bg-decoration" aria-hidden="true">
-        <div class="blob blob-1" />
-        <div class="blob blob-2" />
-        <div class="blob blob-3" />
+      <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div class="blob blob-1 absolute rounded-full blur-[80px] w-[500px] h-[500px] bg-gradient-to-br from-[#0066ff] to-[#0ea5e9] opacity-25 -top-[150px] -right-[100px]" />
+        <div class="blob blob-2 absolute rounded-full blur-[80px] w-[400px] h-[400px] bg-gradient-to-br from-[#3b82f6] to-[#06b6d4] opacity-20 -bottom-[100px] -left-[100px]" />
+        <div class="blob blob-3 absolute rounded-full blur-[80px] w-[300px] h-[300px] bg-gradient-to-br from-[#0ea5e9] to-[#6366f1] opacity-15 top-[40%] left-1/2 -translate-x-1/2" />
       </div>
 
-      <div class={`login-container ${visible ? 'visible' : ''}`}>
+      <div class={cn(
+        'login-container relative z-[1] w-full max-w-[400px] opacity-0 translate-y-5 transition-[opacity,transform] duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]',
+        visible && 'visible !opacity-100 !translate-y-0'
+      )}>
         {/* Header */}
-        <div class="login-header">
-          <h1 class="login-title">mrblu</h1>
-          <p class="login-subtitle">{t('auth.signIn')}</p>
+        <div class="text-center mb-8">
+          <h1 class="font-[var(--font-display,system-ui)] text-[32px] font-bold text-[var(--blu-primary,#0066ff)] m-0 tracking-[-0.02em]">mrblu</h1>
+          <p class="mt-2 text-base text-[var(--gray-500,#64748b)]">{t('auth.signIn')}</p>
         </div>
 
         {/* Login Card */}
-        <div class="login-card">
+        <div class="bg-white/70 backdrop-blur-[20px] p-8 max-[480px]:p-6 rounded-3xl max-[480px]:rounded-[20px] border border-white/80 shadow-[0_4px_24px_rgba(0,102,255,0.08),0_1px_3px_rgba(0,0,0,0.04)]">
           {success ? (
-            <div class="success-state">
-              <div class="success-icon">
+            <div class="text-center py-6">
+              <div class="w-[72px] h-[72px] flex items-center justify-center bg-gradient-to-br from-emerald-500/10 to-sky-500/10 rounded-full text-[var(--data-green,#10b981)] mx-auto mb-5">
                 <Send size={32} strokeWidth={1.5} />
               </div>
-              <h2 class="success-title">{t('auth.checkEmail')}</h2>
-              <p class="success-text">{t('auth.magicLinkSent')}</p>
+              <h2 class="font-[var(--font-display,system-ui)] text-xl font-bold text-[var(--gray-900,#0f172a)] m-0 mb-2">{t('auth.checkEmail')}</h2>
+              <p class="text-[15px] text-[var(--gray-500,#64748b)] m-0 leading-relaxed">{t('auth.magicLinkSent')}</p>
 
-              <div class="resend-section">
+              <div class="mt-6 pt-5 border-t border-[var(--gray-200,#e2e8f0)]">
                 {resendCountdown > 0 ? (
-                  <p class="resend-timer">
-                    {t('auth.resendIn')} <span class="countdown">{resendCountdown}s</span>
+                  <p class="text-sm text-[var(--gray-500,#64748b)] m-0">
+                    {t('auth.resendIn')} <span class="font-semibold text-[var(--blu-primary,#0066ff)] tabular-nums">{resendCountdown}s</span>
                   </p>
                 ) : (
                   <form onSubmit={handleResend}>
-                    <button type="submit" disabled={loading} class="resend-btn">
+                    <button type="submit" disabled={loading} class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-transparent text-[var(--blu-primary,#0066ff)] border border-[var(--blu-primary,#0066ff)] rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 hover:enabled:bg-[rgba(0,102,255,0.05)] active:enabled:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
                       {loading ? (
-                        <Loader2 size={16} strokeWidth={2} class="spinner" />
+                        <Loader2 size={16} strokeWidth={2} class="animate-spin" />
                       ) : (
                         <RefreshCw size={16} strokeWidth={2} />
                       )}
@@ -166,8 +170,8 @@ export function LoginForm({ urlError }: LoginFormProps) {
           ) : (
             <>
               <form onSubmit={handleFormSubmit}>
-                <div class="form-group">
-                  <label for="email" class="form-label">
+                <div class="mb-5">
+                  <label for="email" class="block text-sm font-semibold text-[var(--gray-700,#334155)] mb-2">
                     {t('auth.email')}
                   </label>
                   <input
@@ -177,22 +181,22 @@ export function LoginForm({ urlError }: LoginFormProps) {
                     value={email}
                     onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
                     placeholder={t('auth.emailPlaceholder')}
-                    class="form-input"
+                    class="w-full py-3.5 px-4 max-[480px]:py-3 max-[480px]:px-3.5 border border-[var(--gray-200,#e2e8f0)] bg-white/80 text-[var(--gray-900,#0f172a)] rounded-[14px] text-base outline-none transition-all duration-200 box-border focus:border-[var(--blu-primary,#0066ff)] focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,102,255,0.1)] placeholder:text-[var(--gray-400,#94a3b8)]"
                     required
                     autoComplete="email"
                   />
                 </div>
 
-                <button type="submit" disabled={loading} class="submit-btn">
+                <button type="submit" disabled={loading} class="w-full flex items-center justify-center gap-2.5 py-4 px-6 max-[480px]:py-3.5 max-[480px]:px-5 bg-gradient-to-br from-[var(--blu-primary,#0066ff)] to-[#0ea5e9] text-white border-none rounded-[14px] text-base font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_16px_rgba(0,102,255,0.3)] hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_24px_rgba(0,102,255,0.4)] active:enabled:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none">
                   {loading ? (
-                    <Loader2 size={20} strokeWidth={2} class="spinner" />
+                    <Loader2 size={20} strokeWidth={2} class="animate-spin" />
                   ) : (
                     <Mail size={20} strokeWidth={2} />
                   )}
                   <span>{t('auth.sendMagicLink')}</span>
                 </button>
 
-                <p class="terms-notice">
+                <p class="text-xs text-[var(--gray-400,#94a3b8)] text-center mt-4 leading-relaxed [&_a]:text-[var(--gray-500,#64748b)] [&_a]:underline [&_a:hover]:text-[var(--blu-primary,#0066ff)]">
                   {t('auth.termsNotice')}{' '}
                   <a href="/terms" target="_blank">{t('auth.termsOfService')}</a>{' '}
                   {t('auth.and')}{' '}
@@ -201,14 +205,14 @@ export function LoginForm({ urlError }: LoginFormProps) {
               </form>
 
               {IS_DEV && (
-                <div class="dev-login-section">
-                  <div class="dev-login-divider">
-                    <span>DEV LOGIN</span>
+                <div class="mt-5">
+                  <div class="dev-login-divider flex items-center gap-3 mb-4">
+                    <span class="text-[11px] font-bold text-amber-800 tracking-widest whitespace-nowrap">DEV LOGIN</span>
                   </div>
                   <form onSubmit={handleDevLogin}>
-                    <div class="form-group">
-                      <label for="dev-password" class="form-label">
-                        <Lock size={14} strokeWidth={2} style={{ display: 'inline', verticalAlign: '-2px' }} />
+                    <div class="mb-5">
+                      <label for="dev-password" class="block text-sm font-semibold text-[var(--gray-700,#334155)] mb-2">
+                        <Lock size={14} strokeWidth={2} class="inline align-[-2px]" />
                         {' '}Password
                       </label>
                       <input
@@ -217,14 +221,14 @@ export function LoginForm({ urlError }: LoginFormProps) {
                         value={password}
                         onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
                         placeholder="Dev password"
-                        class="form-input"
+                        class="w-full py-3.5 px-4 border border-[var(--gray-200,#e2e8f0)] bg-white/80 text-[var(--gray-900,#0f172a)] rounded-[14px] text-base outline-none transition-all duration-200 box-border focus:border-[var(--blu-primary,#0066ff)] focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,102,255,0.1)] placeholder:text-[var(--gray-400,#94a3b8)]"
                         required
                         autoComplete="current-password"
                       />
                     </div>
-                    <button type="submit" disabled={loading} class="dev-login-btn">
+                    <button type="submit" disabled={loading} class="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-br from-amber-400 to-amber-600 text-white border-none rounded-[14px] text-sm font-bold cursor-pointer transition-all duration-200 uppercase tracking-wide hover:enabled:-translate-y-px hover:enabled:shadow-[0_4px_12px_rgba(245,158,11,0.4)] disabled:opacity-60 disabled:cursor-not-allowed">
                       {loading ? (
-                        <Loader2 size={16} strokeWidth={2} class="spinner" />
+                        <Loader2 size={16} strokeWidth={2} class="animate-spin" />
                       ) : (
                         <Zap size={16} strokeWidth={2} />
                       )}
@@ -235,8 +239,8 @@ export function LoginForm({ urlError }: LoginFormProps) {
               )}
 
               {translatedError && (
-                <div class="message error">
-                  <p>{translatedError}</p>
+                <div class="mt-5 py-3.5 px-4 rounded-xl text-sm text-center bg-red-500/10 border border-red-500/20">
+                  <p class="text-[var(--data-red,#ef4444)] m-0">{translatedError}</p>
                 </div>
               )}
             </>
@@ -244,342 +248,22 @@ export function LoginForm({ urlError }: LoginFormProps) {
         </div>
 
         {/* Back Link */}
-        <a href="/" class="back-link">
+        <a href="/" class="flex items-center justify-center gap-1.5 mt-7 text-sm font-medium text-[var(--gray-500,#64748b)] no-underline transition-all duration-200 hover:text-[var(--blu-primary,#0066ff)]">
           <ArrowLeft size={16} strokeWidth={2} />
           <span>{t('auth.backHome')}</span>
         </a>
       </div>
 
       <style>{`
-        .login-page {
-          position: relative;
-          min-height: 100vh;
-          min-height: 100dvh;
-          background: var(--white, #dbe8f4);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 24px;
-          overflow: hidden;
-        }
-
-        .bg-decoration {
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
-          overflow: hidden;
-        }
-
-        .blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-        }
-
-        .blob-1 {
-          width: 500px;
-          height: 500px;
-          background: linear-gradient(135deg, #0066ff 0%, #0ea5e9 100%);
-          opacity: 0.25;
-          top: -150px;
-          right: -100px;
-          animation: float 20s ease-in-out infinite;
-        }
-
-        .blob-2 {
-          width: 400px;
-          height: 400px;
-          background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-          opacity: 0.2;
-          bottom: -100px;
-          left: -100px;
-          animation: float 25s ease-in-out infinite reverse;
-        }
-
-        .blob-3 {
-          width: 300px;
-          height: 300px;
-          background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
-          opacity: 0.15;
-          top: 40%;
-          left: 50%;
-          transform: translateX(-50%);
-          animation: float 18s ease-in-out infinite;
-        }
-
         @keyframes float {
           0%, 100% { transform: translate(0, 0) scale(1); }
           33% { transform: translate(30px, -30px) scale(1.05); }
           66% { transform: translate(-20px, 20px) scale(0.95); }
         }
 
-        .login-container {
-          position: relative;
-          z-index: 1;
-          width: 100%;
-          max-width: 400px;
-          opacity: 0;
-          transform: translateY(20px);
-          transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-                      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .login-container.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .login-header {
-          text-align: center;
-          margin-bottom: 32px;
-        }
-
-        .login-title {
-          font-family: var(--font-display, system-ui);
-          font-size: 32px;
-          font-weight: 700;
-          color: var(--blu-primary, #0066ff);
-          margin: 0;
-          letter-spacing: -0.02em;
-        }
-
-        .login-subtitle {
-          margin-top: 8px;
-          font-size: 16px;
-          color: var(--gray-500, #64748b);
-        }
-
-        .login-card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          padding: 32px;
-          border-radius: 24px;
-          border: 1px solid rgba(255, 255, 255, 0.8);
-          box-shadow: 0 4px 24px rgba(0, 102, 255, 0.08),
-                      0 1px 3px rgba(0, 0, 0, 0.04);
-        }
-
-        .form-group {
-          margin-bottom: 20px;
-        }
-
-        .form-label {
-          display: block;
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--gray-700, #334155);
-          margin-bottom: 8px;
-        }
-
-        .form-input {
-          width: 100%;
-          padding: 14px 16px;
-          border: 1px solid var(--gray-200, #e2e8f0);
-          background: rgba(255, 255, 255, 0.8);
-          color: var(--gray-900, #0f172a);
-          border-radius: 14px;
-          font-size: 16px;
-          outline: none;
-          transition: all 0.2s ease;
-          box-sizing: border-box;
-        }
-
-        .form-input:focus {
-          border-color: var(--blu-primary, #0066ff);
-          background: rgba(255, 255, 255, 1);
-          box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.1);
-        }
-
-        .form-input::placeholder {
-          color: var(--gray-400, #94a3b8);
-        }
-
-        .submit-btn {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          padding: 16px 24px;
-          background: linear-gradient(135deg, var(--blu-primary, #0066ff) 0%, #0ea5e9 100%);
-          color: white;
-          border: none;
-          border-radius: 14px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 4px 16px rgba(0, 102, 255, 0.3);
-        }
-
-        .submit-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 24px rgba(0, 102, 255, 0.4);
-        }
-
-        .submit-btn:active:not(:disabled) {
-          transform: scale(0.98);
-        }
-
-        .submit-btn:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .spinner {
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        .success-state {
-          text-align: center;
-          padding: 24px 0;
-        }
-
-        .success-icon {
-          width: 72px;
-          height: 72px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(14, 165, 233, 0.1) 100%);
-          border-radius: 50%;
-          color: var(--data-green, #10b981);
-          margin: 0 auto 20px;
-        }
-
-        .success-title {
-          font-family: var(--font-display, system-ui);
-          font-size: 20px;
-          font-weight: 700;
-          color: var(--gray-900, #0f172a);
-          margin: 0 0 8px;
-        }
-
-        .success-text {
-          font-size: 15px;
-          color: var(--gray-500, #64748b);
-          margin: 0;
-          line-height: 1.5;
-        }
-
-        .resend-section {
-          margin-top: 24px;
-          padding-top: 20px;
-          border-top: 1px solid var(--gray-200, #e2e8f0);
-        }
-
-        .resend-timer {
-          font-size: 14px;
-          color: var(--gray-500, #64748b);
-          margin: 0;
-        }
-
-        .countdown {
-          font-weight: 600;
-          color: var(--blu-primary, #0066ff);
-          font-variant-numeric: tabular-nums;
-        }
-
-        .resend-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 12px 20px;
-          background: transparent;
-          color: var(--blu-primary, #0066ff);
-          border: 1px solid var(--blu-primary, #0066ff);
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .resend-btn:hover:not(:disabled) {
-          background: rgba(0, 102, 255, 0.05);
-        }
-
-        .resend-btn:active:not(:disabled) {
-          transform: scale(0.98);
-        }
-
-        .resend-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .terms-notice {
-          font-size: 12px;
-          color: var(--gray-400, #94a3b8);
-          text-align: center;
-          margin: 16px 0 0;
-          line-height: 1.5;
-        }
-
-        .terms-notice a {
-          color: var(--gray-500, #64748b);
-          text-decoration: underline;
-        }
-
-        .terms-notice a:hover {
-          color: var(--blu-primary, #0066ff);
-        }
-
-        .message {
-          margin-top: 20px;
-          padding: 14px 16px;
-          border-radius: 12px;
-          font-size: 14px;
-          text-align: center;
-        }
-
-        .message.error {
-          background: rgba(239, 68, 68, 0.1);
-          border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .message.error p {
-          color: var(--data-red, #ef4444);
-          margin: 0;
-        }
-
-        .back-link {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          margin-top: 28px;
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--gray-500, #64748b);
-          text-decoration: none;
-          transition: all 0.2s ease;
-        }
-
-        .back-link:hover {
-          color: var(--blu-primary, #0066ff);
-        }
-
-        .dev-login-section {
-          margin-top: 20px;
-        }
-
-        .dev-login-divider {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 16px;
-        }
+        .blob-1 { animation: float 20s ease-in-out infinite; }
+        .blob-2 { animation: float 25s ease-in-out infinite reverse; }
+        .blob-3 { animation: float 18s ease-in-out infinite; }
 
         .dev-login-divider::before,
         .dev-login-divider::after {
@@ -595,58 +279,18 @@ export function LoginForm({ urlError }: LoginFormProps) {
           );
         }
 
-        .dev-login-divider span {
-          font-size: 11px;
-          font-weight: 700;
-          color: #b45309;
-          letter-spacing: 0.1em;
-          white-space: nowrap;
-        }
-
-        .dev-login-btn {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 12px 20px;
-          background: linear-gradient(135deg, #f59e0b, #d97706);
-          color: white;
-          border: none;
-          border-radius: 14px;
-          font-size: 14px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .dev-login-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-        }
-
-        .dev-login-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
         @media (prefers-reduced-motion: reduce) {
           .login-container {
-            opacity: 1;
-            transform: none;
-            transition: none;
+            opacity: 1 !important;
+            transform: none !important;
+            transition: none !important;
           }
-          .blob { animation: none; }
-          .spinner { animation: none; }
+          .blob { animation: none !important; }
         }
 
         @media (max-width: 480px) {
           .login-page { padding: 20px; }
-          .login-card { padding: 24px; border-radius: 20px; }
-          .form-input { padding: 16px; }
-          .submit-btn { padding: 16px 20px; }
+          .login-page .dev-login-divider ~ form input { padding: 12px 14px; }
         }
       `}</style>
     </div>
