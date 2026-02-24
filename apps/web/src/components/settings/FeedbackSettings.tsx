@@ -52,14 +52,14 @@ export function FeedbackSettings() {
 
   if (isSubmitted) {
     return (
-      <main className="min-h-screen bg-transparent">
+      <main class="min-h-screen bg-transparent">
         {renderHeader()}
-        <div className="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col justify-center gap-[var(--section-gap,24px)] min-h-[calc(100vh-80px)] pb-[100px]">
-          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <div className="w-[88px] h-[88px] flex items-center justify-center bg-[rgba(0,102,255,0.08)] rounded-full text-[var(--blu-primary,#0066ff)] mb-5">
+        <div class="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col justify-center gap-[var(--section-gap,24px)] min-h-[calc(100vh-80px)] pb-[100px]">
+          <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <div class="w-[88px] h-[88px] flex items-center justify-center bg-[rgba(0,102,255,0.08)] rounded-full text-[var(--blu-primary,#0066ff)] mb-5">
               <CheckCircle size={48} strokeWidth={1.5} />
             </div>
-            <p className="text-base font-medium text-[var(--gray-600,#475569)] m-0 leading-[1.5]">
+            <p class="text-base font-medium text-[var(--gray-600,#475569)] m-0 leading-normal">
               {t('feedback.thanks')}
             </p>
           </div>
@@ -69,16 +69,16 @@ export function FeedbackSettings() {
   }
 
   return (
-    <main className="min-h-screen bg-transparent">
+    <main class="min-h-screen bg-transparent">
       {renderHeader()}
 
-      <div className="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col justify-center gap-[var(--section-gap,24px)] min-h-[calc(100vh-80px)] pb-[100px]">
-        <div className="flex flex-wrap gap-2">
+      <div class="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col justify-center gap-[var(--section-gap,24px)] min-h-[calc(100vh-80px)] pb-[100px]">
+        <div class="flex flex-wrap gap-2">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
-              className={cn(
-                'px-[18px] py-2 bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[8px] border border-[var(--glass-white-30,rgba(255,255,255,0.3))] rounded-full text-sm font-medium text-[var(--gray-600,#475569)] cursor-pointer transition-all duration-150',
+              class={cn(
+                'py-2 px-[18px] bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[8px] border border-[var(--glass-white-30,rgba(255,255,255,0.3))] rounded-full text-sm font-medium text-[var(--gray-600,#475569)] cursor-pointer transition-all duration-[var(--duration-fast,150ms)] ease-linear',
                 category === cat && 'bg-[var(--blu-primary,#0066ff)] border-[var(--blu-primary,#0066ff)] text-white'
               )}
               onClick={() => setCategory(cat)}
@@ -89,10 +89,10 @@ export function FeedbackSettings() {
           ))}
         </div>
 
-        <div className="relative">
+        <div class="relative">
           <textarea
-            className={cn(
-              'w-full min-h-[160px] p-4 bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[12px] border border-[var(--glass-white-30,rgba(255,255,255,0.3))] rounded-[var(--radius-input,12px)] font-[inherit] text-[15px] leading-[1.6] text-[var(--gray-900,#0f172a)] resize-y transition-[border-color] duration-150 box-border',
+            class={cn(
+              'w-full min-h-[160px] p-4 bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[12px] border border-[var(--glass-white-30,rgba(255,255,255,0.3))] rounded-[var(--radius-input,12px)] font-[inherit] text-[15px] leading-[1.6] text-[var(--gray-900,#0f172a)] resize-y transition-[border-color] duration-[var(--duration-fast,150ms)] ease-linear box-border',
               isOverLimit && 'border-[var(--red-500,#ef4444)]'
             )}
             value={comment}
@@ -102,7 +102,7 @@ export function FeedbackSettings() {
             maxLength={MAX_CHARS}
           />
           <div
-            className={cn(
+            class={cn(
               'absolute bottom-3 right-3.5 text-xs text-[var(--gray-400,#94a3b8)] pointer-events-none',
               isOverLimit && 'text-[var(--red-500,#ef4444)]'
             )}
@@ -112,8 +112,8 @@ export function FeedbackSettings() {
         </div>
 
         <button
-          className={cn(
-            'flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-[var(--blu-primary,#0066ff)] border-none rounded-[var(--radius-button,14px)] text-[15px] font-semibold text-white cursor-pointer transition-all duration-150',
+          class={cn(
+            'flex items-center justify-center gap-2 w-full py-3.5 px-6 bg-[var(--blu-primary,#0066ff)] border-none rounded-[var(--radius-button,14px)] text-[15px] font-semibold text-white cursor-pointer transition-all duration-[var(--duration-fast,150ms)] ease-linear',
             !canSubmit && 'opacity-50 cursor-not-allowed'
           )}
           onClick={handleSubmit}

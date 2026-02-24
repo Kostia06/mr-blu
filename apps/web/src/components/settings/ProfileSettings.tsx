@@ -6,7 +6,6 @@ import { FormSection } from '@/components/forms/FormSection';
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader';
 import { useI18nStore } from '@/lib/i18n';
 import { updateProfile, updateEmail } from '@/lib/api/user';
-import { cn } from '@/lib/utils';
 
 interface ProfileSettingsProps {
   user: User | null;
@@ -85,23 +84,21 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
     }
   }
 
+  const saveBtnStyle: Record<string, string | number> = {
+    ...styles.saveBtn,
+    ...(saved ? styles.saveBtnSaved : {}),
+    ...(saving ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
+  };
+
   return (
-    <main className="min-h-screen bg-transparent">
+    <main style={styles.page}>
       <SettingsPageHeader
         title={t('profile.title')}
         backLabel={t('common.backToSettings')}
         right={
-          <button
-            className={cn(
-              'min-w-[72px] h-9 px-4 flex items-center justify-center gap-1.5 bg-[var(--blu-primary,#0066ff)] border-none rounded-[var(--radius-input,12px)] text-white text-sm font-semibold cursor-pointer',
-              saved && 'bg-[var(--data-green,#10b981)]',
-              saving && 'opacity-70 cursor-not-allowed'
-            )}
-            onClick={handleSave}
-            disabled={saving}
-          >
+          <button style={saveBtnStyle} onClick={handleSave} disabled={saving}>
             {saving ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
             ) : saved ? (
               <Check size={16} strokeWidth={2.5} />
             ) : (
@@ -111,7 +108,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
         }
       />
 
-      <div className="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col gap-[var(--section-gap,24px)] pb-[100px]">
+      <div style={styles.pageContent}>
         <FormSection title={t('profile.personalInfo')} variant="card">
           <FormInput
             label={t('profile.firstName')}
@@ -144,21 +141,17 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
           description={t('profile.emailDesc')}
           variant="card"
         >
-          <div className="flex items-center gap-3.5 px-4 py-3.5 bg-transparent rounded-[var(--radius-input,12px)]">
-            <div className="flex items-center justify-center w-11 h-11 bg-[var(--white,#dbe8f4)] rounded-[var(--radius-input,12px)] text-[var(--blu-primary,#0066ff)] shrink-0">
+          <div style={styles.emailDisplay}>
+            <div style={styles.emailIcon}>
               <Mail size={20} strokeWidth={1.5} />
             </div>
-            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-              <span className="text-[15px] font-medium text-[var(--gray-900,#0f172a)] whitespace-nowrap overflow-hidden text-ellipsis">
-                {email}
-              </span>
-              <span className="text-xs text-[var(--gray-500,#64748b)]">
-                {t('profile.primaryEmail')}
-              </span>
+            <div style={styles.emailInfo}>
+              <span style={styles.emailValue}>{email}</span>
+              <span style={styles.emailLabel}>{t('profile.primaryEmail')}</span>
             </div>
             <button
               type="button"
-              className="px-3.5 py-2 bg-white/50 border-none rounded-[var(--radius-input,12px)] text-[var(--gray-600,#475569)] text-[13px] font-medium cursor-pointer shrink-0"
+              style={styles.changeBtn}
               onClick={() => setShowEmailChange(!showEmailChange)}
             >
               {showEmailChange ? t('common.cancel') : t('profile.change')}
@@ -166,7 +159,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
           </div>
 
           {showEmailChange && (
-            <div className="flex flex-col gap-4 p-4 bg-transparent rounded-[var(--radius-input,12px)] mt-3">
+            <div style={styles.emailChangePanel}>
               <FormInput
                 label={t('profile.newEmail')}
                 name="newEmail"
@@ -178,16 +171,16 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
               />
               <button
                 type="button"
-                className={cn(
-                  'flex items-center justify-center gap-2 px-5 py-3.5 bg-[var(--blu-primary,#0066ff)] border-none rounded-[var(--radius-button,14px)] text-white text-sm font-semibold cursor-pointer',
-                  (emailChanging || !newEmail) && 'opacity-60 cursor-not-allowed'
-                )}
+                style={{
+                  ...styles.confirmBtn,
+                  ...(emailChanging || !newEmail ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
+                }}
                 onClick={handleEmailChange}
                 disabled={emailChanging || !newEmail}
               >
                 {emailChanging ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
                     <span>{t('docDetail.sending')}</span>
                   </>
                 ) : (
@@ -202,18 +195,151 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
         </FormSection>
 
         {successMessage && (
-          <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-[var(--radius-button,14px)] text-sm font-medium bg-[var(--status-paid-bg,rgba(16,185,129,0.1))] text-[var(--data-green,#10b981)]">
+          <div style={styles.messageSuccess}>
             <Check size={18} strokeWidth={2.5} />
             <span>{successMessage}</span>
           </div>
         )}
 
         {error && (
-          <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-[var(--radius-button,14px)] text-sm font-medium bg-[var(--status-overdue-bg,rgba(239,68,68,0.1))] text-[var(--data-red,#ef4444)]">
+          <div style={styles.messageError}>
             <span>{error}</span>
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </main>
   );
 }
+
+const styles: Record<string, Record<string, string | number>> = {
+  page: {
+    minHeight: '100vh',
+    background: 'transparent',
+  },
+  saveBtn: {
+    minWidth: 72,
+    height: 36,
+    padding: '0 16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    background: 'var(--blu-primary, #0066ff)',
+    border: 'none',
+    borderRadius: 'var(--radius-input, 12px)',
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  saveBtnSaved: {
+    background: 'var(--data-green, #10b981)',
+  },
+  pageContent: {
+    padding: 'var(--page-padding-x, 20px)',
+    maxWidth: 'var(--page-max-width, 600px)',
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--section-gap, 24px)',
+    paddingBottom: 100,
+  },
+  emailDisplay: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    padding: '14px 16px',
+    background: 'transparent',
+    borderRadius: 'var(--radius-input, 12px)',
+  },
+  emailIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    background: 'var(--white, #dbe8f4)',
+    borderRadius: 'var(--radius-input, 12px)',
+    color: 'var(--blu-primary, #0066ff)',
+    flexShrink: 0,
+  },
+  emailInfo: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+  },
+  emailValue: {
+    fontSize: 15,
+    fontWeight: 500,
+    color: 'var(--gray-900, #0f172a)',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  emailLabel: {
+    fontSize: 12,
+    color: 'var(--gray-500, #64748b)',
+  },
+  changeBtn: {
+    padding: '8px 14px',
+    background: 'rgba(255,255,255,0.5)',
+    border: 'none',
+    borderRadius: 'var(--radius-input, 12px)',
+    color: 'var(--gray-600, #475569)',
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  emailChangePanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+    padding: 16,
+    background: 'transparent',
+    borderRadius: 'var(--radius-input, 12px)',
+    marginTop: 12,
+  },
+  confirmBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: '14px 20px',
+    background: 'var(--blu-primary, #0066ff)',
+    border: 'none',
+    borderRadius: 'var(--radius-button, 14px)',
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  messageSuccess: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-button, 14px)',
+    fontSize: 14,
+    fontWeight: 500,
+    background: 'var(--status-paid-bg, rgba(16,185,129,0.1))',
+    color: 'var(--data-green, #10b981)',
+  },
+  messageError: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-button, 14px)',
+    fontSize: 14,
+    fontWeight: 500,
+    background: 'var(--status-overdue-bg, rgba(239,68,68,0.1))',
+    color: 'var(--data-red, #ef4444)',
+  },
+};

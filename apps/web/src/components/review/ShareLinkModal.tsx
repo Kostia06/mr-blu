@@ -44,51 +44,39 @@ export function ShareLinkModal({ open, linkUrl, documentType, onClose }: ShareLi
   if (!open) return null;
 
   return (
-    <div
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-5"
-      onClick={onClose}
-      role="presentation"
-    >
+    <div style={styles.modalOverlay} onClick={onClose} role="presentation">
       <div
-        class="bg-[var(--white)] rounded-2xl p-6 max-w-[480px] w-full relative shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
+        style={styles.modalContent}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
       >
-        <button
-          class="absolute top-4 right-4 bg-transparent border-none text-[var(--gray-500)] cursor-pointer p-1 rounded-md transition-all duration-150 hover:bg-[var(--gray-100)]"
-          onClick={onClose}
-        >
+        <button style={styles.modalClose} onClick={onClose}>
           <X size={20} />
         </button>
 
-        <div class="flex items-center gap-3 mb-4">
-          <Link size={24} class="text-blue-500" />
-          <h3 class="text-lg font-semibold text-slate-800 m-0">
-            {t('review.shareLinkCreated')}
-          </h3>
+        <div style={styles.modalHeader}>
+          <Link size={24} style={{ color: '#3b82f6' }} />
+          <h3 style={styles.modalHeaderTitle}>{t('review.shareLinkCreated')}</h3>
         </div>
 
-        <div class="flex flex-col gap-4">
-          <p class="text-sm text-[var(--gray-500)] m-0">
+        <div style={styles.modalBody}>
+          <p style={styles.modalDescription}>
             {t('review.anyoneCanView', { type: documentType })}
           </p>
 
-          <div class="border border-[var(--gray-200)] rounded-lg p-1">
+          <div style={styles.linkDisplay}>
             <input
               type="text"
               readOnly
               value={linkUrl || ''}
-              class="w-full border-none bg-transparent px-3 py-2.5 text-[13px] text-slate-800 font-mono outline-none"
+              style={styles.linkInput}
             />
           </div>
 
-          <div class="flex gap-2.5">
-            <button
-              class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-[10px] text-sm font-medium cursor-pointer transition-all duration-150 bg-[var(--gray-100)] border border-[var(--gray-200)] text-[var(--gray-600)] hover:bg-[var(--gray-200)]"
-              onClick={copyLink}
-            >
+          <div style={styles.modalActions}>
+            <button style={styles.modalBtnSecondary} onClick={copyLink}>
               {copied ? (
                 <>
                   <Check size={16} />
@@ -101,17 +89,14 @@ export function ShareLinkModal({ open, linkUrl, documentType, onClose }: ShareLi
                 </>
               )}
             </button>
-            <button
-              class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-[10px] text-sm font-medium cursor-pointer transition-all duration-150 bg-blue-500 border-none text-white hover:bg-blue-600"
-              onClick={openPreview}
-            >
+            <button style={styles.modalBtnPrimary} onClick={openPreview}>
               <ExternalLink size={16} />
               {t('review.openPreview')}
             </button>
           </div>
         </div>
 
-        <p class="flex items-center gap-1.5 text-xs text-[var(--gray-400)] m-0 mt-4 pt-4 border-t border-slate-100">
+        <p style={styles.modalFooterNote}>
           <HelpCircle size={14} />
           {t('review.noLoginRequired')}
         </p>
@@ -119,3 +104,121 @@ export function ShareLinkModal({ open, linkUrl, documentType, onClose }: ShareLi
     </div>
   );
 }
+
+const styles: Record<string, Record<string, string>> = {
+  modalOverlay: {
+    position: 'fixed',
+    inset: '0',
+    background: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: '1000',
+    padding: '20px',
+  },
+  modalContent: {
+    background: 'var(--white)',
+    borderRadius: '16px',
+    padding: '24px',
+    maxWidth: '480px',
+    width: '100%',
+    position: 'relative',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    background: 'none',
+    border: 'none',
+    color: 'var(--gray-500)',
+    cursor: 'pointer',
+    padding: '4px',
+    borderRadius: '6px',
+    transition: 'all 0.15s ease',
+  },
+  modalHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '16px',
+  },
+  modalHeaderTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#1e293b',
+    margin: '0',
+  },
+  modalBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  modalDescription: {
+    fontSize: '14px',
+    color: 'var(--gray-500)',
+    margin: '0',
+  },
+  linkDisplay: {
+    background: 'transparent',
+    border: '1px solid var(--gray-200)',
+    borderRadius: '8px',
+    padding: '4px',
+  },
+  linkInput: {
+    width: '100%',
+    border: 'none',
+    background: 'transparent',
+    padding: '10px 12px',
+    fontSize: '13px',
+    color: '#1e293b',
+    fontFamily: 'ui-monospace, monospace',
+    outline: 'none',
+  },
+  modalActions: {
+    display: 'flex',
+    gap: '10px',
+  },
+  modalBtnSecondary: {
+    flex: '1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '12px 16px',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+    background: 'var(--gray-100)',
+    border: '1px solid var(--gray-200)',
+    color: 'var(--gray-600)',
+  },
+  modalBtnPrimary: {
+    flex: '1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '12px 16px',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+    background: '#3b82f6',
+    border: 'none',
+    color: 'white',
+  },
+  modalFooterNote: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '12px',
+    color: 'var(--gray-400)',
+    margin: '16px 0 0',
+    paddingTop: '16px',
+    borderTop: '1px solid #f1f5f9',
+  },
+};

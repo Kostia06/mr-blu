@@ -1,5 +1,4 @@
 import { useState, useRef } from 'preact/hooks';
-import { cn } from '@/lib/utils';
 import { useI18nStore } from '@/lib/i18n';
 import {
   Plus,
@@ -243,16 +242,22 @@ export function ReviewLineItems({
 
   function renderMeasurementInputs(item: LineItem) {
     const type = item.measurementType;
-    const fieldClass = 'flex flex-col gap-1.5';
-    const labelClass = 'text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide';
-    const inputClass = 'px-3 py-2.5 border border-[var(--gray-200)] rounded-lg text-sm text-[var(--gray-900)] bg-[var(--white)] transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.08)] focus:bg-[var(--white)]';
 
     if (type === 'service' || type === 'job') {
       return (
-        <div class="flex gap-2.5">
-          <div class={cn(fieldClass, 'flex-1')}>
-            <label for={`item-total-${item.id}`} class={labelClass}>{t('review.total')}</label>
-            <input id={`item-total-${item.id}`} type="number" value={item.total} onInput={(e) => handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)} min="0" step="0.01" class={inputClass} />
+        <div class="edit-row">
+          <div class="edit-field" style={{ flex: 1 }}>
+            <label for={`item-total-${item.id}`}>{t('review.total')}</label>
+            <input
+              id={`item-total-${item.id}`}
+              type="number"
+              value={item.total}
+              onInput={(e) =>
+                handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)
+              }
+              min="0"
+              step="0.01"
+            />
           </div>
         </div>
       );
@@ -261,66 +266,270 @@ export function ReviewLineItems({
     if (type === 'sqft') {
       return (
         <>
-          <div class="flex items-center gap-3 py-2.5 mt-1 border-t border-dashed border-slate-200">
-            <span class="text-xs font-medium text-[var(--gray-500)] whitespace-nowrap">{t('review.dimensions')}</span>
-            <div class="flex items-center gap-2 flex-1">
-              <input type="number" class="w-[60px] px-2 py-1.5 border border-gray-300 rounded-md text-[13px] text-center focus:outline-none focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.1)]" value={item.dimensions?.width ?? ''} onInput={(e) => handleDimensionWidthInput(item, (e.target as HTMLInputElement).value)} placeholder="W" min="0" step="0.1" />
-              <span class="text-gray-400 font-medium">{'\u00d7'}</span>
-              <input type="number" class="w-[60px] px-2 py-1.5 border border-gray-300 rounded-md text-[13px] text-center focus:outline-none focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.1)]" value={item.dimensions?.length ?? ''} onInput={(e) => handleDimensionLengthInput(item, (e.target as HTMLInputElement).value)} placeholder="L" min="0" step="0.1" />
-              <span class="text-xs text-gray-500 ml-1">ft</span>
+          <div class="dimensions-row">
+            <span class="dimensions-label">{t('review.dimensions')}</span>
+            <div class="dimensions-inputs">
+              <input
+                type="number"
+                class="dimension-input"
+                value={item.dimensions?.width ?? ''}
+                onInput={(e) =>
+                  handleDimensionWidthInput(item, (e.target as HTMLInputElement).value)
+                }
+                placeholder="W"
+                min="0"
+                step="0.1"
+              />
+              <span class="dimension-separator">{'\u00d7'}</span>
+              <input
+                type="number"
+                class="dimension-input"
+                value={item.dimensions?.length ?? ''}
+                onInput={(e) =>
+                  handleDimensionLengthInput(item, (e.target as HTMLInputElement).value)
+                }
+                placeholder="L"
+                min="0"
+                step="0.1"
+              />
+              <span class="dimension-unit">ft</span>
               {item.dimensions?.width && item.dimensions?.length && (
-                <span class="text-xs text-[var(--data-green)] font-medium ml-2 px-2 py-1 bg-emerald-50 rounded">
+                <span class="dimension-result">
                   = {item.dimensions.width * item.dimensions.length} sqft
                 </span>
               )}
             </div>
           </div>
-          <div class="flex gap-2.5">
-            <div class={cn(fieldClass, 'flex-1')}>
-              <label for={`item-rate-${item.id}`} class={labelClass}>{t('review.rate')} /sqft</label>
-              <input id={`item-rate-${item.id}`} type="number" value={item.rate} onInput={(e) => handleFieldChangeWithTotal(item, 'rate', parseFloat((e.target as HTMLInputElement).value) || 0)} min="0" step="0.01" class={inputClass} />
+          <div class="edit-row">
+            <div class="edit-field">
+              <label for={`item-rate-${item.id}`}>{t('review.rate')} /sqft</label>
+              <input
+                id={`item-rate-${item.id}`}
+                type="number"
+                value={item.rate}
+                onInput={(e) =>
+                  handleFieldChangeWithTotal(
+                    item,
+                    'rate',
+                    parseFloat((e.target as HTMLInputElement).value) || 0
+                  )
+                }
+                min="0"
+                step="0.01"
+              />
             </div>
-            <div class={cn(fieldClass, 'flex-1')}>
-              <label for={`item-total-${item.id}`} class={labelClass}>{t('review.total')}</label>
-              <input id={`item-total-${item.id}`} type="number" value={item.total} onInput={(e) => handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)} min="0" step="0.01" class={inputClass} />
+            <div class="edit-field">
+              <label for={`item-total-${item.id}`}>{t('review.total')}</label>
+              <input
+                id={`item-total-${item.id}`}
+                type="number"
+                value={item.total}
+                onInput={(e) =>
+                  handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)
+                }
+                min="0"
+                step="0.01"
+              />
             </div>
           </div>
         </>
       );
     }
 
-    const rateLabel = type === 'linear_ft' ? '/ft' : type === 'unit' ? '/unit' : type === 'hour' ? '/hr' : '';
-    const qtyLabel = type === 'linear_ft' ? 'Length (ft)' : type === 'unit' ? 'Count' : type === 'hour' ? 'Hours' : '';
-    const qtyStep = type === 'hour' ? '0.5' : type === 'unit' ? '1' : '0.1';
-
-    if (type === 'linear_ft' || type === 'unit' || type === 'hour') {
+    if (type === 'linear_ft') {
       return (
-        <div class="flex gap-2.5">
-          <div class={cn(fieldClass, 'flex-1')}>
-            <label for={`item-qty-${item.id}`} class={labelClass}>{qtyLabel}</label>
-            <input id={`item-qty-${item.id}`} type="number" value={item.quantity} onInput={(e) => handleFieldChangeWithTotal(item, 'quantity', parseFloat((e.target as HTMLInputElement).value) || 0)} min="0" step={qtyStep} class={inputClass} />
+        <div class="edit-row">
+          <div class="edit-field">
+            <label for={`item-qty-${item.id}`}>Length (ft)</label>
+            <input
+              id={`item-qty-${item.id}`}
+              type="number"
+              value={item.quantity}
+              onInput={(e) =>
+                handleFieldChangeWithTotal(
+                  item,
+                  'quantity',
+                  parseFloat((e.target as HTMLInputElement).value) || 0
+                )
+              }
+              min="0"
+              step="0.1"
+            />
           </div>
-          <div class={cn(fieldClass, 'flex-1')}>
-            <label for={`item-rate-${item.id}`} class={labelClass}>{t('review.rate')} {rateLabel}</label>
-            <input id={`item-rate-${item.id}`} type="number" value={item.rate} onInput={(e) => handleFieldChangeWithTotal(item, 'rate', parseFloat((e.target as HTMLInputElement).value) || 0)} min="0" step="0.01" class={inputClass} />
+          <div class="edit-field">
+            <label for={`item-rate-${item.id}`}>{t('review.rate')} /ft</label>
+            <input
+              id={`item-rate-${item.id}`}
+              type="number"
+              value={item.rate}
+              onInput={(e) =>
+                handleFieldChangeWithTotal(
+                  item,
+                  'rate',
+                  parseFloat((e.target as HTMLInputElement).value) || 0
+                )
+              }
+              min="0"
+              step="0.01"
+            />
           </div>
-          <div class={cn(fieldClass, 'flex-1')}>
-            <label for={`item-total-${item.id}`} class={labelClass}>{t('review.total')}</label>
-            <input id={`item-total-${item.id}`} type="number" value={item.total} onInput={(e) => handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)} min="0" step="0.01" class={inputClass} />
+          <div class="edit-field">
+            <label for={`item-total-${item.id}`}>{t('review.total')}</label>
+            <input
+              id={`item-total-${item.id}`}
+              type="number"
+              value={item.total}
+              onInput={(e) =>
+                handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)
+              }
+              min="0"
+              step="0.01"
+            />
           </div>
         </div>
       );
     }
 
-    return (
-      <div class="flex gap-2.5">
-        <div class={cn(fieldClass, 'flex-1')}>
-          <label for={`item-rate-${item.id}`} class={labelClass}>{t('review.rate')}</label>
-          <input id={`item-rate-${item.id}`} type="number" value={item.rate} onInput={(e) => handleFieldChangeWithTotal(item, 'rate', parseFloat((e.target as HTMLInputElement).value) || 0)} min="0" step="0.01" class={inputClass} />
+    if (type === 'unit') {
+      return (
+        <div class="edit-row">
+          <div class="edit-field">
+            <label for={`item-qty-${item.id}`}>Count</label>
+            <input
+              id={`item-qty-${item.id}`}
+              type="number"
+              value={item.quantity}
+              onInput={(e) =>
+                handleFieldChangeWithTotal(
+                  item,
+                  'quantity',
+                  parseFloat((e.target as HTMLInputElement).value) || 0
+                )
+              }
+              min="0"
+              step="1"
+            />
+          </div>
+          <div class="edit-field">
+            <label for={`item-rate-${item.id}`}>{t('review.rate')} /unit</label>
+            <input
+              id={`item-rate-${item.id}`}
+              type="number"
+              value={item.rate}
+              onInput={(e) =>
+                handleFieldChangeWithTotal(
+                  item,
+                  'rate',
+                  parseFloat((e.target as HTMLInputElement).value) || 0
+                )
+              }
+              min="0"
+              step="0.01"
+            />
+          </div>
+          <div class="edit-field">
+            <label for={`item-total-${item.id}`}>{t('review.total')}</label>
+            <input
+              id={`item-total-${item.id}`}
+              type="number"
+              value={item.total}
+              onInput={(e) =>
+                handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)
+              }
+              min="0"
+              step="0.01"
+            />
+          </div>
         </div>
-        <div class={cn(fieldClass, 'flex-1')}>
-          <label for={`item-total-${item.id}`} class={labelClass}>{t('review.total')}</label>
-          <input id={`item-total-${item.id}`} type="number" value={item.total} onInput={(e) => handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)} min="0" step="0.01" class={inputClass} />
+      );
+    }
+
+    if (type === 'hour') {
+      return (
+        <div class="edit-row">
+          <div class="edit-field">
+            <label for={`item-qty-${item.id}`}>Hours</label>
+            <input
+              id={`item-qty-${item.id}`}
+              type="number"
+              value={item.quantity}
+              onInput={(e) =>
+                handleFieldChangeWithTotal(
+                  item,
+                  'quantity',
+                  parseFloat((e.target as HTMLInputElement).value) || 0
+                )
+              }
+              min="0"
+              step="0.5"
+            />
+          </div>
+          <div class="edit-field">
+            <label for={`item-rate-${item.id}`}>{t('review.rate')} /hr</label>
+            <input
+              id={`item-rate-${item.id}`}
+              type="number"
+              value={item.rate}
+              onInput={(e) =>
+                handleFieldChangeWithTotal(
+                  item,
+                  'rate',
+                  parseFloat((e.target as HTMLInputElement).value) || 0
+                )
+              }
+              min="0"
+              step="0.01"
+            />
+          </div>
+          <div class="edit-field">
+            <label for={`item-total-${item.id}`}>{t('review.total')}</label>
+            <input
+              id={`item-total-${item.id}`}
+              type="number"
+              value={item.total}
+              onInput={(e) =>
+                handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)
+              }
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // No type selected: show rate + total (original default)
+    return (
+      <div class="edit-row">
+        <div class="edit-field">
+          <label for={`item-rate-${item.id}`}>{t('review.rate')}</label>
+          <input
+            id={`item-rate-${item.id}`}
+            type="number"
+            value={item.rate}
+            onInput={(e) =>
+              handleFieldChangeWithTotal(
+                item,
+                'rate',
+                parseFloat((e.target as HTMLInputElement).value) || 0
+              )
+            }
+            min="0"
+            step="0.01"
+          />
+        </div>
+        <div class="edit-field">
+          <label for={`item-total-${item.id}`}>{t('review.total')}</label>
+          <input
+            id={`item-total-${item.id}`}
+            type="number"
+            value={item.total}
+            onInput={(e) =>
+              handleFieldChange(item, 'total', parseFloat((e.target as HTMLInputElement).value) || 0)
+            }
+            min="0"
+            step="0.01"
+          />
         </div>
       </div>
     );
@@ -333,54 +542,46 @@ export function ReviewLineItems({
 
   return (
     <>
-      <style>{`@keyframes rliPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } } .rli-pulse { animation: rliPulse 2s ease-in-out infinite; } @keyframes rliSpin { to { transform: rotate(360deg); } } .rli-spinning { animation: rliSpin 1s linear infinite; }`}</style>
-      <div class="p-4 bg-gradient-to-br from-[rgba(0,102,255,0.06)] to-blue-500/[0.04] rounded-[var(--radius-card)]">
-        <div class="flex items-center gap-2 mb-3">
-          <span class="text-[13px] font-semibold text-[var(--gray-600)]">{itemCountLabel}</span>
+      <style>{componentStyles}</style>
+      <div class="line-items-section">
+        <div class="line-items-header">
+          <span class="items-label">{itemCountLabel}</span>
           {items.length === 0 && (
-            <div class="flex items-center justify-center w-7 h-7 bg-amber-500/[0.12] rounded-lg text-[var(--data-amber)] shrink-0 ml-auto" title="At least one line item is required">
+            <div class="inline-warning" title="At least one line item is required">
               <AlertTriangle size={16} />
             </div>
           )}
         </div>
 
         {items.length > 0 && (
-          <div class="flex flex-col gap-2 mb-3">
+          <div class="line-items-list">
             {items.map((item, index) => {
               const hasSuggestion = item.hasPricingSuggestion && item.suggestedPrice;
 
               return (
                 <div
                   key={item.id}
-                  class={cn(
-                    'bg-[var(--white)] border border-[var(--gray-200)] rounded-xl overflow-hidden transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[var(--gray-300,#cbd5e1)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
-                    hasSuggestion && 'border-blue-300 bg-sky-50'
-                  )}
+                  class={`line-item-card${hasSuggestion ? ' has-suggestion' : ''}`}
                 >
                   <button
-                    class="flex items-center gap-3 w-full px-3.5 py-3 bg-transparent border-none cursor-pointer text-left transition-[background] duration-200 hover:bg-[var(--gray-50,#f8fafc)] active:bg-[var(--gray-100,#f1f5f9)] active:scale-[0.99]"
+                    class="line-item-header"
                     onClick={() => setEditingItemId(item.id)}
                   >
-                    <span class="w-6 h-6 flex items-center justify-center bg-[var(--gray-100)] rounded-md text-xs font-semibold text-[var(--gray-500)] shrink-0">
-                      {index + 1}
-                    </span>
-                    <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                      <span class="text-sm font-medium text-[var(--gray-900)] overflow-hidden text-ellipsis whitespace-nowrap">
+                    <span class="line-item-num">{index + 1}</span>
+                    <div class="line-item-summary">
+                      <span class="line-item-desc">
                         {item.description || 'Untitled item'}
                       </span>
-                      <span class="text-xs text-[var(--gray-500)]">{formatCollapsedMeta(item)}</span>
+                      <span class="line-item-meta">{formatCollapsedMeta(item)}</span>
                     </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
+                    <div class="line-item-total-wrapper">
                       <span
-                        class={cn(
-                          'text-sm font-semibold text-[var(--data-green)] shrink-0',
-                          (!item.total || item.total === 0) && 'text-[var(--data-amber)]'
-                        )}
+                        class={`line-item-total${!item.total || item.total === 0 ? ' needs-price' : ''}`}
                       >
                         {formatCurrency(item.total)}
                       </span>
                       {hasSuggestion && (
-                        <span class="flex items-center justify-center w-[18px] h-[18px] bg-blue-100 rounded text-blue-600 rli-pulse" title="Suggested price based on history">
+                        <span class="pricing-hint" title="Suggested price based on history">
                           <Database size={12} />
                         </span>
                       )}
@@ -388,31 +589,33 @@ export function ReviewLineItems({
                   </button>
 
                   {hasSuggestion && (
-                    <div class="flex items-center justify-between px-3.5 py-2.5 bg-gradient-to-br from-blue-50 to-blue-100 border-t border-blue-200 gap-3">
-                      <div class="flex items-center gap-2 text-[13px] text-blue-800">
+                    <div class="pricing-suggestion">
+                      <div class="suggestion-content">
                         <Database size={14} />
                         <span>
                           {t('review.suggestedPrice')}:{' '}
-                          <strong class="text-blue-700">{formatCurrency(item.suggestedPrice!)}</strong>
+                          <strong>{formatCurrency(item.suggestedPrice!)}</strong>
                           {item.pricingConfidence && item.pricingConfidence >= 0.8 ? (
-                            <span class="text-[11px] px-1.5 py-0.5 rounded ml-1 bg-green-100 text-green-800">{t('review.highConfidence')}</span>
+                            <span class="confidence high">{t('review.highConfidence')}</span>
                           ) : item.pricingConfidence && item.pricingConfidence >= 0.6 ? (
-                            <span class="text-[11px] px-1.5 py-0.5 rounded ml-1 bg-amber-100 text-amber-800">{t('review.mediumConfidence')}</span>
+                            <span class="confidence medium">
+                              {t('review.mediumConfidence')}
+                            </span>
                           ) : (
-                            <span class="text-[11px] px-1.5 py-0.5 rounded ml-1 bg-red-100 text-red-900">{t('review.lowConfidence')}</span>
+                            <span class="confidence low">{t('review.lowConfidence')}</span>
                           )}
                         </span>
                       </div>
-                      <div class="flex gap-1.5">
+                      <div class="suggestion-actions">
                         <button
-                          class="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white border-none rounded-md text-xs font-medium cursor-pointer transition-all duration-150 hover:bg-blue-700"
+                          class="apply-btn"
                           onClick={() => onApplySuggestedPrice(item.id)}
                         >
                           <Check size={14} />
                           Apply
                         </button>
                         <button
-                          class="flex items-center justify-center w-7 h-7 bg-transparent text-[var(--gray-500)] border border-slate-300 rounded-md cursor-pointer transition-all duration-150 hover:bg-[var(--gray-100)] hover:text-[var(--gray-600)]"
+                          class="dismiss-btn"
                           onClick={() => onDismissPricingSuggestion(item.id)}
                         >
                           <X size={14} />
@@ -424,6 +627,7 @@ export function ReviewLineItems({
               );
             })}
           </div>
+
         )}
 
         {/* Line item edit modal */}
@@ -438,15 +642,12 @@ export function ReviewLineItems({
               title={editItem.description || 'Edit Item'}
               onClose={() => setEditingItemId(null)}
             >
-              <div class="flex flex-col gap-3.5 pt-1">
-                <div class="flex flex-wrap gap-1.5 pb-1">
+              <div class="line-item-edit">
+                <div class="measurement-chips">
                   {MEASUREMENT_CHIPS.map((chip) => (
                     <button
                       key={chip.type}
-                      class={cn(
-                        'px-3.5 py-2 border border-[var(--gray-200)] rounded-full bg-[var(--gray-100)] text-[var(--gray-600)] text-[13px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap hover:border-[var(--gray-300)] hover:bg-[var(--gray-200)]',
-                        editItem.measurementType === chip.type && 'bg-[var(--blu-primary,#0066ff)] text-[var(--white)] border-[var(--blu-primary,#0066ff)] hover:bg-[#0052cc] hover:border-[#0052cc]'
-                      )}
+                      class={`measurement-chip${editItem.measurementType === chip.type ? ' active' : ''}`}
                       onClick={() => setMeasurementType(editItem, chip.type)}
                     >
                       {chip.label}
@@ -454,10 +655,8 @@ export function ReviewLineItems({
                   ))}
                 </div>
 
-                <div class="flex flex-col gap-1.5 w-full">
-                  <label for={`item-desc-${editItem.id}`} class="text-[11px] font-medium text-[var(--gray-500)] uppercase tracking-wide">
-                    {t('review.description')}
-                  </label>
+                <div class="edit-field full">
+                  <label for={`item-desc-${editItem.id}`}>{t('review.description')}</label>
                   <input
                     id={`item-desc-${editItem.id}`}
                     type="text"
@@ -468,27 +667,26 @@ export function ReviewLineItems({
                       })
                     }
                     placeholder={t('placeholder.description')}
-                    class="px-3 py-2.5 border border-[var(--gray-200)] rounded-lg text-sm text-[var(--gray-900)] bg-[var(--white)] transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.08)] focus:bg-[var(--white)]"
                   />
                 </div>
 
                 {renderMeasurementInputs(editItem)}
 
                 {editItem.material && (
-                  <div class="pt-2 border-t border-dashed border-slate-200">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-sky-50 border border-sky-200 rounded-md text-xs text-sky-700">
+                  <div class="material-info">
+                    <span class="material-tag">
                       <Database size={12} />
                       {editItem.material}
                       {editItem.measurementType && (
-                        <span class="text-[var(--gray-500)]">({editItem.measurementType})</span>
+                        <span class="measurement-type">({editItem.measurementType})</span>
                       )}
                     </span>
                   </div>
                 )}
 
-                <div class="flex justify-end pt-2 border-t border-[var(--gray-200)]">
+                <div class="edit-actions">
                   <button
-                    class="flex items-center gap-1.5 px-4 py-2.5 bg-transparent border border-red-200 rounded-[10px] text-red-600 text-[13px] font-medium cursor-pointer transition-all duration-150 hover:bg-red-500/[0.08] hover:border-red-400 active:scale-[0.97] active:bg-red-500/[0.12]"
+                    class="delete-item-btn"
                     onClick={() => {
                       onRemoveItem(editItem.id);
                       setEditingItemId(null);
@@ -504,16 +702,16 @@ export function ReviewLineItems({
         })()}
 
         {items.length > 0 && (
-          <div class="bg-[var(--white)] border border-[var(--gray-200)] rounded-xl px-3.5 py-3 mb-3 flex flex-col gap-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[13px] text-[var(--gray-500)] font-medium">{t('review.subtotal')}</span>
-              <span class="text-[13px] text-[var(--gray-700)] font-medium text-right">{formatCurrency(calculatedSubtotal)}</span>
+          <div class="tax-summary">
+            <div class="tax-row">
+              <span class="tax-label">{t('review.subtotal')}</span>
+              <span class="tax-value">{formatCurrency(calculatedSubtotal)}</span>
             </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-[13px] text-[var(--gray-500)] font-medium">{t('review.tax')}</span>
-              <span class="text-[13px] text-[var(--gray-700)] font-medium text-right">{formatCurrency(calculatedTaxAmount)}</span>
+            <div class="tax-row tax-rate-row">
+              <span class="tax-label">{t('review.tax')}</span>
+              <span class="tax-value">{formatCurrency(calculatedTaxAmount)}</span>
             </div>
-            <div class="flex flex-wrap gap-1.5">
+            <div class="tax-chips-row">
               {TAX_PRESETS.map((preset) => {
                 const isActive =
                   preset.rate === null
@@ -522,10 +720,7 @@ export function ReviewLineItems({
                 return (
                   <button
                     key={preset.label}
-                    class={cn(
-                      'flex items-center gap-1 px-3 py-1.5 border border-[var(--gray-200)] rounded-full bg-[var(--gray-100)] text-[var(--gray-600)] text-xs font-medium cursor-pointer transition-all duration-150 hover:border-[var(--gray-300)] hover:bg-[var(--gray-200)]',
-                      isActive && 'bg-[var(--blu-primary,#0066ff)] text-[var(--white)] border-[var(--blu-primary,#0066ff)] hover:bg-[#0052cc] hover:border-[#0052cc]'
-                    )}
+                    class={`tax-chip${isActive ? ' active' : ''}`}
                     onClick={() => {
                       if (preset.rate === null) {
                         setShowCustomTaxInput(true);
@@ -536,17 +731,17 @@ export function ReviewLineItems({
                     }}
                   >
                     {preset.label}
-                    {preset.rate !== null && <span class="text-[11px] opacity-80">{preset.rate}%</span>}
+                    {preset.rate !== null && <span class="tax-chip-rate">{preset.rate}%</span>}
                   </button>
                 );
               })}
             </div>
             {showCustomTaxInput && (
-              <div class="flex items-center gap-2">
-                <div class="flex items-center gap-1 ml-auto mr-3">
+              <div class="tax-custom-input-row">
+                <div class="tax-rate-input-wrapper">
                   <input
                     type="number"
-                    class="w-16 px-2 py-2.5 border border-[var(--gray-200)] rounded-lg text-sm text-center text-[var(--gray-900)] bg-[var(--gray-50)] transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.08)] focus:bg-[var(--white)]"
+                    class="tax-rate-input"
                     value={taxRate ?? 0}
                     onInput={(e) => {
                       const val = parseFloat((e.target as HTMLInputElement).value);
@@ -557,23 +752,23 @@ export function ReviewLineItems({
                     step="0.1"
                     autoFocus
                   />
-                  <span class="text-xs text-[var(--gray-400)] font-medium">%</span>
+                  <span class="tax-percent">%</span>
                 </div>
               </div>
             )}
-            <div class="flex items-center justify-between pt-2 border-t border-[var(--gray-200)]">
-              <span class="text-[13px] text-[var(--gray-500)] font-medium">{t('review.total')}</span>
-              <span class="text-[15px] font-bold text-[var(--data-green)] text-right">{formatCurrency(calculatedTotal)}</span>
+            <div class="tax-row tax-total-row">
+              <span class="tax-label">{t('review.total')}</span>
+              <span class="tax-value total">{formatCurrency(calculatedTotal)}</span>
             </div>
           </div>
         )}
 
         {showAddSearch ? (
-          <div class="flex flex-col gap-2 bg-[var(--white)] border border-[var(--blu-primary,#0066ff)] rounded-xl p-3 shadow-[0_0_0_3px_rgba(0,102,255,0.08)]">
-            <div class="flex items-center gap-2">
-              <Search size={14} class="text-[var(--gray-400)] shrink-0" />
+          <div class="add-item-search">
+            <div class="add-search-input-wrapper">
+              <Search size={14} class="add-search-icon" />
               <input
-                class="flex-1 border-none outline-none text-sm text-[var(--gray-900)] bg-transparent font-inherit placeholder:text-[var(--gray-400)]"
+                class="add-search-input"
                 type="text"
                 value={addSearchQuery}
                 onInput={(e) => handleAddSearchInput((e.target as HTMLInputElement).value)}
@@ -583,31 +778,28 @@ export function ReviewLineItems({
                 placeholder="Search price book..."
                 autoFocus
               />
-              <button
-                class="flex items-center justify-center w-6 h-6 bg-[var(--gray-100)] border-none rounded-md text-[var(--gray-500)] cursor-pointer shrink-0 hover:bg-[var(--gray-200)]"
-                onClick={dismissAddSearch}
-              >
+              <button class="add-search-close" onClick={dismissAddSearch}>
                 <X size={14} />
               </button>
             </div>
 
             {isSearchingPriceBook && (
-              <div class="flex items-center justify-center gap-2 p-3 text-[var(--gray-500)] text-[13px]">
-                <Loader2 size={16} class="rli-spinning" />
+              <div class="add-search-loading">
+                <Loader2 size={16} class="spinning" />
                 <span>Searching...</span>
               </div>
             )}
 
             {!isSearchingPriceBook && addSearchResults.length > 0 && (
-              <div class="flex flex-col border-t border-[var(--gray-100)] max-h-[200px] overflow-y-auto">
+              <div class="add-search-results">
                 {addSearchResults.map((item) => (
                   <button
                     key={item.id}
-                    class="flex items-center justify-between px-2 py-2.5 bg-transparent border-none border-b border-[var(--gray-100)] cursor-pointer text-left transition-[background] duration-150 hover:bg-[var(--gray-50)] last:border-b-0"
+                    class="add-search-result-item"
                     onClick={() => handleSelectPriceItem(item)}
                   >
-                    <span class="text-sm font-medium text-[var(--gray-900)]">{item.name}</span>
-                    <span class="text-[13px] text-[var(--data-green)] font-medium whitespace-nowrap">
+                    <span class="result-item-name">{item.name}</span>
+                    <span class="result-item-price">
                       {formatCurrency(item.unit_price)}/{item.unit}
                     </span>
                   </button>
@@ -616,22 +808,16 @@ export function ReviewLineItems({
             )}
 
             {!isSearchingPriceBook && addSearchQuery.length >= 2 && addSearchResults.length === 0 && (
-              <div class="p-3 text-center text-[var(--gray-400)] text-[13px]">No items found</div>
+              <div class="add-search-empty">No items found</div>
             )}
 
-            <button
-              class="flex items-center justify-center gap-1.5 p-2.5 bg-transparent border border-dashed border-[var(--gray-300)] rounded-lg text-[var(--gray-500)] text-[13px] font-medium cursor-pointer transition-all duration-150 hover:bg-[var(--gray-50)] hover:border-[var(--gray-400)] hover:text-[var(--gray-700)]"
-              onClick={handleAddCustomItem}
-            >
+            <button class="add-custom-item-btn" onClick={handleAddCustomItem}>
               <Plus size={14} />
               Add custom item
             </button>
           </div>
         ) : (
-          <button
-            class="flex items-center justify-center gap-2 w-full py-3.5 bg-[rgba(0,102,255,0.04)] border-[1.5px] border-dashed border-[rgba(0,102,255,0.25)] rounded-xl text-[var(--blu-primary,#0066ff)] text-sm font-medium cursor-pointer transition-all duration-150 hover:bg-[rgba(0,102,255,0.08)] hover:border-[var(--blu-primary,#0066ff)] active:scale-[0.98] active:bg-[rgba(0,102,255,0.12)]"
-            onClick={handleAddItem}
-          >
+          <button class="add-item-btn" onClick={handleAddItem}>
             <Plus size={16} />
             {t('review.addLineItem')}
           </button>
@@ -640,3 +826,744 @@ export function ReviewLineItems({
     </>
   );
 }
+
+const componentStyles = `
+  .line-items-section {
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.06), rgba(59, 130, 246, 0.04));
+    border-radius: var(--radius-card);
+  }
+
+  .line-items-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .line-items-header .items-label {
+    margin-bottom: 0;
+  }
+
+  .items-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-600);
+  }
+
+  .inline-warning {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(245, 158, 11, 0.12);
+    border-radius: 8px;
+    color: var(--data-amber);
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .line-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .line-item-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .line-item-card:hover {
+    border-color: var(--gray-300, #cbd5e1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .line-item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+  }
+
+  .line-item-header:hover {
+    background: var(--gray-50, #f8fafc);
+  }
+
+  .line-item-header:active {
+    background: var(--gray-100, #f1f5f9);
+    transform: scale(0.99);
+  }
+
+  .line-item-num {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-100);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+    flex-shrink: 0;
+  }
+
+  .line-item-summary {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .line-item-desc {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-900);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .line-item-meta {
+    font-size: 12px;
+    color: var(--gray-500);
+  }
+
+  .line-item-total {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--data-green);
+    flex-shrink: 0;
+  }
+
+  .line-item-total.needs-price {
+    color: var(--data-amber);
+  }
+
+  .line-item-total-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .pricing-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: #dbeafe;
+    border-radius: 4px;
+    color: #2563eb;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .line-item-card.has-suggestion {
+    border-color: #93c5fd;
+    background: #f0f9ff;
+  }
+
+  .pricing-suggestion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-top: 1px solid #bfdbfe;
+    gap: 12px;
+  }
+
+  .suggestion-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #1e40af;
+  }
+
+  .suggestion-content strong {
+    color: #1d4ed8;
+  }
+
+  .suggestion-content .confidence {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+  }
+
+  .confidence.high {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .confidence.medium {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .confidence.low {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .suggestion-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .suggestion-actions .apply-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .suggestion-actions .apply-btn:hover {
+    background: #1d4ed8;
+  }
+
+  .suggestion-actions .dismiss-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    color: var(--gray-500);
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .suggestion-actions .dismiss-btn:hover {
+    background: var(--gray-100);
+    color: var(--gray-600);
+  }
+
+  .material-info {
+    padding-top: 8px;
+    border-top: 1px dashed #e2e8f0;
+  }
+
+  .material-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #0369a1;
+  }
+
+  .material-tag .measurement-type {
+    color: var(--gray-500);
+  }
+
+  .line-item-edit {
+    padding: 4px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .line-item-edit .edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .line-item-edit .edit-field.full {
+    width: 100%;
+  }
+
+  .line-item-edit .edit-field label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .line-item-edit .edit-field input {
+    padding: 10px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--gray-900);
+    background: var(--white);
+    transition: all 0.2s ease;
+  }
+
+  .line-item-edit .edit-field input:focus {
+    outline: none;
+    border-color: var(--blu-primary, #0066ff);
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+    background: var(--white);
+  }
+
+  .line-item-edit .edit-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .line-item-edit .edit-row .edit-field {
+    flex: 1;
+  }
+
+  .dimensions-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    margin-top: 4px;
+    border-top: 1px dashed #e2e8f0;
+  }
+
+  .dimensions-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-500);
+    white-space: nowrap;
+  }
+
+  .dimensions-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .dimension-input {
+    width: 60px;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .dimension-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+
+  .dimension-separator {
+    color: #9ca3af;
+    font-weight: 500;
+  }
+
+  .dimension-unit {
+    font-size: 12px;
+    color: #6b7280;
+    margin-left: 4px;
+  }
+
+  .dimension-result {
+    font-size: 12px;
+    color: var(--data-green);
+    font-weight: 500;
+    margin-left: 8px;
+    padding: 4px 8px;
+    background: #ecfdf5;
+    border-radius: 4px;
+  }
+
+  .measurement-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+
+  .measurement-chip {
+    padding: 8px 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: 20px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .measurement-chip:hover {
+    border-color: var(--gray-300);
+    background: var(--gray-200);
+  }
+
+  .measurement-chip.active {
+    background: var(--blu-primary, #0066ff);
+    color: var(--white);
+    border-color: var(--blu-primary, #0066ff);
+  }
+
+  .measurement-chip.active:hover {
+    background: #0052cc;
+    border-color: #0052cc;
+  }
+
+  .line-item-edit .edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .delete-item-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .delete-item-btn:hover {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: #f87171;
+  }
+
+  .delete-item-btn:active {
+    transform: scale(0.97);
+    background: rgba(220, 38, 38, 0.12);
+  }
+
+  .tax-summary {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tax-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .tax-label {
+    font-size: 13px;
+    color: var(--gray-500);
+    font-weight: 500;
+  }
+
+  .tax-value {
+    font-size: 13px;
+    color: var(--gray-700);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .tax-value.total {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--data-green);
+  }
+
+  .tax-rate-row {
+    gap: 8px;
+  }
+
+  .tax-rate-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    margin-right: 12px;
+  }
+
+  .tax-rate-input {
+    width: 64px;
+    padding: 10px 8px;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    color: var(--gray-900);
+    background: var(--gray-50);
+    transition: all 0.2s ease;
+  }
+
+  .tax-rate-input:focus {
+    outline: none;
+    border-color: var(--blu-primary, #0066ff);
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+    background: var(--white);
+  }
+
+  .tax-percent {
+    font-size: 12px;
+    color: var(--gray-400);
+    font-weight: 500;
+  }
+
+  .tax-total-row {
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .add-item-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    background: rgba(0, 102, 255, 0.04);
+    border: 1.5px dashed rgba(0, 102, 255, 0.25);
+    border-radius: 12px;
+    color: var(--blu-primary, #0066ff);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .add-item-btn:hover {
+    background: rgba(0, 102, 255, 0.08);
+    border-color: var(--blu-primary, #0066ff);
+  }
+
+  .add-item-btn:active {
+    transform: scale(0.98);
+    background: rgba(0, 102, 255, 0.12);
+  }
+
+  .tax-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tax-chip {
+    padding: 6px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: 20px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .tax-chip:hover {
+    border-color: var(--gray-300);
+    background: var(--gray-200);
+  }
+
+  .tax-chip.active {
+    background: var(--blu-primary, #0066ff);
+    color: var(--white);
+    border-color: var(--blu-primary, #0066ff);
+  }
+
+  .tax-chip.active:hover {
+    background: #0052cc;
+    border-color: #0052cc;
+  }
+
+  .tax-chip-rate {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+
+  .tax-custom-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .add-item-search {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--white);
+    border: 1px solid var(--blu-primary, #0066ff);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+  }
+
+  .add-search-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .add-search-icon {
+    color: var(--gray-400);
+    flex-shrink: 0;
+  }
+
+  .add-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--gray-900);
+    background: transparent;
+    font-family: inherit;
+  }
+
+  .add-search-input::placeholder {
+    color: var(--gray-400);
+  }
+
+  .add-search-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--gray-100);
+    border: none;
+    border-radius: 6px;
+    color: var(--gray-500);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .add-search-close:hover {
+    background: var(--gray-200);
+  }
+
+  .add-search-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    color: var(--gray-500);
+    font-size: 13px;
+  }
+
+  .add-search-results {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--gray-100);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .add-search-result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 8px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--gray-100);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease;
+  }
+
+  .add-search-result-item:hover {
+    background: var(--gray-50);
+  }
+
+  .add-search-result-item:last-child {
+    border-bottom: none;
+  }
+
+  .result-item-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-900);
+  }
+
+  .result-item-price {
+    font-size: 13px;
+    color: var(--data-green);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .add-search-empty {
+    padding: 12px;
+    text-align: center;
+    color: var(--gray-400);
+    font-size: 13px;
+  }
+
+  .add-custom-item-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    background: transparent;
+    border: 1px dashed var(--gray-300);
+    border-radius: 8px;
+    color: var(--gray-500);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .add-custom-item-btn:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+    color: var(--gray-700);
+  }
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;

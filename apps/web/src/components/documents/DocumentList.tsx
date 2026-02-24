@@ -13,7 +13,6 @@ import {
   Send,
   Check as CheckIcon,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useI18nStore } from '@/lib/i18n';
 import { useToastStore } from '@/stores/toastStore';
 import { useAppStateStore } from '@/stores/appStateStore';
@@ -162,16 +161,14 @@ function TypeTabs({
   onChange: (id: string) => void;
 }) {
   return (
-    <div class="flex gap-1 p-[3px] bg-white/40 backdrop-blur-xl rounded-xl">
+    <div style={tabStyles.wrapper}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
-          class={cn(
-            'flex-1 py-2 px-3 border-none rounded-[10px] text-sm font-medium cursor-pointer transition-all duration-200',
-            activeTab === tab.id
-              ? 'bg-white/80 text-[var(--gray-900,#0f172a)] font-semibold shadow-sm'
-              : 'bg-transparent text-[var(--gray-500,#64748b)]'
-          )}
+          style={{
+            ...tabStyles.tab,
+            ...(activeTab === tab.id ? tabStyles.tabActive : {}),
+          }}
           onClick={() => onChange(tab.id)}
         >
           {tab.label}
@@ -180,6 +177,36 @@ function TypeTabs({
     </div>
   );
 }
+
+const tabStyles: Record<string, Record<string, string>> = {
+  wrapper: {
+    display: 'flex',
+    gap: '4px',
+    padding: '3px',
+    background: 'rgba(255, 255, 255, 0.4)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: '12px',
+  },
+  tab: {
+    flex: '1',
+    padding: '8px 12px',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: 'var(--gray-500, #64748b)',
+    background: 'transparent',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  tabActive: {
+    background: 'rgba(255, 255, 255, 0.8)',
+    color: 'var(--gray-900, #0f172a)',
+    fontWeight: '600',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+  },
+};
 
 /* ─── Main component ─── */
 
@@ -457,59 +484,45 @@ export function DocumentList({
   }, [filteredDocs.length, t]);
 
   return (
-    <div class="h-screen flex flex-col bg-transparent overflow-hidden px-[var(--page-padding-x,20px)] pt-[calc(12px+var(--safe-area-top,0px))] pb-0 box-border">
-      <style>{scrollbarHide}</style>
+    <div style={styles.page}>
+      <style>{pageKeyframes}</style>
 
       {/* Header */}
-      <header class="flex items-center justify-between mb-5 shrink-0 max-w-[var(--page-max-width,600px)] mx-auto w-full">
+      <header style={styles.header}>
         {selectMode ? (
           <>
-            <button
-              class="size-[var(--btn-height-md,44px)] flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-xl border-none rounded-[var(--radius-button,14px)] text-[var(--gray-600,#475569)] cursor-pointer"
-              onClick={exitSelectMode}
-              aria-label="Cancel selection"
-            >
+            <button style={styles.backBtn} onClick={exitSelectMode} aria-label="Cancel selection">
               <X size={22} strokeWidth={2} />
             </button>
-            <h1 class="font-[var(--font-display,system-ui)] text-lg font-bold text-[var(--gray-900,#0f172a)] m-0 tracking-tight">
-              {t('common.selected', { n: String(selectedCount) })}
-            </h1>
-            <button
-              class="w-16 h-[44px] flex items-center justify-center bg-transparent border-none text-sm font-semibold text-[var(--blu-primary,#0066ff)] cursor-pointer"
-              onClick={toggleSelectAll}
-            >
+            <h1 style={styles.pageTitle}>{t('common.selected', { n: String(selectedCount) })}</h1>
+            <button style={styles.selectAllBtn} onClick={toggleSelectAll}>
               {isAllSelected ? t('common.deselect') : t('common.all')}
             </button>
           </>
         ) : (
           <>
             <button
-              class="size-[var(--btn-height-md,44px)] flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-xl border-none rounded-[var(--radius-button,14px)] text-[var(--gray-600,#475569)] cursor-pointer"
+              style={styles.backBtn}
               onClick={() => navigateTo('/dashboard')}
               aria-label={t('common.back')}
             >
               <ChevronLeft size={22} strokeWidth={2} />
             </button>
-            <h1 class="font-[var(--font-display,system-ui)] text-lg font-bold text-[var(--gray-900,#0f172a)] m-0 tracking-tight">
-              {t('documents.title')}
-            </h1>
+            <h1 style={styles.pageTitle}>{t('documents.title')}</h1>
             {filteredDocs.length > 0 ? (
-              <button
-                class="size-[44px] flex items-center justify-center bg-transparent border-none text-sm font-semibold text-[var(--blu-primary,#0066ff)] cursor-pointer"
-                onClick={enterSelectMode}
-              >
+              <button style={styles.selectBtn} onClick={enterSelectMode}>
                 {t('common.select')}
               </button>
             ) : (
-              <div class="w-[44px]" />
+              <div style={styles.headerSpacer} />
             )}
           </>
         )}
       </header>
 
       {/* Search */}
-      <div class="relative w-full max-w-[var(--page-max-width,600px)] mx-auto flex items-center mb-3 shrink-0">
-        <span class="absolute left-3.5 text-[var(--gray-400,#94a3b8)] pointer-events-none flex items-center">
+      <div style={styles.searchWrapper}>
+        <span style={styles.searchIcon}>
           <Search size={16} strokeWidth={2} />
         </span>
         <input
@@ -517,11 +530,11 @@ export function DocumentList({
           placeholder={t('documents.searchPlaceholder')}
           value={searchQuery}
           onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
-          class="w-full py-3 pl-[42px] pr-10 bg-white/50 backdrop-blur-xl border-none rounded-[var(--radius-input,12px)] text-[var(--gray-900,#0f172a)] text-[15px] outline-none box-border"
+          style={styles.searchInput}
         />
         {searchQuery && (
           <button
-            class="absolute right-3 size-6 flex items-center justify-center bg-[var(--gray-200,#e2e8f0)] border-none rounded-full text-[var(--gray-500,#64748b)] cursor-pointer"
+            style={styles.clearSearch}
             onClick={() => setSearchQuery('')}
             aria-label={t('documents.clearSearch')}
           >
@@ -531,36 +544,33 @@ export function DocumentList({
       </div>
 
       {/* Type Filter Tabs */}
-      <div class="mb-3 shrink-0 max-w-[var(--page-max-width,600px)] mx-auto w-full">
+      <div style={styles.typeTabsWrapper}>
         <TypeTabs tabs={typeTabs} activeTab={typeFilter} onChange={handleTypeChange} />
       </div>
 
       {/* Document List */}
-      <div class="flex-1 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch] pb-[calc(100px+var(--safe-area-bottom,0px))] max-w-[var(--page-max-width,600px)] w-full mx-auto scrollbar-hide">
+      <div style={styles.contentScroll}>
         {isLoading ? (
           <DocumentListSkeleton count={5} />
         ) : filteredDocs.length === 0 ? (
-          <div class="flex flex-col items-center justify-center px-5 py-20 text-center">
-            <div class="size-24 flex items-center justify-center bg-white/60 backdrop-blur-xl border-none rounded-full text-[var(--blu-primary,#0066ff)] mb-6 shadow-[0_8px_32px_rgba(0,102,255,0.1)]">
+          <div style={styles.emptyState}>
+            <div style={styles.emptyIcon}>
               <FileText size={48} strokeWidth={1.5} />
             </div>
-            <h3 class="font-[var(--font-display,system-ui)] text-xl font-bold text-[var(--gray-900,#0f172a)] mb-2 mt-0">
+            <h3 style={styles.emptyTitle}>
               {hasActiveFilters ? t('documents.emptyFiltered') : t('documents.emptyTitle')}
             </h3>
-            <p class="text-[15px] text-[var(--gray-500,#64748b)] mt-0 mb-7 max-w-[260px] leading-relaxed">
+            <p style={styles.emptySubtitle}>
               {hasActiveFilters ? t('documents.tryAdjusting') : t('documents.emptyDescription')}
             </p>
             {hasActiveFilters ? (
-              <button
-                class="flex items-center gap-2 py-3.5 px-6 border-none rounded-[var(--radius-button,14px)] text-[15px] font-semibold cursor-pointer bg-[var(--gray-100,#f1f5f9)] text-[var(--gray-600,#475569)]"
-                onClick={clearFilters}
-              >
+              <button style={styles.actionBtnSecondary} onClick={clearFilters}>
                 <X size={18} strokeWidth={2} />
                 {t('documents.clearFilters')}
               </button>
             ) : (
               <button
-                class="flex items-center gap-2 py-3.5 px-6 border-none rounded-[var(--radius-button,14px)] text-[15px] font-semibold cursor-pointer bg-[var(--blu-primary,#0066ff)] text-white shadow-[0_4px_24px_rgba(0,102,255,0.35)]"
+                style={styles.actionBtnPrimary}
                 onClick={() => navigateTo('/dashboard')}
               >
                 <Mic size={18} strokeWidth={2} />
@@ -571,34 +581,33 @@ export function DocumentList({
         ) : (
           <>
             {/* Results header */}
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-[13px] text-[var(--gray-500,#64748b)]">
+            <div style={styles.resultsHeader}>
+              <span style={styles.resultsCount}>
                 {resultsCountText}
                 {hasActiveFilters && (
-                  <span class="text-[var(--blu-primary,#0066ff)]"> ({t('documents.filtered')})</span>
+                  <span style={styles.filteredLabel}> ({t('documents.filtered')})</span>
                 )}
               </span>
             </div>
 
             {/* Grouped Document List */}
-            <div class="flex flex-col gap-6">
+            <div style={styles.docList}>
               {[...groupedDocs.entries()].map(([month, docs]) => (
-                <div key={month} class="flex flex-col gap-2">
+                <div key={month} style={styles.monthGroup}>
                   {/* Month header */}
-                  <div class="flex items-center gap-2">
+                  <div style={styles.monthHeaderRow}>
                     {selectMode && (
                       <button
-                        class="flex items-center justify-center p-1 bg-transparent border-none cursor-pointer shrink-0"
+                        style={styles.monthSelectBtn}
                         onClick={() => toggleSelectMonth(docs)}
                         aria-label={`Select all in ${month}`}
                       >
                         <div
-                          class={cn(
-                            'size-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-150',
+                          style={
                             docs.every((d: Document) => selectedIds.has(d.id))
-                              ? 'border-[var(--blu-primary,#0066ff)] bg-[var(--blu-primary,#0066ff)] text-white'
-                              : 'border-[var(--gray-300,#cbd5e1)]'
-                          )}
+                              ? styles.checkboxSelected
+                              : styles.checkboxEmpty
+                          }
                         >
                           {docs.every((d: Document) => selectedIds.has(d.id)) && (
                             <CheckIcon size={14} strokeWidth={3} />
@@ -606,19 +615,12 @@ export function DocumentList({
                         </div>
                       </button>
                     )}
-                    <button
-                      class="flex items-center gap-2 p-1 bg-transparent border-none cursor-pointer w-fit"
-                      onClick={() => toggleMonth(month)}
-                    >
-                      <span class="text-xs font-semibold uppercase tracking-wider text-[var(--gray-500,#64748b)]">
-                        {month}
-                      </span>
-                      <span class="text-[11px] font-medium text-[var(--gray-400,#94a3b8)] bg-[rgba(148,163,184,0.15)] px-2 py-0.5 rounded-[10px]">
-                        {docs.length}
-                      </span>
+                    <button style={styles.monthHeaderBtn} onClick={() => toggleMonth(month)}>
+                      <span style={styles.monthLabel}>{month}</span>
+                      <span style={styles.monthCount}>{docs.length}</span>
                       <span
-                        class="flex items-center justify-center text-[var(--gray-400,#94a3b8)] transition-transform duration-200"
                         style={{
+                          ...styles.monthChevron,
                           transform: collapsedMonths.has(month) ? 'rotate(-90deg)' : 'rotate(0deg)',
                         }}
                       >
@@ -628,13 +630,15 @@ export function DocumentList({
                   </div>
 
                   {!collapsedMonths.has(month) && (
-                    <div class="flex flex-col bg-white/40 backdrop-blur-xl border border-white/50 rounded-[var(--radius-card,20px)] overflow-hidden">
+                    <div style={styles.monthDocsContainer}>
                       {docs.map((doc: Document, i: number) => (
                         <div
                           key={doc.id}
-                          class={cn(
-                            i < docs.length - 1 && 'border-b border-black/[0.04]'
-                          )}
+                          style={{
+                            ...styles.docCardWrapper,
+                            borderBottom:
+                              i < docs.length - 1 ? '1px solid rgba(0, 0, 0, 0.04)' : 'none',
+                          }}
                         >
                           {selectMode ? (
                             <SelectableDocCard
@@ -723,10 +727,10 @@ export function DocumentList({
 
       {/* Batch action bar */}
       {selectMode && selectedCount > 0 && (
-        <div class="fixed bottom-0 left-0 right-0 px-[var(--page-padding-x,20px)] pt-3 pb-[calc(12px+var(--safe-area-bottom,0px))] bg-white/92 backdrop-blur-xl border-t border-black/[0.06] z-[100]">
-          <div class="flex gap-3 max-w-[var(--page-max-width,600px)] mx-auto">
+        <div style={styles.batchBar}>
+          <div style={styles.batchBarInner}>
             <button
-              class="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 border-none rounded-[var(--radius-button,14px)] text-[15px] font-semibold cursor-pointer bg-red-500/10 text-red-500"
+              style={styles.batchDeleteBtn}
               onClick={() => setShowBatchDeleteConfirm(true)}
             >
               <Trash2 size={18} />
@@ -734,7 +738,7 @@ export function DocumentList({
             </button>
             {sendableSelected.length > 0 && (
               <button
-                class="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 border-none rounded-[var(--radius-button,14px)] text-[15px] font-semibold cursor-pointer bg-[rgba(0,102,255,0.1)] text-[var(--blu-primary,#0066ff)]"
+                style={styles.batchSendBtn}
                 onClick={() => setShowBatchSendConfirm(true)}
               >
                 <Send size={18} />
@@ -749,11 +753,11 @@ export function DocumentList({
       {showBatchDeleteConfirm && (
         <BatchConfirmModal
           icon={<Trash2 size={32} />}
-          iconVariant="warning"
+          iconStyle={batchModalStyles.iconWarning}
           title={t('documents.deleteCount', { n: String(selectedCount) })}
           subtitle={t('common.cannotUndo')}
           confirmLabel={isBatchProcessing ? t('common.deleting') : t('documents.deleteConfirm', { n: String(selectedCount) })}
-          confirmVariant="danger"
+          confirmStyle={batchModalStyles.dangerBtn}
           isProcessing={isBatchProcessing}
           onConfirm={handleBatchDelete}
           onCancel={() => setShowBatchDeleteConfirm(false)}
@@ -764,11 +768,11 @@ export function DocumentList({
       {showBatchSendConfirm && (
         <BatchConfirmModal
           icon={<Send size={32} />}
-          iconVariant="send"
+          iconStyle={batchModalStyles.iconSend}
           title={t('documents.sendCount', { n: String(sendableSelected.length) })}
           subtitle={`${t('documents.sendToClients')}${selectedCount > sendableSelected.length ? ` ${t('documents.sendSkipped', { n: String(selectedCount - sendableSelected.length) })}` : ''}`}
           confirmLabel={isBatchProcessing ? t('common.sending') : t('documents.sendConfirm', { n: String(sendableSelected.length) })}
-          confirmVariant="primary"
+          confirmStyle={batchModalStyles.primaryBtn}
           isProcessing={isBatchProcessing}
           onConfirm={handleBatchSend}
           onCancel={() => setShowBatchSendConfirm(false)}
@@ -794,28 +798,26 @@ function DesktopDocCard({
   onDelete: (doc: Document) => void;
 }) {
   return (
-    <div class="flex items-center gap-3.5 py-3.5 px-4 bg-transparent border-none no-underline">
-      <a href={`/dashboard/documents/${doc.id}?type=${doc.type}`} class="flex items-center gap-3.5 flex-1 min-w-0 no-underline">
+    <div style={styles.docCard}>
+      <a href={`/dashboard/documents/${doc.id}?type=${doc.type}`} style={styles.docCardLink}>
         <DocIcon type={doc.type} />
-        <div class="flex-1 flex flex-col gap-1 min-w-0">
-          <span class="text-base font-semibold text-[var(--gray-900,#0f172a)] whitespace-nowrap overflow-hidden text-ellipsis">
-            {doc.client}
-          </span>
-          <span class="text-[13px] text-[var(--gray-500,#64748b)]">
+        <div style={styles.docInfo}>
+          <span style={styles.docClient}>{doc.client}</span>
+          <span style={styles.docSubtitle}>
             {getDocNumber(doc)} · {formatSmartTime(doc.date, locale)}
           </span>
         </div>
       </a>
-      <div class="flex items-center gap-1.5 shrink-0">
+      <div style={styles.docActions}>
         <button
-          class="size-9 flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] border-none rounded-[10px] cursor-pointer text-[var(--gray-500,#64748b)]"
+          style={styles.actionIconBtnEdit}
           onClick={() => onEdit(doc)}
           aria-label={t('common.edit')}
         >
           <Pencil size={16} />
         </button>
         <button
-          class="size-9 flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] border-none rounded-[10px] cursor-pointer text-[var(--gray-400,#94a3b8)]"
+          style={styles.actionIconBtnDelete}
           onClick={() => onDelete(doc)}
           aria-label={t('common.delete')}
         >
@@ -843,22 +845,20 @@ function MobileDocCard({
   onSend: (doc: Document) => void;
 }) {
   return (
-    <div class="flex items-center gap-3.5 py-3.5 px-4 bg-transparent border-none no-underline">
-      <a href={`/dashboard/documents/${doc.id}?type=${doc.type}`} class="flex items-center gap-3.5 flex-1 min-w-0 no-underline">
+    <div style={styles.docCard}>
+      <a href={`/dashboard/documents/${doc.id}?type=${doc.type}`} style={styles.docCardLink}>
         <DocIcon type={doc.type} />
-        <div class="flex-1 flex flex-col gap-1 min-w-0">
-          <span class="text-base font-semibold text-[var(--gray-900,#0f172a)] whitespace-nowrap overflow-hidden text-ellipsis">
-            {doc.client}
-          </span>
-          <span class="text-[13px] text-[var(--gray-500,#64748b)]">
+        <div style={styles.docInfo}>
+          <span style={styles.docClient}>{doc.client}</span>
+          <span style={styles.docSubtitle}>
             {getDocNumber(doc)} · {formatSmartTime(doc.date, locale)}
           </span>
         </div>
       </a>
-      <div class="flex items-center gap-1.5 shrink-0">
+      <div style={styles.docActions}>
         {!['sent', 'paid'].includes(doc.status) && (
           <button
-            class="size-9 flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] border-none rounded-[10px] cursor-pointer text-[var(--gray-500,#64748b)]"
+            style={styles.actionIconBtnEdit}
             onClick={() => onSend(doc)}
             aria-label="Send"
           >
@@ -866,7 +866,7 @@ function MobileDocCard({
           </button>
         )}
         <button
-          class="size-9 flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] border-none rounded-[10px] cursor-pointer text-[var(--gray-400,#94a3b8)]"
+          style={styles.actionIconBtnDelete}
           onClick={() => onDelete(doc)}
           aria-label={t('common.delete')}
         >
@@ -881,15 +881,15 @@ function MobileDocCard({
 /* ─── Shared sub-components ─── */
 
 function DocIcon({ type }: { type: Document['type'] }) {
+  const iconStyle =
+    type === 'invoice'
+      ? styles.docIconInvoice
+      : type === 'estimate'
+        ? styles.docIconEstimate
+        : styles.docIconContract;
+
   return (
-    <div
-      class={cn(
-        'size-12 flex items-center justify-center rounded-[var(--radius-button,14px)] shrink-0',
-        type === 'invoice' && 'bg-[rgba(52,199,89,0.12)] text-[#34C759]',
-        type === 'estimate' && 'bg-[rgba(0,102,255,0.1)] text-[#0066FF]',
-        type === 'contract' && 'bg-[rgba(0,102,255,0.08)] text-[var(--blu-primary,#0066ff)]'
-      )}
-    >
+    <div style={iconStyle}>
       {type === 'invoice' ? (
         <Receipt size={20} strokeWidth={1.5} />
       ) : type === 'estimate' ? (
@@ -904,10 +904,8 @@ function DocIcon({ type }: { type: Document['type'] }) {
 function DocAmount({ doc }: { doc: Document }) {
   if ((doc.type !== 'invoice' && doc.type !== 'estimate') || !doc.amount) return null;
   return (
-    <div class="flex items-center shrink-0 ml-auto">
-      <span class="text-base font-semibold text-[var(--data-green,#10b981)]">
-        {formatAmount(doc.amount)}
-      </span>
+    <div style={styles.docEnd}>
+      <span style={styles.docAmount}>{formatAmount(doc.amount)}</span>
     </div>
   );
 }
@@ -927,27 +925,20 @@ function SelectableDocCard({
 }) {
   return (
     <button
-      class="flex items-center gap-3 py-3.5 px-4 bg-transparent border-none w-full text-left cursor-pointer"
+      style={styles.selectableCard}
       onClick={onToggle}
       role="checkbox"
       aria-checked={selected}
     >
       <div
-        class={cn(
-          'size-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-150',
-          selected
-            ? 'border-[var(--blu-primary,#0066ff)] bg-[var(--blu-primary,#0066ff)] text-white'
-            : 'border-[var(--gray-300,#cbd5e1)]'
-        )}
+        style={selected ? styles.checkboxSelected : styles.checkboxEmpty}
       >
         {selected && <CheckIcon size={14} strokeWidth={3} />}
       </div>
       <DocIcon type={doc.type} />
-      <div class="flex-1 flex flex-col gap-1 min-w-0">
-        <span class="text-base font-semibold text-[var(--gray-900,#0f172a)] whitespace-nowrap overflow-hidden text-ellipsis">
-          {doc.client}
-        </span>
-        <span class="text-[13px] text-[var(--gray-500,#64748b)]">
+      <div style={styles.docInfo}>
+        <span style={styles.docClient}>{doc.client}</span>
+        <span style={styles.docSubtitle}>
           {getDocNumber(doc)} · {formatSmartTime(doc.date, locale)}
         </span>
       </div>
@@ -960,21 +951,21 @@ function SelectableDocCard({
 
 function BatchConfirmModal({
   icon,
-  iconVariant,
+  iconStyle,
   title,
   subtitle,
   confirmLabel,
-  confirmVariant,
+  confirmStyle,
   isProcessing,
   onConfirm,
   onCancel,
 }: {
   icon: preact.JSX.Element;
-  iconVariant: 'warning' | 'send';
+  iconStyle: Record<string, string>;
   title: string;
   subtitle: string;
   confirmLabel: string;
-  confirmVariant: 'danger' | 'primary';
+  confirmStyle: Record<string, string>;
   isProcessing: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -983,49 +974,34 @@ function BatchConfirmModal({
     <>
       <style>{batchSpinKeyframes}</style>
       <button
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1100] border-none cursor-default"
+        style={batchModalStyles.backdrop}
         onClick={() => !isProcessing && onCancel()}
         aria-label="Close"
       />
-      <div class="fixed inset-0 flex items-center justify-center z-[1101] p-5" role="dialog" aria-modal="true">
-        <div class="relative bg-white/98 backdrop-blur-xl rounded-[var(--radius-lg,20px)] pt-8 pb-6 px-6 max-w-[380px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
-          <div class="flex flex-col items-center text-center">
-            <div
-              class={cn(
-                'size-[72px] flex items-center justify-center rounded-full mb-4',
-                iconVariant === 'warning' && 'bg-red-500/10 text-red-500',
-                iconVariant === 'send' && 'bg-[rgba(0,102,255,0.1)] text-[var(--blu-primary,#0066ff)]'
-              )}
-            >
-              {icon}
-            </div>
-            <h2 class="font-[var(--font-display,system-ui)] text-xl font-bold text-[var(--gray-900,#0f172a)] mt-0 mb-2">
-              {title}
-            </h2>
-            <p class="text-sm text-[var(--gray-500,#64748b)] mt-0 mb-6 leading-relaxed">
-              {subtitle}
-            </p>
-            <div class="flex gap-3 w-full">
+      <div style={batchModalStyles.container} role="dialog" aria-modal="true">
+        <div style={batchModalStyles.content}>
+          <div style={batchModalStyles.step}>
+            <div style={iconStyle}>{icon}</div>
+            <h2 style={batchModalStyles.title}>{title}</h2>
+            <p style={batchModalStyles.subtitle}>{subtitle}</p>
+            <div style={batchModalStyles.actions}>
               <button
-                class="flex-1 py-3.5 px-5 border-none rounded-xl text-[15px] font-semibold cursor-pointer flex items-center justify-center gap-2 bg-[var(--gray-100,#f1f5f9)] text-[var(--gray-700,#334155)]"
+                style={batchModalStyles.cancelBtn}
                 onClick={onCancel}
                 disabled={isProcessing}
               >
                 Cancel
               </button>
               <button
-                class={cn(
-                  'flex-1 py-3.5 px-5 border-none rounded-xl text-[15px] font-semibold flex items-center justify-center gap-2',
-                  confirmVariant === 'danger' && 'bg-red-500 text-white',
-                  confirmVariant === 'primary' && 'bg-[var(--blu-primary,#0066ff)] text-white',
-                  isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                )}
+                style={{
+                  ...confirmStyle,
+                  opacity: isProcessing ? '0.5' : '1',
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                }}
                 onClick={onConfirm}
                 disabled={isProcessing}
               >
-                {isProcessing && (
-                  <span class="inline-block size-4 border-2 border-white/30 border-t-white rounded-full animate-[batchModalSpin_0.8s_linear_infinite]" />
-                )}
+                {isProcessing && <span style={batchModalStyles.spinner} />}
                 {confirmLabel}
               </button>
             </div>
@@ -1042,7 +1018,618 @@ const batchSpinKeyframes = `
 }
 `;
 
-const scrollbarHide = `
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+const batchModalStyles: Record<string, Record<string, string>> = {
+  backdrop: {
+    position: 'fixed',
+    inset: '0',
+    background: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
+    zIndex: '1100',
+    border: 'none',
+    cursor: 'default',
+  },
+  container: {
+    position: 'fixed',
+    inset: '0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: '1101',
+    padding: '20px',
+  },
+  content: {
+    position: 'relative',
+    background: 'rgba(255, 255, 255, 0.98)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    borderRadius: 'var(--radius-lg, 20px)',
+    padding: '32px 24px 24px',
+    maxWidth: '380px',
+    width: '100%',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
+  },
+  step: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+  iconWarning: {
+    width: '72px',
+    height: '72px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+    marginBottom: '16px',
+    background: 'rgba(239, 68, 68, 0.1)',
+    color: '#ef4444',
+  },
+  iconSend: {
+    width: '72px',
+    height: '72px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+    marginBottom: '16px',
+    background: 'rgba(0, 102, 255, 0.1)',
+    color: 'var(--blu-primary, #0066ff)',
+  },
+  title: {
+    fontFamily: 'var(--font-display, system-ui)',
+    fontSize: '20px',
+    fontWeight: '700',
+    color: 'var(--gray-900, #0f172a)',
+    margin: '0 0 8px',
+  },
+  subtitle: {
+    fontSize: '14px',
+    color: 'var(--gray-500, #64748b)',
+    margin: '0 0 24px',
+    lineHeight: '1.5',
+  },
+  actions: {
+    display: 'flex',
+    gap: '12px',
+    width: '100%',
+  },
+  cancelBtn: {
+    flex: '1',
+    padding: '14px 20px',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    background: 'var(--gray-100, #f1f5f9)',
+    color: 'var(--gray-700, #334155)',
+  },
+  dangerBtn: {
+    flex: '1',
+    padding: '14px 20px',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    background: '#ef4444',
+    color: 'white',
+  },
+  primaryBtn: {
+    flex: '1',
+    padding: '14px 20px',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    background: 'var(--blu-primary, #0066ff)',
+    color: 'white',
+  },
+  spinner: {
+    width: '16px',
+    height: '16px',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderTopColor: 'white',
+    borderRadius: '50%',
+    animation: 'batchModalSpin 0.8s linear infinite',
+    display: 'inline-block',
+  },
+};
+
+/* ─── Keyframes ─── */
+
+const pageKeyframes = `
+.content-scroll::-webkit-scrollbar { display: none; }
 `;
+
+/* ─── Styles ─── */
+
+const docIconBase: Record<string, string> = {
+  width: '48px',
+  height: '48px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 'var(--radius-button, 14px)',
+  flexShrink: '0',
+};
+
+const styles: Record<string, Record<string, string>> = {
+  page: {
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    background: 'transparent',
+    overflow: 'hidden',
+    padding: 'var(--page-padding-x, 20px)',
+    paddingTop: 'calc(12px + var(--safe-area-top, 0px))',
+    paddingBottom: '0',
+    boxSizing: 'border-box',
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '20px',
+    flexShrink: '0',
+    maxWidth: 'var(--page-max-width, 600px)',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '100%',
+  },
+  backBtn: {
+    width: 'var(--btn-height-md, 44px)',
+    height: 'var(--btn-height-md, 44px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--glass-white-50, rgba(255, 255, 255, 0.5))',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: 'none',
+    borderRadius: 'var(--radius-button, 14px)',
+    color: 'var(--gray-600, #475569)',
+    cursor: 'pointer',
+  },
+  pageTitle: {
+    fontFamily: 'var(--font-display, system-ui)',
+    fontSize: '18px',
+    fontWeight: '700',
+    color: 'var(--gray-900, #0f172a)',
+    margin: '0',
+    letterSpacing: '-0.02em',
+  },
+  headerSpacer: {
+    width: '44px',
+  },
+  searchWrapper: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 'var(--page-max-width, 600px)',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '12px',
+    flexShrink: '0',
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: '14px',
+    color: 'var(--gray-400, #94a3b8)',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '12px 40px 12px 42px',
+    background: 'rgba(255, 255, 255, 0.5)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: 'none',
+    borderRadius: 'var(--radius-input, 12px)',
+    color: 'var(--gray-900, #0f172a)',
+    fontSize: '15px',
+    outline: 'none',
+    boxSizing: 'border-box',
+  },
+  clearSearch: {
+    position: 'absolute',
+    right: '12px',
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--gray-200, #e2e8f0)',
+    border: 'none',
+    borderRadius: '50%',
+    color: 'var(--gray-500, #64748b)',
+    cursor: 'pointer',
+  },
+  typeTabsWrapper: {
+    marginBottom: '12px',
+    flexShrink: '0',
+    maxWidth: 'var(--page-max-width, 600px)',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '100%',
+  },
+  contentScroll: {
+    flex: '1',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    WebkitOverflowScrolling: 'touch',
+    paddingBottom: 'calc(100px + var(--safe-area-bottom, 0px))',
+    maxWidth: 'var(--page-max-width, 600px)',
+    width: '100%',
+    margin: '0 auto',
+    scrollbarWidth: 'none',
+    msOverflowStyle: 'none',
+  },
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '80px 20px',
+    textAlign: 'center',
+  },
+  emptyIcon: {
+    width: '96px',
+    height: '96px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(255, 255, 255, 0.6)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: 'none',
+    borderRadius: '50%',
+    color: 'var(--blu-primary, #0066ff)',
+    marginBottom: '24px',
+    boxShadow: '0 8px 32px rgba(0, 102, 255, 0.1)',
+  },
+  emptyTitle: {
+    fontFamily: 'var(--font-display, system-ui)',
+    fontSize: '20px',
+    fontWeight: '700',
+    color: 'var(--gray-900, #0f172a)',
+    margin: '0 0 8px',
+  },
+  emptySubtitle: {
+    fontSize: '15px',
+    color: 'var(--gray-500, #64748b)',
+    margin: '0 0 28px',
+    maxWidth: '260px',
+    lineHeight: '1.5',
+  },
+  actionBtnPrimary: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '14px 24px',
+    border: 'none',
+    borderRadius: 'var(--radius-button, 14px)',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    background: 'var(--blu-primary, #0066ff)',
+    color: 'white',
+    boxShadow: '0 4px 24px rgba(0, 102, 255, 0.35)',
+  },
+  actionBtnSecondary: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '14px 24px',
+    border: 'none',
+    borderRadius: 'var(--radius-button, 14px)',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    background: 'var(--gray-100, #f1f5f9)',
+    color: 'var(--gray-600, #475569)',
+  },
+  resultsHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '8px',
+  },
+  resultsCount: {
+    fontSize: '13px',
+    color: 'var(--gray-500, #64748b)',
+  },
+  filteredLabel: {
+    color: 'var(--blu-primary, #0066ff)',
+  },
+  docList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
+  },
+  monthGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  monthHeaderRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  monthSelectBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '4px',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    flexShrink: '0',
+  },
+  monthHeaderBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '4px',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    width: 'fit-content',
+  },
+  monthLabel: {
+    fontSize: '12px',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: 'var(--gray-500, #64748b)',
+  },
+  monthCount: {
+    fontSize: '11px',
+    fontWeight: '500',
+    color: 'var(--gray-400, #94a3b8)',
+    background: 'rgba(148, 163, 184, 0.15)',
+    padding: '2px 8px',
+    borderRadius: '10px',
+  },
+  monthChevron: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--gray-400, #94a3b8)',
+    transition: 'transform 0.2s ease',
+  },
+  monthDocsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    background: 'rgba(255, 255, 255, 0.4)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+    borderRadius: 'var(--radius-card, 20px)',
+    overflow: 'hidden',
+  },
+  docCardWrapper: {
+    borderBottom: '1px solid rgba(0, 0, 0, 0.04)',
+  },
+  docCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    padding: '14px 16px',
+    background: 'transparent',
+    border: 'none',
+    textDecoration: 'none',
+  },
+  docCardLink: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    flex: '1',
+    minWidth: '0',
+    textDecoration: 'none',
+  },
+  docActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    flexShrink: '0',
+  },
+  actionIconBtnEdit: {
+    width: '36px',
+    height: '36px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--glass-white-50, rgba(255, 255, 255, 0.5))',
+    border: 'none',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    color: 'var(--gray-500, #64748b)',
+  },
+  actionIconBtnDelete: {
+    width: '36px',
+    height: '36px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--glass-white-50, rgba(255, 255, 255, 0.5))',
+    border: 'none',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    color: 'var(--gray-400, #94a3b8)',
+  },
+  docIconInvoice: {
+    ...docIconBase,
+    background: 'rgba(52, 199, 89, 0.12)',
+    color: '#34C759',
+  },
+  docIconEstimate: {
+    ...docIconBase,
+    background: 'rgba(0, 102, 255, 0.1)',
+    color: '#0066FF',
+  },
+  docIconContract: {
+    ...docIconBase,
+    background: 'rgba(0, 102, 255, 0.08)',
+    color: 'var(--blu-primary, #0066ff)',
+  },
+  docInfo: {
+    flex: '1',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    minWidth: '0',
+  },
+  docClient: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: 'var(--gray-900, #0f172a)',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  docSubtitle: {
+    fontSize: '13px',
+    color: 'var(--gray-500, #64748b)',
+  },
+  docEnd: {
+    display: 'flex',
+    alignItems: 'center',
+    flexShrink: '0',
+    marginLeft: 'auto',
+  },
+  docAmount: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: 'var(--data-green, #10b981)',
+  },
+  selectBtn: {
+    width: '44px',
+    height: '44px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'transparent',
+    border: 'none',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: 'var(--blu-primary, #0066ff)',
+    cursor: 'pointer',
+  },
+  selectAllBtn: {
+    width: '64px',
+    height: '44px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'transparent',
+    border: 'none',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: 'var(--blu-primary, #0066ff)',
+    cursor: 'pointer',
+  },
+  selectableCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '14px 16px',
+    background: 'transparent',
+    border: 'none',
+    width: '100%',
+    textAlign: 'left',
+    cursor: 'pointer',
+  },
+  checkboxEmpty: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    border: '2px solid var(--gray-300, #cbd5e1)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: '0',
+    transition: 'all 0.15s ease',
+  },
+  checkboxSelected: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    border: '2px solid var(--blu-primary, #0066ff)',
+    background: 'var(--blu-primary, #0066ff)',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: '0',
+    transition: 'all 0.15s ease',
+  },
+  batchBar: {
+    position: 'fixed',
+    bottom: '0',
+    left: '0',
+    right: '0',
+    padding: '12px var(--page-padding-x, 20px)',
+    paddingBottom: 'calc(12px + var(--safe-area-bottom, 0px))',
+    background: 'rgba(255, 255, 255, 0.92)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+    zIndex: '100',
+  },
+  batchBarInner: {
+    display: 'flex',
+    gap: '12px',
+    maxWidth: 'var(--page-max-width, 600px)',
+    margin: '0 auto',
+  },
+  batchDeleteBtn: {
+    flex: '1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '14px 20px',
+    border: 'none',
+    borderRadius: 'var(--radius-button, 14px)',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    background: 'rgba(239, 68, 68, 0.1)',
+    color: '#ef4444',
+  },
+  batchSendBtn: {
+    flex: '1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '14px 20px',
+    border: 'none',
+    borderRadius: 'var(--radius-button, 14px)',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    background: 'rgba(0, 102, 255, 0.1)',
+    color: 'var(--blu-primary, #0066ff)',
+  },
+};

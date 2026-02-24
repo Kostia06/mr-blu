@@ -745,7 +745,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
           items: newItems,
           taxRate: (fullDoc.tax_rate as number) || null,
         }));
-        generateDocNumber();
+        generateDocNumber((doc as any).document_type === 'estimate' ? 'estimate' : 'invoice');
       }
     } catch (error) {
       console.error('Failed to fetch document details:', error);
@@ -794,7 +794,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
       confidence: { overall: 0.9, client: 0.9, items: 0.95, actions: 0.9 },
     });
 
-    generateDocNumber();
+    generateDocNumber(doc.type === 'contract' ? 'invoice' : doc.type);
     if (clone.cloneData?.targetClient.name) {
       fetchClientSuggestions(clone.cloneData.targetClient.name);
     }
@@ -1472,7 +1472,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
         if (review.parsed_data) {
           if ((review.intent_type || 'document_action') === 'document_action') {
             setData(review.parsed_data);
-            generateDocNumber();
+            generateDocNumber(review.parsed_data.documentType);
           } else if (review.intent_type === 'information_query') {
             setQueryData(review.parsed_data);
             if (review.query_result) {
@@ -1507,7 +1507,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
             if (review.parsed_data) {
               if ((review.intent_type || 'document_action') === 'document_action') {
                 setData(review.parsed_data);
-                generateDocNumber();
+                generateDocNumber(review.parsed_data.documentType);
               } else if (review.intent_type === 'information_query') {
                 setQueryData(review.parsed_data);
                 if (review.query_result) {
@@ -1571,7 +1571,10 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
     <>
       <main class="review-page">
         {/* Header */}
-        <ReviewHeader onBack={goToDashboard} />
+        <ReviewHeader
+          title={`${t(data.documentType === 'estimate' ? 'review.estimate' : 'review.invoice')} #${documentNumber}`}
+          onBack={goToDashboard}
+        />
 
         {isParsing ? (
           /* Parsing State */

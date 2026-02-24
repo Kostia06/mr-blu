@@ -1,6 +1,5 @@
 import { useMemo } from 'preact/hooks';
 import { Search, Loader2, User, Sparkles, ChevronLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useI18nStore } from '@/lib/i18n';
 import type { TransformClientSuggestion } from '@/lib/review/review-types';
 
@@ -50,35 +49,27 @@ export function TransformClientSelector({
 
   return (
     <>
-      <style>{`@keyframes tcsSpin { to { transform: rotate(360deg); } } .tcs-spinning { animation: tcsSpin 1s linear infinite; }`}</style>
-      <div class="bg-[var(--white)] rounded-[var(--radius-lg)] border border-[var(--gray-200)] overflow-hidden mb-[var(--space-4)]">
-        <div class="flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] border-b border-[var(--gray-100)]">
-          <Search size={18} class="text-[var(--gray-400)] shrink-0" />
+      <style>{keyframes}</style>
+      <div style={styles.clientSelectCard}>
+        <div style={styles.clientSearchBox}>
+          <Search size={18} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
           <input
             type="text"
             placeholder={t('placeholder.searchClients')}
             value={manualSearchQuery}
             onInput={handleSearchInput}
-            class="flex-1 border-none outline-none text-[var(--text-base)] bg-transparent text-[var(--gray-900)]"
+            style={styles.searchInput}
           />
-          {isSearching && <Loader2 size={18} class="tcs-spinning text-[var(--blu-primary)]" />}
+          {isSearching && <Loader2 size={18} class="tcs-spinning" style={{ color: 'var(--blu-primary)' }} />}
         </div>
 
-        <div class="max-h-[280px] overflow-y-auto">
+        <div style={styles.clientList}>
           {manualSearchResults.length > 0 ? (
             manualSearchResults.map((client) => (
-              <button
-                key={client.id}
-                class="w-full flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] bg-transparent border-none border-b border-[var(--gray-100)] cursor-pointer transition-[background] duration-150 text-left hover:bg-[var(--gray-50)]"
-                onClick={() => onSelectClient(client.name)}
-              >
-                <User size={16} class="text-[var(--gray-400)] shrink-0" />
-                <span class="flex-1 text-[var(--text-base)] font-[var(--font-medium)] text-[var(--gray-900)]">
-                  {client.name}
-                </span>
-                <span class="text-[var(--text-sm)] font-[var(--font-medium)] text-[var(--gray-500)]">
-                  {Math.round(client.similarity * 100)}%
-                </span>
+              <button key={client.id} style={styles.clientOption} onClick={() => onSelectClient(client.name)}>
+                <User size={16} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
+                <span style={styles.clientName}>{client.name}</span>
+                <span style={styles.matchPercent}>{Math.round(client.similarity * 100)}%</span>
               </button>
             ))
           ) : bestMatch ? (
@@ -87,18 +78,17 @@ export function TransformClientSelector({
                 const bestHasDocs = hasRelevantDocs(bestMatch, searchedDocType);
                 return (
                   <button
-                    class={cn(
-                      'w-full flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] border-none border-b border-[var(--gray-100)] text-left transition-[background] duration-150 bg-[var(--glass-primary-5)]',
-                      bestHasDocs ? 'cursor-pointer hover:bg-[var(--gray-50)]' : 'opacity-50 cursor-not-allowed'
-                    )}
+                    style={{
+                      ...styles.clientOption,
+                      ...styles.clientOptionBest,
+                      ...(bestHasDocs ? {} : styles.clientOptionDisabled),
+                    }}
                     onClick={() => bestHasDocs && onSelectClient(bestMatch.name)}
                     disabled={!bestHasDocs}
                   >
-                    <Sparkles size={16} class="text-[var(--blu-primary)] shrink-0" />
-                    <span class="flex-1 text-[var(--text-base)] font-[var(--font-medium)] text-[var(--gray-900)]">
-                      {bestMatch.name}
-                    </span>
-                    <span class="text-[var(--text-sm)] font-[var(--font-medium)] text-[var(--data-green)]">
+                    <Sparkles size={16} style={{ color: 'var(--blu-primary)', flexShrink: '0' }} />
+                    <span style={styles.clientName}>{bestMatch.name}</span>
+                    <span style={{ ...styles.matchPercent, color: 'var(--data-green)' }}>
                       {Math.round(bestMatch.similarity * 100)}%
                     </span>
                   </button>
@@ -109,20 +99,16 @@ export function TransformClientSelector({
                 return (
                   <button
                     key={client.id}
-                    class={cn(
-                      'w-full flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] bg-transparent border-none border-b border-[var(--gray-100)] text-left transition-[background] duration-150',
-                      clientHasDocs ? 'cursor-pointer hover:bg-[var(--gray-50)]' : 'opacity-50 cursor-not-allowed'
-                    )}
+                    style={{
+                      ...styles.clientOption,
+                      ...(clientHasDocs ? {} : styles.clientOptionDisabled),
+                    }}
                     onClick={() => clientHasDocs && onSelectClient(client.name)}
                     disabled={!clientHasDocs}
                   >
-                    <User size={16} class="text-[var(--gray-400)] shrink-0" />
-                    <span class="flex-1 text-[var(--text-base)] font-[var(--font-medium)] text-[var(--gray-900)]">
-                      {client.name}
-                    </span>
-                    <span class="text-[var(--text-sm)] font-[var(--font-medium)] text-[var(--gray-500)]">
-                      {Math.round(client.similarity * 100)}%
-                    </span>
+                    <User size={16} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
+                    <span style={styles.clientName}>{client.name}</span>
+                    <span style={styles.matchPercent}>{Math.round(client.similarity * 100)}%</span>
                   </button>
                 );
               })}
@@ -133,36 +119,29 @@ export function TransformClientSelector({
               return (
                 <button
                   key={client.id}
-                  class={cn(
-                    'w-full flex items-center gap-[var(--space-3)] px-[var(--space-4)] py-[var(--space-3)] bg-transparent border-none border-b border-[var(--gray-100)] text-left transition-[background] duration-150',
-                    clientHasDocs ? 'cursor-pointer hover:bg-[var(--gray-50)]' : 'opacity-50 cursor-not-allowed'
-                  )}
+                  style={{
+                    ...styles.clientOption,
+                    ...(clientHasDocs ? {} : styles.clientOptionDisabled),
+                  }}
                   onClick={() => clientHasDocs && onSelectClient(client.name)}
                   disabled={!clientHasDocs}
                 >
-                  <User size={16} class="text-[var(--gray-400)] shrink-0" />
-                  <span class="flex-1 text-[var(--text-base)] font-[var(--font-medium)] text-[var(--gray-900)]">
-                    {client.name}
-                  </span>
-                  <span class="text-[var(--text-sm)] font-[var(--font-medium)] text-[var(--gray-500)]">
-                    {Math.round(client.similarity * 100)}%
-                  </span>
+                  <User size={16} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
+                  <span style={styles.clientName}>{client.name}</span>
+                  <span style={styles.matchPercent}>{Math.round(client.similarity * 100)}%</span>
                 </button>
               );
             })
           ) : (
-            <div class="p-[var(--space-6)] text-center text-[var(--gray-500)]">
+            <div style={styles.emptyState}>
               <p>{t('review.noClientsFound')}</p>
             </div>
           )}
         </div>
       </div>
 
-      <div class="flex gap-[var(--space-3)]">
-        <button
-          class="flex items-center gap-2 px-6 py-3.5 rounded-[14px] text-[15px] font-semibold transition-all duration-200 cursor-pointer bg-transparent border border-[var(--gray-200)] text-[var(--gray-600)] hover:bg-[var(--gray-100)]"
-          onClick={onBack}
-        >
+      <div style={styles.actionButtons}>
+        <button style={{ ...styles.btn, ...styles.btnSecondary }} onClick={onBack}>
           <ChevronLeft size={18} />
           Back
         </button>
@@ -170,3 +149,95 @@ export function TransformClientSelector({
     </>
   );
 }
+
+const keyframes = `
+@keyframes tcsSpin {
+  to { transform: rotate(360deg); }
+}
+.tcs-spinning { animation: tcsSpin 1s linear infinite; }
+`;
+
+const styles: Record<string, Record<string, string>> = {
+  clientSelectCard: {
+    background: 'var(--white)',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--gray-200)',
+    overflow: 'hidden',
+    marginBottom: 'var(--space-4)',
+  },
+  clientSearchBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-3)',
+    padding: 'var(--space-3) var(--space-4)',
+    borderBottom: '1px solid var(--gray-100)',
+  },
+  searchInput: {
+    flex: '1',
+    border: 'none',
+    outline: 'none',
+    fontSize: 'var(--text-base)',
+    background: 'transparent',
+    color: 'var(--gray-900)',
+  },
+  clientList: {
+    maxHeight: '280px',
+    overflowY: 'auto',
+  },
+  clientOption: {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-3)',
+    padding: 'var(--space-3) var(--space-4)',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid var(--gray-100)',
+    cursor: 'pointer',
+    transition: 'background var(--duration-fast) ease',
+    textAlign: 'left',
+  },
+  clientOptionBest: {
+    background: 'var(--glass-primary-5)',
+  },
+  clientOptionDisabled: {
+    opacity: '0.5',
+    cursor: 'not-allowed',
+  },
+  clientName: {
+    flex: '1',
+    fontSize: 'var(--text-base)',
+    fontWeight: 'var(--font-medium)',
+    color: 'var(--gray-900)',
+  },
+  matchPercent: {
+    fontSize: 'var(--text-sm)',
+    fontWeight: 'var(--font-medium)',
+    color: 'var(--gray-500)',
+  },
+  emptyState: {
+    padding: 'var(--space-6)',
+    textAlign: 'center',
+    color: 'var(--gray-500)',
+  },
+  actionButtons: {
+    display: 'flex',
+    gap: 'var(--space-3)',
+  },
+  btn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '14px 24px',
+    borderRadius: '14px',
+    fontSize: '15px',
+    fontWeight: '600',
+    transition: 'all 0.2s ease',
+    cursor: 'pointer',
+  },
+  btnSecondary: {
+    background: 'transparent',
+    border: '1px solid var(--gray-200)',
+    color: 'var(--gray-600)',
+  },
+};

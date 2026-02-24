@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'preact/hooks';
 import { Mail, Loader2, ArrowLeft, Send, RefreshCw, Zap, Lock } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useI18nStore } from '@/lib/i18n';
 import { loginWithOtp, devLogin, AuthError } from '@/lib/api/auth';
 
@@ -128,7 +127,7 @@ export function LoginForm({ urlError }: LoginFormProps) {
         <div class="blob blob-3" />
       </div>
 
-      <div class={cn('login-container', visible && 'visible')}>
+      <div class={`login-container ${visible ? 'visible' : ''}`}>
         {/* Header */}
         <div class="login-header">
           <h1 class="login-title">mrblu</h1>
@@ -154,7 +153,7 @@ export function LoginForm({ urlError }: LoginFormProps) {
                   <form onSubmit={handleResend}>
                     <button type="submit" disabled={loading} class="resend-btn">
                       {loading ? (
-                        <Loader2 size={16} strokeWidth={2} className="spinner" />
+                        <Loader2 size={16} strokeWidth={2} class="spinner" />
                       ) : (
                         <RefreshCw size={16} strokeWidth={2} />
                       )}
@@ -186,7 +185,7 @@ export function LoginForm({ urlError }: LoginFormProps) {
 
                 <button type="submit" disabled={loading} class="submit-btn">
                   {loading ? (
-                    <Loader2 size={20} strokeWidth={2} className="spinner" />
+                    <Loader2 size={20} strokeWidth={2} class="spinner" />
                   ) : (
                     <Mail size={20} strokeWidth={2} />
                   )}
@@ -209,7 +208,7 @@ export function LoginForm({ urlError }: LoginFormProps) {
                   <form onSubmit={handleDevLogin}>
                     <div class="form-group">
                       <label for="dev-password" class="form-label">
-                        <Lock size={14} strokeWidth={2} className="inline align-[-2px]" />
+                        <Lock size={14} strokeWidth={2} style={{ display: 'inline', verticalAlign: '-2px' }} />
                         {' '}Password
                       </label>
                       <input
@@ -225,7 +224,7 @@ export function LoginForm({ urlError }: LoginFormProps) {
                     </div>
                     <button type="submit" disabled={loading} class="dev-login-btn">
                       {loading ? (
-                        <Loader2 size={16} strokeWidth={2} className="spinner" />
+                        <Loader2 size={16} strokeWidth={2} class="spinner" />
                       ) : (
                         <Zap size={16} strokeWidth={2} />
                       )}

@@ -167,13 +167,13 @@ export function ClientBook() {
 	}
 
 	return (
-		<main className="min-h-screen bg-transparent">
+		<main style={styles.page}>
 			<SettingsPageHeader
 				title={t('clients.title')}
 				backLabel={t('clients.backToSettings')}
 				right={
 					<button
-						className="w-10 h-10 flex items-center justify-center bg-white/50 backdrop-blur-[12px] border-none rounded-[14px] text-[var(--blu-primary,#0066ff)] cursor-pointer"
+						style={styles.addBtn}
 						onClick={() => setShowCreate(true)}
 						aria-label="Add client"
 					>
@@ -182,44 +182,42 @@ export function ClientBook() {
 				}
 			/>
 
-			<div className="px-5 pb-[100px] max-w-[600px] w-full mx-auto">
-				<div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-[14px] mb-4">
-					<Search size={16} className="text-[var(--gray-400,#94a3b8)] shrink-0" />
+			<div style={styles.content}>
+				<div style={styles.searchWrap}>
+					<Search size={16} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
 					<input
 						type="text"
 						value={search}
 						onInput={(e) => setSearch((e.target as HTMLInputElement).value)}
 						placeholder={t('clients.search')}
-						className="flex-1 border-none bg-transparent text-[15px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
+						style={styles.searchInput}
 					/>
 				</div>
 
 				{/* Create form */}
 				{showCreate && (
-					<div className="bg-white/60 backdrop-blur-[12px] border-[1.5px] border-[var(--blu-primary,#0066ff)] rounded-2xl p-4 mb-3">
-						<div className="flex items-center justify-between mb-3">
-							<span className="text-sm font-bold text-[var(--blu-primary,#0066ff)]">
-								{t('clients.newClient')}
-							</span>
-							<div className="flex gap-1">
+					<div style={styles.createCard}>
+						<div style={styles.createHeader}>
+							<span style={styles.createTitle}>{t('clients.newClient')}</span>
+							<div style={{ display: 'flex', gap: 4 }}>
 								<button
-									className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0"
+									style={styles.iconBtn}
 									onClick={handleCreate}
 									disabled={creating || !createFields.name.trim()}
 									aria-label="Save"
 								>
 									{creating ? (
-										<Loader2 size={16} className="animate-spin" />
+										<Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
 									) : (
-										<Check size={16} className="text-[#10b981]" />
+										<Check size={16} style={{ color: '#10b981' }} />
 									)}
 								</button>
-								<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={cancelCreate} aria-label="Cancel">
-									<X size={16} className="text-[#94a3b8]" />
+								<button style={styles.iconBtn} onClick={cancelCreate} aria-label="Cancel">
+									<X size={16} style={{ color: '#94a3b8' }} />
 								</button>
 							</div>
 						</div>
-						<div className="flex flex-col gap-2">
+						<div style={styles.editFields}>
 							<input
 								type="text"
 								value={createFields.name}
@@ -227,15 +225,15 @@ export function ClientBook() {
 									setCreateFields((f) => ({ ...f, name: (e.target as HTMLInputElement).value }))
 								}
 								placeholder={t('clients.namePlaceholder')}
-								className="w-full border-[1.5px] border-[var(--blu-primary,#0066ff)] bg-white/80 rounded-[10px] px-2.5 py-2 text-[15px] font-semibold text-[var(--gray-900,#0f172a)] outline-none font-[inherit] mb-2 box-border"
+								style={styles.createNameInput}
 								autoFocus
 								onKeyDown={(e) => {
 									if (e.key === 'Enter') handleCreate();
 									if (e.key === 'Escape') cancelCreate();
 								}}
 							/>
-							<div className="flex items-center gap-2">
-								<Mail size={14} className="text-[var(--gray-400)] shrink-0" />
+							<div style={styles.editFieldRow}>
+								<Mail size={14} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
 								<input
 									type="email"
 									value={createFields.email}
@@ -243,11 +241,11 @@ export function ClientBook() {
 										setCreateFields((f) => ({ ...f, email: (e.target as HTMLInputElement).value }))
 									}
 									placeholder="Email"
-									className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
+									style={styles.editFieldInput}
 								/>
 							</div>
-							<div className="flex items-center gap-2">
-								<Phone size={14} className="text-[var(--gray-400)] shrink-0" />
+							<div style={styles.editFieldRow}>
+								<Phone size={14} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
 								<input
 									type="tel"
 									value={createFields.phone}
@@ -255,11 +253,11 @@ export function ClientBook() {
 										setCreateFields((f) => ({ ...f, phone: (e.target as HTMLInputElement).value }))
 									}
 									placeholder="Phone"
-									className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
+									style={styles.editFieldInput}
 								/>
 							</div>
-							<div className="flex items-center gap-2">
-								<MapPin size={14} className="text-[var(--gray-400)] shrink-0" />
+							<div style={styles.editFieldRow}>
+								<MapPin size={14} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
 								<input
 									type="text"
 									value={createFields.address}
@@ -267,18 +265,18 @@ export function ClientBook() {
 										setCreateFields((f) => ({ ...f, address: (e.target as HTMLInputElement).value }))
 									}
 									placeholder="Address"
-									className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
+									style={styles.editFieldInput}
 								/>
 							</div>
-							<div className="flex items-center gap-2">
-								<StickyNote size={14} className="text-[var(--gray-400)] shrink-0 self-start mt-1.5" />
+							<div style={styles.editFieldRow}>
+								<StickyNote size={14} style={{ color: 'var(--gray-400)', flexShrink: '0', alignSelf: 'flex-start', marginTop: 6 }} />
 								<textarea
 									value={createFields.notes}
 									onInput={(e) =>
 										setCreateFields((f) => ({ ...f, notes: (e.target as HTMLTextAreaElement).value }))
 									}
 									placeholder={t('clients.notesPlaceholder')}
-									className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit] resize-y min-h-9"
+									style={styles.notesInput}
 									rows={2}
 								/>
 							</div>
@@ -287,25 +285,25 @@ export function ClientBook() {
 				)}
 
 				{loading ? (
-					<div className="flex flex-col items-center justify-center gap-3 px-5 py-[60px] text-center">
-						<Loader2 size={32} className="animate-spin text-[var(--brand-blue,#0066ff)]" />
+					<div style={styles.emptyState}>
+						<Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: 'var(--brand-blue, #0066ff)' }} />
 					</div>
 				) : filtered.length === 0 ? (
-					<div className="flex flex-col items-center justify-center gap-3 px-5 py-[60px] text-center">
-						<Users size={40} className="text-[var(--gray-300,#cbd5e1)]" />
-						<p className="m-0 text-[15px] font-medium text-[var(--gray-500,#64748b)]">
+					<div style={styles.emptyState}>
+						<Users size={40} style={{ color: 'var(--gray-300, #cbd5e1)' }} />
+						<p style={styles.emptyText}>
 							{search ? t('clients.noMatch') : t('clients.empty')}
 						</p>
-						<p className="m-0 text-[13px] text-[var(--gray-400,#94a3b8)] max-w-[280px]">
+						<p style={styles.emptyHint}>
 							{t('clients.emptyHint')}
 						</p>
 					</div>
 				) : (
-					<div className="flex flex-col gap-2.5">
+					<div style={styles.list}>
 						{filtered.map((entry) => (
 							<div
 								key={entry.id}
-								className="bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-2xl p-4 cursor-pointer"
+								style={styles.card}
 								onClick={() => handleCardClick(entry)}
 								role="button"
 								tabIndex={0}
@@ -313,9 +311,9 @@ export function ClientBook() {
 									if (e.key === 'Enter' && editingId !== entry.id) handleCardClick(entry);
 								}}
 							>
-								<div className="flex items-center justify-between mb-2.5">
-									<div className="flex items-center gap-2.5 min-w-0 flex-1">
-										<div className="w-9 h-9 flex items-center justify-center bg-[rgba(0,102,255,0.1)] rounded-full text-[15px] font-bold text-[var(--blu-primary,#0066ff)] shrink-0">
+								<div style={styles.cardHeader}>
+									<div style={styles.clientInfo}>
+										<div style={styles.avatar}>
 											{entry.name.charAt(0).toUpperCase()}
 										</div>
 										{editingId === entry.id ? (
@@ -325,7 +323,7 @@ export function ClientBook() {
 												onInput={(e) =>
 													setEditFields((f) => ({ ...f, name: (e.target as HTMLInputElement).value }))
 												}
-												className="flex-1 border-[1.5px] border-[var(--blu-primary,#0066ff)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[15px] font-semibold text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
+												style={styles.editNameInput}
 												autoFocus
 												onClick={(e) => e.stopPropagation()}
 												onKeyDown={(e) => {
@@ -334,49 +332,47 @@ export function ClientBook() {
 												}}
 											/>
 										) : (
-											<span className="text-[15px] font-semibold text-[var(--gray-900,#0f172a)] whitespace-nowrap overflow-hidden text-ellipsis">
-												{entry.name}
-											</span>
+											<span style={styles.clientName}>{entry.name}</span>
 										)}
 									</div>
-									<div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+									<div style={styles.cardActions} onClick={(e) => e.stopPropagation()}>
 										{editingId === entry.id ? (
 											<>
-												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={() => saveEdit(entry.id)} aria-label="Save">
-													<Check size={16} className="text-[#10b981]" />
+												<button style={styles.iconBtn} onClick={() => saveEdit(entry.id)} aria-label="Save">
+													<Check size={16} style={{ color: '#10b981' }} />
 												</button>
-												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={cancelEdit} aria-label="Cancel">
-													<X size={16} className="text-[#94a3b8]" />
+												<button style={styles.iconBtn} onClick={cancelEdit} aria-label="Cancel">
+													<X size={16} style={{ color: '#94a3b8' }} />
 												</button>
 											</>
 										) : (
 											<>
-												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={() => startEdit(entry)} aria-label="Edit">
-													<Pencil size={14} className="text-[#64748b]" />
+												<button style={styles.iconBtn} onClick={() => startEdit(entry)} aria-label="Edit">
+													<Pencil size={14} style={{ color: '#64748b' }} />
 												</button>
 												<button
-													className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0"
+													style={styles.iconBtn}
 													onClick={() => handleDelete(entry.id)}
 													disabled={deletingId === entry.id}
 													aria-label="Delete"
 												>
 													{deletingId === entry.id ? (
-														<Loader2 size={14} className="animate-spin" />
+														<Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
 													) : (
-														<Trash2 size={14} className="text-[#ef4444]" />
+														<Trash2 size={14} style={{ color: '#ef4444' }} />
 													)}
 												</button>
-												<ChevronRight size={16} className="text-[var(--gray-300,#cbd5e1)]" />
+												<ChevronRight size={16} style={{ color: 'var(--gray-300, #cbd5e1)' }} />
 											</>
 										)}
 									</div>
 								</div>
 
-								<div>
+								<div style={styles.cardBody}>
 									{editingId === entry.id ? (
-										<div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-											<div className="flex items-center gap-2">
-												<Mail size={14} className="text-[var(--gray-400)] shrink-0" />
+										<div style={styles.editFields} onClick={(e) => e.stopPropagation()}>
+											<div style={styles.editFieldRow}>
+												<Mail size={14} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
 												<input
 													type="email"
 													value={editFields.email}
@@ -384,11 +380,11 @@ export function ClientBook() {
 														setEditFields((f) => ({ ...f, email: (e.target as HTMLInputElement).value }))
 													}
 													placeholder="Email"
-													className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
+													style={styles.editFieldInput}
 												/>
 											</div>
-											<div className="flex items-center gap-2">
-												<Phone size={14} className="text-[var(--gray-400)] shrink-0" />
+											<div style={styles.editFieldRow}>
+												<Phone size={14} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
 												<input
 													type="tel"
 													value={editFields.phone}
@@ -396,60 +392,50 @@ export function ClientBook() {
 														setEditFields((f) => ({ ...f, phone: (e.target as HTMLInputElement).value }))
 													}
 													placeholder="Phone"
-													className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
+													style={styles.editFieldInput}
 												/>
 											</div>
-											<div className="flex items-center gap-2">
-												<StickyNote size={14} className="text-[var(--gray-400)] shrink-0 self-start mt-1.5" />
+											<div style={styles.editFieldRow}>
+												<StickyNote size={14} style={{ color: 'var(--gray-400)', flexShrink: '0', alignSelf: 'flex-start', marginTop: 6 }} />
 												<textarea
 													value={editFields.notes}
 													onInput={(e) =>
 														setEditFields((f) => ({ ...f, notes: (e.target as HTMLTextAreaElement).value }))
 													}
 													placeholder={t('clients.notesPlaceholder')}
-													className="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit] resize-y min-h-9"
+													style={styles.notesInput}
 													rows={2}
 												/>
 											</div>
 										</div>
 									) : (
-										<div className="flex flex-col gap-1.5">
+										<div style={styles.detailRows}>
 											{entry.email && (
-												<div className="flex items-center gap-2">
-													<Mail size={14} className="text-[var(--gray-400,#94a3b8)] shrink-0" />
-													<span className="text-[13px] text-[var(--gray-500,#64748b)] whitespace-nowrap overflow-hidden text-ellipsis">
-														{entry.email}
-													</span>
+												<div style={styles.detailRow}>
+													<Mail size={14} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
+													<span style={styles.detailText}>{entry.email}</span>
 												</div>
 											)}
 											{entry.phone && (
-												<div className="flex items-center gap-2">
-													<Phone size={14} className="text-[var(--gray-400,#94a3b8)] shrink-0" />
-													<span className="text-[13px] text-[var(--gray-500,#64748b)] whitespace-nowrap overflow-hidden text-ellipsis">
-														{entry.phone}
-													</span>
+												<div style={styles.detailRow}>
+													<Phone size={14} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
+													<span style={styles.detailText}>{entry.phone}</span>
 												</div>
 											)}
 											{entry.address && (
-												<div className="flex items-center gap-2">
-													<MapPin size={14} className="text-[var(--gray-400,#94a3b8)] shrink-0" />
-													<span className="text-[13px] text-[var(--gray-500,#64748b)] whitespace-nowrap overflow-hidden text-ellipsis">
-														{entry.address}
-													</span>
+												<div style={styles.detailRow}>
+													<MapPin size={14} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
+													<span style={styles.detailText}>{entry.address}</span>
 												</div>
 											)}
 											{entry.notes && (
-												<div className="flex items-center gap-2">
-													<StickyNote size={14} className="text-[var(--gray-400,#94a3b8)] shrink-0" />
-													<span className="text-[13px] text-[var(--gray-400,#94a3b8)] italic whitespace-pre-wrap break-words">
-														{entry.notes}
-													</span>
+												<div style={styles.detailRow}>
+													<StickyNote size={14} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
+													<span style={styles.notesText}>{entry.notes}</span>
 												</div>
 											)}
 											{!entry.email && !entry.phone && !entry.address && !entry.notes && (
-												<span className="text-[13px] text-[var(--gray-400,#94a3b8)] italic">
-													{t('clients.noContactInfo')}
-												</span>
+												<span style={styles.noDetails}>{t('clients.noContactInfo')}</span>
 											)}
 										</div>
 									)}
@@ -459,10 +445,259 @@ export function ClientBook() {
 					</div>
 				)}
 
-				<p className="text-center text-xs text-[var(--gray-400,#94a3b8)] mt-4">
+				<p style={styles.countText}>
 					{filtered.length} {filtered.length === 1 ? 'client' : 'clients'}
 				</p>
 			</div>
+
+			<style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 		</main>
 	);
 }
+
+const styles: Record<string, Record<string, string | number>> = {
+	page: {
+		minHeight: '100vh',
+		background: 'transparent',
+	},
+	content: {
+		padding: '0 20px 100px',
+		maxWidth: 600,
+		width: '100%',
+		margin: '0 auto',
+	},
+	addBtn: {
+		width: 40,
+		height: 40,
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		background: 'rgba(255,255,255,0.5)',
+		backdropFilter: 'blur(12px)',
+		border: 'none',
+		borderRadius: 14,
+		color: 'var(--blu-primary, #0066ff)',
+		cursor: 'pointer',
+	},
+	searchWrap: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '10px',
+		padding: '10px 14px',
+		background: 'rgba(255,255,255,0.5)',
+		backdropFilter: 'blur(12px)',
+		border: '1px solid rgba(255,255,255,0.5)',
+		borderRadius: 14,
+		marginBottom: 16,
+	},
+	searchInput: {
+		flex: 1,
+		border: 'none',
+		background: 'transparent',
+		fontSize: 15,
+		color: 'var(--gray-900, #0f172a)',
+		outline: 'none',
+		fontFamily: 'inherit',
+	},
+	createCard: {
+		background: 'rgba(255,255,255,0.6)',
+		backdropFilter: 'blur(12px)',
+		border: '1.5px solid var(--blu-primary, #0066ff)',
+		borderRadius: 16,
+		padding: 16,
+		marginBottom: 12,
+	},
+	createHeader: {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		marginBottom: 12,
+	},
+	createTitle: {
+		fontSize: 14,
+		fontWeight: 700,
+		color: 'var(--blu-primary, #0066ff)',
+	},
+	createNameInput: {
+		width: '100%',
+		border: '1.5px solid var(--blu-primary, #0066ff)',
+		background: 'rgba(255,255,255,0.8)',
+		borderRadius: 10,
+		padding: '8px 10px',
+		fontSize: 15,
+		fontWeight: 600,
+		color: 'var(--gray-900, #0f172a)',
+		outline: 'none',
+		fontFamily: 'inherit',
+		marginBottom: 8,
+		boxSizing: 'border-box',
+	},
+	emptyState: {
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 12,
+		padding: '60px 20px',
+		textAlign: 'center',
+	},
+	emptyText: {
+		margin: 0,
+		fontSize: 15,
+		fontWeight: 500,
+		color: 'var(--gray-500, #64748b)',
+	},
+	emptyHint: {
+		margin: 0,
+		fontSize: 13,
+		color: 'var(--gray-400, #94a3b8)',
+		maxWidth: 280,
+	},
+	list: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: 10,
+	},
+	card: {
+		background: 'rgba(255,255,255,0.5)',
+		backdropFilter: 'blur(12px)',
+		border: '1px solid rgba(255,255,255,0.5)',
+		borderRadius: 16,
+		padding: 16,
+		cursor: 'pointer',
+	},
+	cardHeader: {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		marginBottom: 10,
+	},
+	clientInfo: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 10,
+		minWidth: 0,
+		flex: 1,
+	},
+	avatar: {
+		width: 36,
+		height: 36,
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		background: 'rgba(0, 102, 255, 0.1)',
+		borderRadius: '50%',
+		fontSize: 15,
+		fontWeight: 700,
+		color: 'var(--blu-primary, #0066ff)',
+		flexShrink: 0,
+	},
+	clientName: {
+		fontSize: 15,
+		fontWeight: 600,
+		color: 'var(--gray-900, #0f172a)',
+		whiteSpace: 'nowrap',
+		overflow: 'hidden',
+		textOverflow: 'ellipsis',
+	},
+	editNameInput: {
+		flex: 1,
+		border: '1.5px solid var(--blu-primary, #0066ff)',
+		background: 'rgba(255,255,255,0.8)',
+		borderRadius: 10,
+		padding: '6px 10px',
+		fontSize: 15,
+		fontWeight: 600,
+		color: 'var(--gray-900, #0f172a)',
+		outline: 'none',
+		fontFamily: 'inherit',
+	},
+	cardActions: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 4,
+		flexShrink: 0,
+	},
+	iconBtn: {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		width: 32,
+		height: 32,
+		border: 'none',
+		background: 'transparent',
+		borderRadius: 8,
+		cursor: 'pointer',
+		padding: 0,
+	},
+	cardBody: {},
+	detailRows: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: 6,
+	},
+	detailRow: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 8,
+	},
+	detailText: {
+		fontSize: 13,
+		color: 'var(--gray-500, #64748b)',
+		whiteSpace: 'nowrap',
+		overflow: 'hidden',
+		textOverflow: 'ellipsis',
+	},
+	noDetails: {
+		fontSize: 13,
+		color: 'var(--gray-400, #94a3b8)',
+		fontStyle: 'italic',
+	},
+	editFields: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: 8,
+	},
+	editFieldRow: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 8,
+	},
+	editFieldInput: {
+		flex: 1,
+		border: '1px solid var(--gray-200, #e2e8f0)',
+		background: 'rgba(255,255,255,0.8)',
+		borderRadius: 10,
+		padding: '6px 10px',
+		fontSize: 13,
+		color: 'var(--gray-900, #0f172a)',
+		outline: 'none',
+		fontFamily: 'inherit',
+	},
+	notesInput: {
+		flex: 1,
+		border: '1px solid var(--gray-200, #e2e8f0)',
+		background: 'rgba(255,255,255,0.8)',
+		borderRadius: 10,
+		padding: '6px 10px',
+		fontSize: 13,
+		color: 'var(--gray-900, #0f172a)',
+		outline: 'none',
+		fontFamily: 'inherit',
+		resize: 'vertical',
+		minHeight: 36,
+	},
+	notesText: {
+		fontSize: 13,
+		color: 'var(--gray-400, #94a3b8)',
+		fontStyle: 'italic',
+		whiteSpace: 'pre-wrap',
+		wordBreak: 'break-word',
+	},
+	countText: {
+		textAlign: 'center',
+		fontSize: 12,
+		color: 'var(--gray-400, #94a3b8)',
+		marginTop: 16,
+	},
+};

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'preact/hooks';
-import { cn } from '@/lib/utils';
 import { useI18nStore } from '@/lib/i18n';
 import { suggestClients } from '@/lib/api/clients';
 import {
@@ -95,18 +94,21 @@ export function ReviewPreviewCard({
   const docNumberRef = useRef<HTMLInputElement>(null);
   const clientNameRef = useRef<HTMLInputElement>(null);
 
+  // Sync selectedClientId when AI finds an exact client match
   useEffect(() => {
     if (exactClientMatch?.id && !selectedClientId) {
       setSelectedClientId(exactClientMatch.id);
     }
   }, [exactClientMatch?.id]);
 
+  // Autofocus doc number input
   useEffect(() => {
     if (isEditingDocNumber && docNumberRef.current) {
       docNumberRef.current.focus();
     }
   }, [isEditingDocNumber]);
 
+  // Autofocus client name input
   useEffect(() => {
     if (isEditingClientName && clientNameRef.current) {
       clientNameRef.current.focus();
@@ -287,26 +289,14 @@ export function ReviewPreviewCard({
 
   return (
     <>
-      <style>{`
-        .rpc-due-date-input::-webkit-calendar-picker-indicator { display: none !important; -webkit-appearance: none; }
-        .rpc-due-date-input::-webkit-inner-spin-button, .rpc-due-date-input::-webkit-clear-button { display: none !important; }
-        @keyframes rpcSpin { to { transform: rotate(360deg); } }
-        .rpc-spinning { animation: rpcSpin 1s linear infinite; }
-      `}</style>
-      <div class="bg-[var(--white)] border border-[var(--gray-200)] rounded-[var(--radius-card)] overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.03)]">
-        <div class="flex items-center justify-between px-[var(--space-5)] py-[var(--space-4)] border-b border-[var(--gray-100)]">
-          <div
-            class={cn(
-              'flex items-center gap-[var(--space-1-5)] px-[var(--space-3)] py-[var(--space-1-5)] rounded-[var(--radius-input)] text-[var(--text-xs)] font-[var(--font-semibold)] uppercase',
-              data.documentType === 'estimate'
-                ? 'bg-[var(--glass-amber-10)] text-[var(--data-amber)]'
-                : 'bg-[var(--glass-primary-10)] text-[var(--blu-primary)]'
-            )}
-          >
+      <style>{componentStyles}</style>
+      <div class="preview-card">
+        <div class="preview-header">
+          <div class={`doc-type-badge${data.documentType === 'estimate' ? ' estimate' : ''}`}>
             {data.documentType === 'estimate' ? (
-              <FileText size={14} />
+              <FileText size={16} />
             ) : (
-              <Receipt size={14} />
+              <Receipt size={16} />
             )}
             <span>{data.documentType === 'estimate' ? 'Estimate' : 'Invoice'}</span>
           </div>
@@ -314,7 +304,7 @@ export function ReviewPreviewCard({
           {isEditingDocNumber ? (
             <input
               ref={docNumberRef}
-              class="px-2 py-1 border border-[var(--blu-primary,#0066ff)] rounded-md text-xs font-mono text-[var(--gray-900)] bg-[var(--white)] outline-none w-[120px] shadow-[0_0_0_3px_rgba(0,102,255,0.1)]"
+              class="doc-number-input"
               type="text"
               value={editableDocNumber}
               onInput={(e) => setEditableDocNumber((e.target as HTMLInputElement).value)}
@@ -323,65 +313,53 @@ export function ReviewPreviewCard({
             />
           ) : (
             <button
-              class="flex items-center gap-1.5 px-2 py-1 bg-transparent border border-transparent rounded-md cursor-pointer transition-all duration-200 hover:bg-[var(--gray-100)] hover:border-slate-200 group"
+              class="doc-number-btn"
               onClick={() => {
                 setEditableDocNumber(documentNumber);
                 setIsEditingDocNumber(true);
               }}
             >
-              <span class="text-[var(--text-xs)] font-[var(--font-mono)] text-[var(--gray-500)]">
-                #{documentNumber}
-              </span>
-              <Pencil size={12} class="text-[var(--gray-400)] opacity-0 group-hover:opacity-100 transition-opacity duration-200 touch-device:opacity-50" />
+              <span class="doc-number">#{documentNumber}</span>
+              <Pencil size={12} class="edit-icon" />
             </button>
           )}
         </div>
 
-        <div class="p-4 flex flex-col gap-3">
-          <div class="flex gap-4 items-start max-[480px]:flex-col max-[480px]:gap-3">
+        <div class="preview-body">
+          <div class="client-total-row">
             {/* Client Side (left) */}
-            <div class="flex-1 min-w-0">
-              <div class="relative">
+            <div class="client-side">
+              <div class="client-row-wrapper">
                 <button
-                  class={cn(
-                    'flex items-center gap-3 w-full bg-transparent border-none cursor-pointer text-left transition-all duration-200 rounded-[10px] hover:bg-[var(--gray-50,#f8fafc)] active:scale-[0.99]',
-                    !clientFullName && 'bg-amber-500/[0.04] -mx-3 -my-2 px-3 py-2 rounded-lg'
-                  )}
+                  class={`preview-row client-row-btn${!clientFullName ? ' has-warning' : ''}`}
                   onClick={() => {
                     setEditableClientName(clientFullName || '');
                     setIsEditingClientName(true);
                   }}
                 >
-                  <User size={16} class="text-[var(--gray-500)]" />
-                  <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-                    <span class="text-[11px] text-[var(--gray-500)] uppercase tracking-wider">
-                      {t('review.client')}
-                    </span>
-                    <span
-                      class={cn(
-                        'text-[15px] text-[var(--gray-900)] font-medium bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-[10px] px-3 py-1.5 inline-block transition-all duration-200',
-                        !clientFullName && 'text-red-400/80 italic'
-                      )}
-                    >
+                  <User size={16} class="preview-icon" />
+                  <div class="preview-info">
+                    <span class="preview-label">{t('review.client')}</span>
+                    <span class={`preview-value${!clientFullName ? ' missing' : ''}`}>
                       {clientFullName || 'Tap to select'}
                     </span>
                     {data.client.email && (
-                      <span class="text-xs text-[var(--gray-400)]">{data.client.email}</span>
+                      <span class="client-email-hint">{data.client.email}</span>
                     )}
                     {data.client.phone && (
-                      <span class="text-xs text-[var(--gray-400)]">{data.client.phone}</span>
+                      <span class="client-phone-hint">{data.client.phone}</span>
                     )}
                   </div>
                   {!clientFullName ? (
-                    <div class="flex items-center justify-center w-7 h-7 bg-amber-500/[0.12] rounded-lg text-[var(--data-amber)] shrink-0 ml-auto" title="Client name is required">
+                    <div class="inline-warning" title="Client name is required">
                       <AlertTriangle size={16} />
                     </div>
                   ) : !data.client.email ? (
-                    <div class="flex items-center justify-center w-7 h-7 bg-amber-500/[0.12] rounded-lg text-[var(--data-amber)] shrink-0 ml-auto" title="Email is missing">
+                    <div class="inline-warning" title="Email is missing">
                       <AlertTriangle size={16} />
                     </div>
                   ) : (
-                    <div class="flex items-center justify-center w-7 h-7 bg-emerald-500/[0.12] rounded-lg text-[var(--data-green)] shrink-0 ml-auto" title="Client set">
+                    <div class="inline-valid" title="Client set">
                       <Check size={16} />
                     </div>
                   )}
@@ -392,28 +370,28 @@ export function ReviewPreviewCard({
               {!showClientDropdown &&
                 showClientSuggestions &&
                 clientSuggestions.length > 0 && (
-                  <div class="p-3 bg-sky-500/[0.06] border border-sky-500/15 rounded-[10px] mx-[-4px] my-1">
-                    <div class="flex items-center gap-1.5 mb-2.5 text-xs font-medium text-sky-600">
+                  <div class="client-suggestions-inline">
+                    <div class="suggestions-header-inline">
                       <Search size={14} />
                       <span>{t('review.didYouMean')}</span>
                     </div>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="suggestions-chips">
                       {clientSuggestions.map((suggestion) => (
                         <button
                           key={suggestion.id}
-                          class="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--white)] border border-sky-500/30 rounded-full text-[13px] text-[var(--gray-900)] cursor-pointer transition-all duration-200 hover:bg-sky-500/10 hover:border-sky-500"
+                          class="suggestion-chip"
                           onClick={() => onApplyClientSuggestion(suggestion)}
                         >
-                          <span class="font-medium">{suggestion.name}</span>
+                          <span class="chip-name">{suggestion.name}</span>
                           {suggestion.similarity >= 0.8 ? (
-                            <span class="flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-600">{'\u2713'}</span>
+                            <span class="chip-match high">{'\u2713'}</span>
                           ) : suggestion.similarity >= 0.6 ? (
-                            <span class="flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-600">~</span>
+                            <span class="chip-match medium">~</span>
                           ) : null}
                         </button>
                       ))}
                       <button
-                        class="flex items-center gap-1.5 px-3.5 py-2 bg-transparent border border-[var(--gray-300)] rounded-full text-[13px] text-[var(--gray-500)] cursor-pointer transition-all duration-200 hover:bg-[var(--gray-100)] hover:border-[var(--gray-400)] hover:text-[var(--gray-700)]"
+                        class="suggestion-chip dismiss"
                         onClick={() => onShowClientSuggestionsChange(false)}
                       >
                         Keep "{clientFullName}"
@@ -423,15 +401,13 @@ export function ReviewPreviewCard({
                 )}
 
               {/* Due Date (left, under client) */}
-              <div class="flex items-center gap-3 mt-4">
-                <Calendar size={16} class="text-[var(--gray-500)]" />
-                <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-                  <span class="text-[11px] text-[var(--gray-500)] uppercase tracking-wider">
-                    {t('review.dueDate')}
-                  </span>
+              <div class="preview-row due-date-row">
+                <Calendar size={16} class="preview-icon" />
+                <div class="preview-info">
+                  <span class="preview-label">{t('review.dueDate')}</span>
                   <input
                     type="date"
-                    class="rpc-due-date-input bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-[10px] px-3 py-2 text-sm font-medium text-[var(--gray-900)] font-inherit cursor-pointer transition-all duration-200 appearance-none w-[160px] overflow-hidden hover:border-[var(--gray-300)] hover:bg-white focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:bg-white focus:shadow-[0_0_0_3px_rgba(0,102,255,0.1)]"
+                    class="due-date-input"
                     value={data.dueDate || ''}
                     onInput={(e) =>
                       handleDueDateChange((e.target as HTMLInputElement).value)
@@ -442,29 +418,26 @@ export function ReviewPreviewCard({
             </div>
 
             {/* Total Side (right) */}
-            <div class="shrink-0 flex flex-col gap-2 items-end text-right max-[480px]:items-start max-[480px]:text-left max-[480px]:w-full">
-              <div class={cn('flex items-center gap-2', calculatedTotal <= 0 && 'text-[var(--data-amber)]')}>
-                <DollarSign size={16} class="text-[var(--gray-500)]" />
-                <div class="flex flex-col gap-0.5 flex-1 min-w-0 max-[480px]:items-start">
-                  <span class="text-[11px] text-[var(--gray-500)] uppercase tracking-wider">
+            <div class="total-side">
+              <div class={`total-block${calculatedTotal <= 0 ? ' has-warning' : ''}`}>
+                <DollarSign size={16} class="preview-icon" />
+                <div class="preview-info">
+                  <span class="preview-label">
                     {t('review.total')}{' '}
-                    <span class="font-normal text-[11px] text-[var(--gray-400)]">{t('review.fromLineItems')}</span>
+                    <span class="total-hint">{t('review.fromLineItems')}</span>
                   </span>
                   <span
-                    class={cn(
-                      'text-lg font-bold text-[var(--data-green)]',
-                      calculatedTotal <= 0 && 'text-[var(--data-amber)]'
-                    )}
+                    class={`preview-value amount${calculatedTotal <= 0 ? ' warning-value' : ''}`}
                   >
                     {formatCurrency(calculatedTotal)}
                   </span>
                 </div>
                 {calculatedTotal <= 0 ? (
-                  <div class="flex items-center justify-center w-7 h-7 bg-amber-500/[0.12] rounded-lg text-[var(--data-amber)] shrink-0 ml-auto" title="Total must be greater than $0">
+                  <div class="inline-warning" title="Total must be greater than $0">
                     <AlertTriangle size={16} />
                   </div>
                 ) : (
-                  <div class="flex items-center justify-center w-7 h-7 bg-emerald-500/[0.12] rounded-lg text-[var(--data-green)] shrink-0 ml-auto" title="Valid amount">
+                  <div class="inline-valid" title="Valid amount">
                     <Check size={16} />
                   </div>
                 )}
@@ -480,17 +453,20 @@ export function ReviewPreviewCard({
         title={t('review.client')}
         onClose={handleDoneEditClient}
       >
-        <div class="flex flex-col gap-3.5 pt-1">
-          <div class="flex flex-col gap-1">
-            <label for="edit-client-name" class="text-[11px] font-semibold text-[var(--gray-500)] uppercase tracking-wider">
-              <User size={12} class="inline align-[-2px] mr-1" />
+        <div class="client-editing-form">
+          <div class="client-edit-field">
+            <label for="edit-client-name">
+              <User
+                size={12}
+                style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }}
+              />
               {t('review.client')}
             </label>
-            <div class="relative">
+            <div class="client-name-search-wrapper">
               <input
                 ref={clientNameRef}
                 id="edit-client-name"
-                class="text-sm text-[var(--gray-900)] border border-[var(--gray-200)] rounded-[10px] px-3 py-2.5 pr-9 bg-white w-full font-inherit transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.1)] placeholder:text-[var(--gray-400)]"
+                class="client-name-input"
                 type="text"
                 value={editableClientName}
                 onInput={(e) =>
@@ -500,34 +476,34 @@ export function ReviewPreviewCard({
                 onFocus={handleClientNameFocus}
                 placeholder={t('review.selectDifferentClient')}
               />
-              <Search size={14} class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--gray-400)] pointer-events-none" />
+              <Search size={14} class="search-icon-inside" />
             </div>
 
             {showClientDropdown &&
               (isSearchingClients || clientDropdownResults.length > 0) && (
-                <div class="flex flex-col border border-[var(--gray-200)] rounded-[10px] overflow-hidden bg-white max-h-[180px] overflow-y-auto">
+                <div class="client-search-results">
                   {isSearchingClients ? (
-                    <div class="p-5 text-center text-[var(--gray-500)] text-sm flex items-center justify-center gap-2">
-                      <Loader2 size={16} class="rpc-spinning" />
+                    <div class="dropdown-loading">
+                      <Loader2 size={16} class="spinning" />
                       <span>{t('review.searching')}</span>
                     </div>
                   ) : (
                     clientDropdownResults.map((client) => (
                       <button
                         key={client.id}
-                        class="flex items-center justify-between w-full px-3.5 py-3 bg-transparent border-none border-b border-[var(--gray-100)] cursor-pointer text-left transition-[background] duration-200 hover:bg-[var(--gray-50,#f8fafc)] active:bg-[var(--gray-100,#f1f5f9)] last:border-b-0 rounded-none"
+                        class="dropdown-item"
                         onClick={() => handleDropdownSelect(client)}
                       >
-                        <div class="flex flex-col gap-0.5">
-                          <span class="text-sm font-medium text-[var(--gray-900)]">{client.name}</span>
+                        <div class="dropdown-item-info">
+                          <span class="dropdown-item-name">{client.name}</span>
                           {client.email && (
-                            <span class="text-xs text-[var(--gray-500)]">{client.email}</span>
+                            <span class="dropdown-item-detail">{client.email}</span>
                           )}
                           {client.phone && (
-                            <span class="text-xs text-[var(--gray-500)]">{client.phone}</span>
+                            <span class="dropdown-item-detail">{client.phone}</span>
                           )}
                           {client.address && (
-                            <span class="text-xs text-[var(--gray-500)]">
+                            <span class="dropdown-item-detail">
                               {client.address.length > 40
                                 ? `${client.address.slice(0, 40)}...`
                                 : client.address}
@@ -535,11 +511,9 @@ export function ReviewPreviewCard({
                           )}
                         </div>
                         {client.similarity >= 0.8 ? (
-                          <span class="px-2 py-1 rounded-md text-[11px] font-medium bg-emerald-500/[0.12] text-[var(--data-green)]">
-                            {t('review.highMatch')}
-                          </span>
+                          <span class="match-badge high">{t('review.highMatch')}</span>
                         ) : client.similarity >= 0.6 ? (
-                          <span class="px-2 py-1 rounded-md text-[11px] font-medium bg-amber-500/[0.12] text-[var(--data-amber)]">
+                          <span class="match-badge medium">
                             {t('review.goodMatch')}
                           </span>
                         ) : null}
@@ -550,14 +524,17 @@ export function ReviewPreviewCard({
               )}
           </div>
 
-          <div class="flex flex-col gap-1">
-            <label for="edit-client-email" class="text-[11px] font-semibold text-[var(--gray-500)] uppercase tracking-wider">
-              <Mail size={12} class="inline align-[-2px] mr-1" />
+          <div class="client-edit-field">
+            <label for="edit-client-email">
+              <Mail
+                size={12}
+                style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }}
+              />
               {t('review.email')}
             </label>
             <input
               id="edit-client-email"
-              class="text-sm text-[var(--gray-900)] border border-[var(--gray-200)] rounded-[10px] px-3 py-2.5 bg-white w-full font-inherit transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.1)] placeholder:text-[var(--gray-400)]"
+              class="client-email-input"
               type="email"
               value={data.client.email || ''}
               onInput={(e) =>
@@ -571,14 +548,17 @@ export function ReviewPreviewCard({
             />
           </div>
 
-          <div class="flex flex-col gap-1">
-            <label for="edit-client-phone" class="text-[11px] font-semibold text-[var(--gray-500)] uppercase tracking-wider">
-              <Phone size={12} class="inline align-[-2px] mr-1" />
+          <div class="client-edit-field">
+            <label for="edit-client-phone">
+              <Phone
+                size={12}
+                style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }}
+              />
               Phone
             </label>
             <input
               id="edit-client-phone"
-              class="text-sm text-[var(--gray-900)] border border-[var(--gray-200)] rounded-[10px] px-3 py-2.5 bg-white w-full font-inherit transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.1)] placeholder:text-[var(--gray-400)]"
+              class="client-email-input"
               type="tel"
               value={data.client.phone || ''}
               onInput={(e) =>
@@ -591,14 +571,17 @@ export function ReviewPreviewCard({
             />
           </div>
 
-          <div class="flex flex-col gap-1">
-            <label for="edit-client-address" class="text-[11px] font-semibold text-[var(--gray-500)] uppercase tracking-wider">
-              <MapPin size={12} class="inline align-[-2px] mr-1" />
+          <div class="client-edit-field">
+            <label for="edit-client-address">
+              <MapPin
+                size={12}
+                style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }}
+              />
               Address
             </label>
             <input
               id="edit-client-address"
-              class="text-sm text-[var(--gray-900)] border border-[var(--gray-200)] rounded-[10px] px-3 py-2.5 bg-white w-full font-inherit transition-all duration-200 focus:outline-none focus:border-[var(--blu-primary,#0066ff)] focus:shadow-[0_0_0_3px_rgba(0,102,255,0.1)] placeholder:text-[var(--gray-400)]"
+              class="client-email-input"
               type="text"
               value={data.client.address || ''}
               onInput={(e) =>
@@ -611,10 +594,7 @@ export function ReviewPreviewCard({
             />
           </div>
 
-          <button
-            class="flex items-center justify-center gap-1.5 px-5 py-3 border-none rounded-xl bg-[var(--blu-primary,#0066ff)] text-white text-sm font-semibold cursor-pointer transition-all duration-150 shadow-[0_2px_8px_rgba(0,102,255,0.25)] mt-1 hover:bg-[#0055dd] hover:shadow-[0_4px_12px_rgba(0,102,255,0.3)] active:scale-[0.98]"
-            onClick={handleDoneEditClient}
-          >
+          <button class="done-edit-client-btn" onClick={handleDoneEditClient}>
             <Check size={14} />
             {t('common.done')}
           </button>
@@ -623,3 +603,596 @@ export function ReviewPreviewCard({
     </>
   );
 }
+
+const componentStyles = `
+  .due-date-input::-webkit-calendar-picker-indicator {
+    display: none !important;
+    -webkit-appearance: none;
+  }
+  .due-date-input::-webkit-inner-spin-button,
+  .due-date-input::-webkit-clear-button {
+    display: none !important;
+  }
+
+  .preview-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.03);
+  }
+
+  .preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .doc-type-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--glass-primary-10);
+    border-radius: var(--radius-input);
+    color: var(--blu-primary);
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .doc-type-badge.estimate {
+    background: var(--glass-amber-10);
+    color: var(--data-amber);
+  }
+
+  .doc-number {
+    font-size: 15px;
+    font-family: var(--font-mono);
+    color: var(--gray-500);
+  }
+
+  .doc-number-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .doc-number-btn:hover {
+    background: var(--gray-100);
+    border-color: #e2e8f0;
+  }
+
+  .doc-number-btn .edit-icon {
+    color: var(--gray-400);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .doc-number-btn:hover .edit-icon {
+    opacity: 1;
+  }
+
+  @media (pointer: coarse) {
+    .doc-number-btn .edit-icon {
+      opacity: 0.5;
+    }
+  }
+
+  .doc-number-input {
+    padding: 4px 8px;
+    border: 1px solid var(--blu-primary, #0066ff);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--gray-900);
+    background: var(--white);
+    outline: none;
+    width: 120px;
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+  }
+
+  .preview-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .client-total-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .client-side {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .total-side {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .total-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .total-block .preview-info {
+    align-items: flex-end;
+  }
+
+  .due-date-row {
+    margin-top: 16px;
+  }
+
+  .total-block.has-warning {
+    color: var(--data-amber);
+  }
+
+  .client-editing-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 4px 0 0;
+  }
+
+  .client-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .client-edit-field label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .client-name-search-wrapper {
+    position: relative;
+  }
+
+  .client-name-search-wrapper .search-icon-inside {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    pointer-events: none;
+  }
+
+  .client-name-input,
+  .client-email-input {
+    font-size: 14px;
+    color: var(--gray-900);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: white;
+    width: 100%;
+    font-family: inherit;
+    transition: all 0.2s ease;
+  }
+
+  .client-name-input {
+    padding-right: 36px;
+  }
+
+  .client-name-input:focus,
+  .client-email-input:focus {
+    outline: none;
+    border-color: var(--blu-primary, #0066ff);
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+  }
+
+  .client-name-input::placeholder,
+  .client-email-input::placeholder {
+    color: var(--gray-400);
+  }
+
+  .client-search-results {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
+  .client-search-results .dropdown-item {
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .client-search-results .dropdown-item:last-child {
+    border-bottom: none;
+  }
+
+  .done-edit-client-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    background: var(--blu-primary, #0066ff);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.25);
+    margin-top: 4px;
+  }
+
+  .done-edit-client-btn:hover {
+    background: #0055dd;
+    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+  }
+
+  .done-edit-client-btn:active {
+    transform: scale(0.98);
+  }
+
+  .client-email-hint,
+  .client-phone-hint {
+    font-size: 12px;
+    color: var(--gray-400);
+  }
+
+  @media (max-width: 480px) {
+    .client-total-row {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .total-side {
+      align-items: flex-start;
+      text-align: left;
+      width: 100%;
+    }
+
+    .total-block .preview-info {
+      align-items: flex-start;
+    }
+  }
+
+  .preview-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .preview-row .preview-icon {
+    color: var(--gray-500);
+  }
+
+  .preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .preview-label {
+    font-size: 11px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .preview-value {
+    font-size: 15px;
+    color: var(--gray-900);
+    font-weight: 500;
+  }
+
+  .preview-value.missing {
+    color: rgba(248, 113, 113, 0.8);
+    font-style: italic;
+  }
+
+  .preview-value.amount {
+    color: var(--data-green);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .preview-value.warning-value {
+    color: var(--data-amber);
+  }
+
+  .inline-warning {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(245, 158, 11, 0.12);
+    border-radius: 8px;
+    color: var(--data-amber);
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .inline-valid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(16, 185, 129, 0.12);
+    border-radius: 8px;
+    color: var(--data-green);
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .preview-row.has-warning {
+    background: rgba(245, 158, 11, 0.04);
+    margin: -8px -12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+
+  .client-row-wrapper {
+    position: relative;
+  }
+
+  .client-row-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    border-radius: 10px;
+  }
+
+  .client-row-btn:hover {
+    background: var(--gray-50, #f8fafc);
+  }
+
+  .client-row-btn:active {
+    transform: scale(0.99);
+  }
+
+  .client-row-btn .preview-value {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 6px 12px;
+    display: inline-block;
+    transition: all 0.2s ease;
+  }
+
+  .client-row-btn:hover .preview-value {
+    border-color: var(--gray-300);
+    background: white;
+  }
+
+  .dropdown-loading {
+    padding: 20px;
+    text-align: center;
+    color: var(--gray-500);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 14px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--gray-100);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+  }
+
+  .dropdown-item:hover {
+    background: var(--gray-50, #f8fafc);
+  }
+
+  .dropdown-item:active {
+    background: var(--gray-100, #f1f5f9);
+  }
+
+  .dropdown-item:last-child {
+    border-bottom: none;
+  }
+
+  .dropdown-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .dropdown-item-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-900);
+  }
+
+  .dropdown-item-detail {
+    font-size: 12px;
+    color: var(--gray-500);
+  }
+
+  .match-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .match-badge.high {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--data-green);
+  }
+
+  .match-badge.medium {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--data-amber);
+  }
+
+  .due-date-input {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-900);
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 160px;
+    overflow: hidden;
+  }
+
+  .due-date-input:hover {
+    border-color: var(--gray-300);
+    background: white;
+  }
+
+  .due-date-input:focus {
+    outline: none;
+    border-color: var(--blu-primary, #0066ff);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+  }
+
+  .due-date-input:invalid,
+  .due-date-input[value=''] {
+    color: var(--gray-400);
+  }
+
+  .total-hint {
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--gray-400);
+  }
+
+  .client-suggestions-inline {
+    padding: 12px;
+    background: rgba(14, 165, 233, 0.06);
+    border: 1px solid rgba(14, 165, 233, 0.15);
+    border-radius: 10px;
+    margin: 4px -4px;
+  }
+
+  .suggestions-header-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #0284c7;
+  }
+
+  .suggestions-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .suggestion-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--white);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--gray-900);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .suggestion-chip:hover {
+    background: rgba(14, 165, 233, 0.1);
+    border-color: #0ea5e9;
+  }
+
+  .suggestion-chip.dismiss {
+    background: transparent;
+    border-color: var(--gray-300);
+    color: var(--gray-500);
+  }
+
+  .suggestion-chip.dismiss:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+    color: var(--gray-700);
+  }
+
+  .chip-name {
+    font-weight: 500;
+  }
+
+  .chip-match {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .chip-match.high {
+    background: rgba(16, 185, 129, 0.2);
+    color: #059669;
+  }
+
+  .chip-match.medium {
+    background: rgba(245, 158, 11, 0.2);
+    color: #d97706;
+  }
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;

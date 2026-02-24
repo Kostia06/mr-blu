@@ -31,8 +31,9 @@ const componentStyles = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-3, 12px) var(--page-padding-x, 20px);
-    padding-top: calc(var(--space-3, 12px) + env(safe-area-inset-top, 0px));
+    padding: 16px var(--page-padding-x, 24px);
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    margin: 8px 12px;
     background: transparent;
   }
 
@@ -63,10 +64,11 @@ const componentStyles = `
 
   .review-header-title {
     font-family: var(--font-display, system-ui);
-    font-size: 18px;
+    font-size: 26px;
     font-weight: 700;
     color: var(--gray-900, #0f172a);
     margin: 0;
+    padding: 4px 0;
     letter-spacing: -0.02em;
   }
 

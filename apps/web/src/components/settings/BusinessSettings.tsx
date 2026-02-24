@@ -6,7 +6,6 @@ import { FormSection } from '@/components/forms/FormSection';
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader';
 import { useI18nStore } from '@/lib/i18n';
 import { updateBusiness } from '@/lib/api/user';
-import { cn } from '@/lib/utils';
 
 interface BusinessSettingsProps {
   user: User | null;
@@ -78,24 +77,22 @@ export function BusinessSettings({ user }: BusinessSettingsProps) {
     }
   }
 
+  const saveBtnStyle: Record<string, string | number> = {
+    ...styles.saveBtn,
+    ...(saved ? styles.saveBtnSaved : {}),
+    ...(saving ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
+  };
+
   return (
-    <main className="min-h-screen bg-transparent">
+    <main style={styles.page}>
       <SettingsPageHeader
         title={t('settings.businessTitle')}
         backHref={backUrl}
         backLabel={t('common.backToSettings')}
         right={
-          <button
-            className={cn(
-              'min-w-[72px] h-9 px-4 flex items-center justify-center gap-1.5 bg-[var(--blu-primary,#0066ff)] border-none rounded-[var(--radius-input,12px)] text-white text-sm font-semibold cursor-pointer',
-              saved && 'bg-[var(--data-green,#10b981)]',
-              saving && 'opacity-70 cursor-not-allowed'
-            )}
-            onClick={handleSave}
-            disabled={saving}
-          >
+          <button style={saveBtnStyle} onClick={handleSave} disabled={saving}>
             {saving ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
             ) : saved ? (
               <Check size={16} strokeWidth={2.5} />
             ) : (
@@ -105,7 +102,7 @@ export function BusinessSettings({ user }: BusinessSettingsProps) {
         }
       />
 
-      <div className="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col gap-[var(--section-gap,24px)] pb-[100px]">
+      <div style={styles.pageContent}>
         <FormSection title={t('settings.companyInfo')} variant="card">
           <FormInput
             label={t('settings.companyNameLabel')}
@@ -148,7 +145,7 @@ export function BusinessSettings({ user }: BusinessSettingsProps) {
             icon={<MapPin size={18} />}
             onValueChange={setAddress}
           />
-          <div className="flex flex-col gap-4">
+          <div style={styles.formGrid}>
             <FormInput
               label={t('settings.cityLabel')}
               name="city"
@@ -156,7 +153,7 @@ export function BusinessSettings({ user }: BusinessSettingsProps) {
               placeholder={t('placeholder.city')}
               onValueChange={setCity}
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div style={styles.formGridRow}>
               <FormInput
                 label={t('settings.stateLabel')}
                 name="state"
@@ -176,18 +173,89 @@ export function BusinessSettings({ user }: BusinessSettingsProps) {
         </FormSection>
 
         {successMessage && (
-          <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-[var(--radius-button,14px)] text-sm font-medium bg-[var(--status-paid-bg,rgba(16,185,129,0.1))] text-[var(--data-green,#10b981)]">
+          <div style={styles.messageSuccess}>
             <Check size={18} strokeWidth={2.5} />
             <span>{successMessage}</span>
           </div>
         )}
 
         {error && (
-          <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-[var(--radius-button,14px)] text-sm font-medium bg-[var(--status-overdue-bg,rgba(239,68,68,0.1))] text-[var(--data-red,#ef4444)]">
+          <div style={styles.messageError}>
             <span>{error}</span>
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </main>
   );
 }
+
+const styles: Record<string, Record<string, string | number>> = {
+  page: {
+    minHeight: '100vh',
+    background: 'transparent',
+  },
+  saveBtn: {
+    minWidth: 72,
+    height: 36,
+    padding: '0 16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    background: 'var(--blu-primary, #0066ff)',
+    border: 'none',
+    borderRadius: 'var(--radius-input, 12px)',
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  saveBtnSaved: {
+    background: 'var(--data-green, #10b981)',
+  },
+  pageContent: {
+    padding: 'var(--page-padding-x, 20px)',
+    maxWidth: 'var(--page-max-width, 600px)',
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--section-gap, 24px)',
+    paddingBottom: 100,
+  },
+  formGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+  },
+  formGridRow: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 12,
+  },
+  messageSuccess: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-button, 14px)',
+    fontSize: 14,
+    fontWeight: 500,
+    background: 'var(--status-paid-bg, rgba(16,185,129,0.1))',
+    color: 'var(--data-green, #10b981)',
+  },
+  messageError: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-button, 14px)',
+    fontSize: 14,
+    fontWeight: 500,
+    background: 'var(--status-overdue-bg, rgba(239,68,68,0.1))',
+    color: 'var(--data-red, #ef4444)',
+  },
+};

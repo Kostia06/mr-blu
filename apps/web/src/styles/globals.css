@@ -161,6 +161,18 @@
   --color-border: #E5E7EB;
   --color-accent: #0684c7;
   color-scheme: light;
+
+  /* Glass */
+  --glass-white-5: rgba(255, 255, 255, 0.05);
+  --glass-white-8: rgba(255, 255, 255, 0.08);
+  --glass-white-10: rgba(255, 255, 255, 0.1);
+  --glass-white-15: rgba(255, 255, 255, 0.15);
+  --glass-white-20: rgba(255, 255, 255, 0.2);
+  --glass-white-30: rgba(255, 255, 255, 0.3);
+  --glass-white-50: rgba(255, 255, 255, 0.5);
+  --glass-white-70: rgba(255, 255, 255, 0.7);
+  --glass-white-80: rgba(255, 255, 255, 0.8);
+  --glass-white-90: rgba(255, 255, 255, 0.9);
 }
 
 .dark {
@@ -201,6 +213,56 @@ img, video, canvas, svg {
   align-items: center;
   justify-content: center;
   padding: 80px 24px;
+}
+
+/* Background gradient blobs */
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+.bg-blob-1 {
+  width: 600px;
+  height: 600px;
+  background: linear-gradient(135deg, #0066ff 0%, #0ea5e9 100%);
+  top: -200px;
+  right: -150px;
+  opacity: 0.35;
+}
+
+.bg-blob-2 {
+  width: 500px;
+  height: 500px;
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  top: 35%;
+  left: -200px;
+  opacity: 0.25;
+}
+
+.bg-blob-3 {
+  width: 450px;
+  height: 450px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+  bottom: 10%;
+  right: -100px;
+  opacity: 0.2;
+}
+
+.bg-blob-4 {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #0066ff 0%, #3b82f6 100%);
+  bottom: -150px;
+  left: 15%;
+  opacity: 0.25;
+}
+
+@media (max-width: 768px) {
+  .bg-blob-1 { width: 360px; height: 360px; top: -120px; right: -90px; }
+  .bg-blob-2 { width: 300px; height: 300px; left: -120px; }
+  .bg-blob-3 { width: 270px; height: 270px; right: -60px; }
+  .bg-blob-4 { width: 240px; height: 240px; bottom: -90px; }
 }
 
 body {

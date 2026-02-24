@@ -3,7 +3,6 @@ import { Check, Globe, Info } from 'lucide-react';
 import { FormSection } from '@/components/forms/FormSection';
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader';
 import { useI18nStore } from '@/lib/i18n';
-import { cn } from '@/lib/utils';
 
 interface LanguageSettingsProps {
   user: User | null;
@@ -20,24 +19,20 @@ export function LanguageSettings({ user }: LanguageSettingsProps) {
   const selectedLanguage = languages.find((l) => l.code === locale) || languages[0];
 
   return (
-    <main className="min-h-screen bg-transparent">
+    <main style={styles.page}>
       <SettingsPageHeader
         title={t('settings.languageTitle')}
         backLabel={t('common.backToSettings')}
       />
 
-      <div className="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] mx-auto flex flex-col gap-[var(--section-gap,24px)] pb-[100px]">
+      <div style={styles.pageContent}>
         {/* Preview Section */}
-        <section className="flex flex-col items-center py-8">
-          <div className="relative w-[88px] h-[88px] flex items-center justify-center bg-[var(--white,#dbe8f4)] border border-[var(--gray-200,#e2e8f0)] rounded-full text-[var(--blu-primary,#0066ff)] shadow-[0_8px_32px_rgba(0,102,255,0.1)]">
+        <section style={styles.languagePreview}>
+          <div style={styles.previewGlobe}>
             <Globe size={32} strokeWidth={1.5} />
-            <div className="absolute -bottom-1 -right-1 w-9 h-9 flex items-center justify-center bg-[var(--white,#dbe8f4)] border-2 border-[var(--gray-50,#f8fafc)] rounded-full text-xl shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
-              {selectedLanguage.flag}
-            </div>
+            <div style={styles.currentFlag}>{selectedLanguage.flag}</div>
           </div>
-          <p className="mt-4 text-sm font-medium text-[var(--gray-600,#475569)]">
-            {selectedLanguage.name}
-          </p>
+          <p style={styles.previewLabel}>{selectedLanguage.name}</p>
         </section>
 
         {/* Language Selection */}
@@ -46,37 +41,33 @@ export function LanguageSettings({ user }: LanguageSettingsProps) {
           description={t('settings.languageDesc')}
           variant="card"
         >
-          <div className="flex flex-col">
+          <div style={styles.languageList}>
             {languages.map((lang) => {
               const isSelected = locale === lang.code;
               return (
                 <button
                   key={lang.code}
-                  className={cn(
-                    'flex items-center gap-3.5 w-full p-4 bg-transparent border-none border-b border-[var(--gray-100,#f1f5f9)] cursor-pointer text-left',
-                    isSelected && 'bg-[rgba(0,102,255,0.04)]'
-                  )}
+                  style={{
+                    ...styles.languageItem,
+                    ...(isSelected ? styles.languageItemSelected : {}),
+                  }}
                   onClick={() => setLocale(lang.code)}
                   aria-pressed={isSelected}
                 >
                   <div
-                    className={cn(
-                      'w-12 h-12 flex items-center justify-center bg-[var(--gray-100,#f1f5f9)] rounded-[var(--radius-input,12px)] shrink-0',
-                      isSelected && 'bg-[rgba(0,102,255,0.1)]'
-                    )}
+                    style={{
+                      ...styles.languageFlagContainer,
+                      ...(isSelected ? styles.languageFlagContainerSelected : {}),
+                    }}
                   >
-                    <span className="text-2xl leading-none">{lang.flag}</span>
+                    <span style={styles.languageFlag}>{lang.flag}</span>
                   </div>
-                  <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[15px] font-medium text-[var(--gray-900,#0f172a)]">
-                      {lang.name}
-                    </span>
-                    <span className="text-[13px] text-[var(--gray-500,#64748b)]">
-                      {lang.native}
-                    </span>
+                  <div style={styles.languageInfo}>
+                    <span style={styles.languageName}>{lang.name}</span>
+                    <span style={styles.languageNative}>{lang.native}</span>
                   </div>
                   {isSelected && (
-                    <div className="w-6 h-6 flex items-center justify-center bg-[var(--blu-primary,#0066ff)] rounded-full text-white shrink-0">
+                    <div style={styles.languageCheck}>
                       <Check size={14} strokeWidth={3} />
                     </div>
                   )}
@@ -87,11 +78,150 @@ export function LanguageSettings({ user }: LanguageSettingsProps) {
         </FormSection>
 
         {/* Info Note */}
-        <div className="flex items-start gap-3 p-4 bg-[var(--gray-100,#f1f5f9)] rounded-[var(--radius-button,14px)] text-[var(--gray-500,#64748b)]">
+        <div style={styles.infoNote}>
           <Info size={18} strokeWidth={1.5} />
-          <p className="m-0 text-[13px] leading-[1.5]">{t('settings.languageHint')}</p>
+          <p style={styles.infoNoteText}>{t('settings.languageHint')}</p>
         </div>
       </div>
     </main>
   );
 }
+
+const styles: Record<string, Record<string, string | number>> = {
+  page: {
+    minHeight: '100vh',
+    background: 'transparent',
+  },
+  pageContent: {
+    padding: 'var(--page-padding-x, 20px)',
+    maxWidth: 'var(--page-max-width, 600px)',
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--section-gap, 24px)',
+    paddingBottom: 100,
+  },
+
+  /* Language Preview */
+  languagePreview: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '32px 0',
+  },
+  previewGlobe: {
+    position: 'relative',
+    width: 88,
+    height: 88,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--white, #dbe8f4)',
+    border: '1px solid var(--gray-200, #e2e8f0)',
+    borderRadius: '50%',
+    color: 'var(--blu-primary, #0066ff)',
+    boxShadow: '0 8px 32px rgba(0,102,255,0.1)',
+  },
+  currentFlag: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 36,
+    height: 36,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--white, #dbe8f4)',
+    border: '2px solid var(--gray-50, #f8fafc)',
+    borderRadius: '50%',
+    fontSize: 20,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+  },
+  previewLabel: {
+    marginTop: 16,
+    fontSize: 14,
+    fontWeight: 500,
+    color: 'var(--gray-600, #475569)',
+  },
+
+  /* Language List */
+  languageList: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  languageItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    width: '100%',
+    padding: 16,
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid var(--gray-100, #f1f5f9)',
+    cursor: 'pointer',
+    textAlign: 'left',
+  },
+  languageItemSelected: {
+    background: 'rgba(0,102,255,0.04)',
+  },
+  languageFlagContainer: {
+    width: 48,
+    height: 48,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--gray-100, #f1f5f9)',
+    borderRadius: 'var(--radius-input, 12px)',
+    flexShrink: 0,
+  },
+  languageFlagContainerSelected: {
+    background: 'rgba(0,102,255,0.1)',
+  },
+  languageFlag: {
+    fontSize: 24,
+    lineHeight: 1,
+  },
+  languageInfo: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    minWidth: 0,
+  },
+  languageName: {
+    fontSize: 15,
+    fontWeight: 500,
+    color: 'var(--gray-900, #0f172a)',
+  },
+  languageNative: {
+    fontSize: 13,
+    color: 'var(--gray-500, #64748b)',
+  },
+  languageCheck: {
+    width: 24,
+    height: 24,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--blu-primary, #0066ff)',
+    borderRadius: '50%',
+    color: 'white',
+    flexShrink: 0,
+  },
+
+  /* Info Note */
+  infoNote: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: 16,
+    background: 'var(--gray-100, #f1f5f9)',
+    borderRadius: 'var(--radius-button, 14px)',
+    color: 'var(--gray-500, #64748b)',
+  },
+  infoNoteText: {
+    margin: 0,
+    fontSize: 13,
+    lineHeight: 1.5,
+  },
+};
