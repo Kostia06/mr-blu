@@ -11,7 +11,7 @@ export function DocumentListSkeleton({ count = 5 }: DocumentListSkeletonProps) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          class="flex items-center gap-3.5 p-4 bg-white/40 backdrop-blur-[20px] rounded-[var(--radius-button,14px)] opacity-0 [animation:docSkeletonFadeIn_0.3s_ease_forwards]"
+          class="flex items-center gap-3.5 p-4 bg-white/70 backdrop-blur-[16px] rounded-[var(--radius-button,14px)] shadow-[0_2px_12px_rgba(0,0,0,0.04)] opacity-0 [animation:docSkeletonFadeIn_0.3s_ease_forwards]"
           style={{ animationDelay: `${i * 100}ms` }}
         >
           <Skeleton variant="rect" width="48px" height="48px" className="flex-shrink-0 !rounded-[14px]" />

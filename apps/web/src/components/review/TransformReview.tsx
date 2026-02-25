@@ -88,7 +88,7 @@ export function TransformReview({
   return (
     <div class="flex flex-col gap-4 pb-[100px]">
       {/* Source Document Card */}
-      <section class="bg-white/50 backdrop-blur-[20px] rounded-2xl p-5">
+      <section class="bg-white/70 backdrop-blur-[16px] rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         <h2 class="text-xs font-semibold uppercase tracking-wider text-[var(--gray-500,#64748b)] mb-4 mt-0">
           {t('review.sourceDocument')}
         </h2>
@@ -115,7 +115,7 @@ export function TransformReview({
       </section>
 
       {/* Conversion Section */}
-      <section class="bg-white/50 backdrop-blur-[20px] rounded-2xl p-5">
+      <section class="bg-white/70 backdrop-blur-[16px] rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 flex items-center justify-center bg-[rgba(0,102,255,0.1)] text-[var(--blu-primary,#0066ff)] rounded-[10px]">

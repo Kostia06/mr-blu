@@ -45,49 +45,40 @@ export function AuthCallbackPage() {
     }
 
     async function exchangeSession() {
+      // 1. Legacy PKCE flow (for magic links already in inboxes)
       const code = params.get('code')
-
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (error) {
-          console.error('Code exchange failed:', error.message)
-          setError(error.message)
-          setTimeout(() => navigateTo('/login?error=expired'), 3000)
+        if (!error) {
+          window.history.replaceState(null, '', '/auth/callback')
+          navigateTo(next)
           return
         }
-        window.history.replaceState(null, '', '/auth/callback')
-        navigateTo(next)
-        return
+        // PKCE failed (verifier lost) — fall through to session check
+        console.warn('PKCE exchange failed, checking session:', error.message)
       }
 
-      // Fallback: hash tokens (implicit flow)
+      // 2. Implicit flow: detectSessionInUrl auto-processes hash tokens
+      //    Give it a moment to finish, then check for session
       const hashParams = new URLSearchParams(window.location.hash.substring(1))
-      const accessToken = hashParams.get('access_token')
-      const refreshToken = hashParams.get('refresh_token')
+      const hasHashTokens = hashParams.has('access_token')
 
-      if (accessToken && refreshToken) {
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        })
-        if (error) {
-          console.error('Session set failed:', error.message)
-          setError(error.message)
-          setTimeout(() => navigateTo('/login?error=expired'), 3000)
-          return
-        }
-        window.history.replaceState(null, '', '/auth/callback')
-        navigateTo(next)
-        return
+      if (hasHashTokens) {
+        // Wait for detectSessionInUrl to process the hash
+        await new Promise((r) => setTimeout(r, 100))
       }
 
-      // No code or tokens — check existing session
+      // 3. Check if session exists (either from hash auto-detect or existing)
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
+        window.history.replaceState(null, '', '/auth/callback')
         navigateTo(next)
-      } else {
-        navigateTo('/login')
+        return
       }
+
+      // 4. No session — link expired or was already used
+      setError('Sign-in link expired or was already used. Please request a new one.')
+      setTimeout(() => navigateTo('/login'), 3000)
     }
 
     exchangeSession()

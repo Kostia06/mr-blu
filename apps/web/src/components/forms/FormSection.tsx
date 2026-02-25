@@ -26,7 +26,7 @@ export function FormSection({
     <div
       class={cn(
         'flex flex-col gap-5',
-        isCard && 'p-6 rounded-[var(--radius-card,20px)] border border-white/50 bg-white/40 backdrop-blur-[12px] overflow-hidden',
+        isCard && 'p-6 rounded-[var(--radius-card,20px)] border border-white/60 bg-white/70 backdrop-blur-[16px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)]',
         isInline && 'flex-row items-start gap-8',
         className,
       )}

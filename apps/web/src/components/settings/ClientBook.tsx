@@ -187,7 +187,7 @@ export function ClientBook() {
 			/>
 
 			<div class="px-5 pb-[100px] max-w-[600px] w-full mx-auto">
-				<div class="flex items-center gap-2.5 px-3.5 py-2.5 bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-[14px] mb-4">
+				<div class="flex items-center gap-2.5 px-3.5 py-2.5 bg-white/70 backdrop-blur-[16px] border border-white/60 rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] mb-4">
 					<Search size={16} class="text-[var(--gray-400,#94a3b8)] shrink-0" />
 					<input
 						type="text"
@@ -306,7 +306,7 @@ export function ClientBook() {
 						{filtered.map((entry) => (
 							<div
 								key={entry.id}
-								class="bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-2xl p-4 cursor-pointer"
+								class="bg-white/70 backdrop-blur-[16px] border border-white/60 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-4 cursor-pointer"
 								onClick={() => handleCardClick(entry)}
 								role="button"
 								tabIndex={0}

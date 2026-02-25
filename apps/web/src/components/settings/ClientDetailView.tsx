@@ -226,7 +226,7 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
 
       <div class="px-5 pb-[100px] max-w-[600px] w-full mx-auto">
         {/* Client Info Card */}
-        <div class="bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-2xl p-4">
+        <div class="bg-white/70 backdrop-blur-[16px] border border-white/60 rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-11 h-11 flex items-center justify-center bg-[rgba(0,102,255,0.1)] rounded-full text-lg font-bold text-[var(--blu-primary,#0066ff)] shrink-0">
               {client.name.charAt(0).toUpperCase()}
@@ -353,7 +353,7 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
               return (
                 <button
                   key={doc.id}
-                  class="flex items-center gap-3 px-3.5 py-3 bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-[14px] cursor-pointer text-left w-full font-[inherit]"
+                  class="flex items-center gap-3 px-3.5 py-3 bg-white/70 backdrop-blur-[16px] border border-white/60 rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] cursor-pointer text-left w-full font-[inherit]"
                   onClick={() => navigateTo(`/dashboard/documents/${doc.id}?type=${doc.document_type}`)}
                 >
                   <div class="w-9 h-9 flex items-center justify-center bg-[rgba(0,102,255,0.08)] rounded-[10px] text-[var(--blu-primary,#0066ff)] shrink-0">

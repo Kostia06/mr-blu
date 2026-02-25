@@ -10,7 +10,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     storageKey: 'mrblu-auth',
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
+    flowType: 'implicit',
     storage: {
       getItem: (key) => storage.getItem(key),
       setItem: (key, value) => storage.setItem(key, value),

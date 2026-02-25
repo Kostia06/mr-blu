@@ -162,7 +162,7 @@ function TypeTabs({
   onChange: (id: string) => void;
 }) {
   return (
-    <div class="flex gap-1 p-[3px] bg-white/40 backdrop-blur-[12px] rounded-xl">
+    <div class="flex gap-1 p-[3px] bg-white/70 backdrop-blur-[16px] rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -500,7 +500,7 @@ export function DocumentList({
           placeholder={t('documents.searchPlaceholder')}
           value={searchQuery}
           onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
-          class="w-full py-3 pr-10 pl-[42px] bg-white/50 backdrop-blur-[20px] border-none rounded-[var(--radius-input,12px)] text-[var(--gray-900,#0f172a)] text-[15px] outline-none box-border"
+          class="w-full py-3 pr-10 pl-[42px] bg-white/70 backdrop-blur-[16px] border-none rounded-[var(--radius-input,12px)] text-[var(--gray-900,#0f172a)] text-[15px] outline-none box-border shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
         />
         {searchQuery && (
           <button
@@ -601,7 +601,7 @@ export function DocumentList({
                   </div>
 
                   {!collapsedMonths.has(month) && (
-                    <div class="flex flex-col bg-white/40 backdrop-blur-[12px] border border-white/50 rounded-[var(--radius-card,20px)] overflow-hidden">
+                    <div class="flex flex-col bg-white/70 backdrop-blur-[16px] border border-white/60 rounded-[var(--radius-card,20px)] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
                       {docs.map((doc: Document, i: number) => (
                         <div
                           key={doc.id}

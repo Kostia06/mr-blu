@@ -48,7 +48,7 @@ function SettingsSection({ title, children }: { title: string; children: Compone
       <h2 class="text-xs font-semibold text-[var(--gray-500,#64748b)] uppercase tracking-[0.05em] m-0 px-1 mb-1">
         {title}
       </h2>
-      <div class="flex flex-col bg-white/40 backdrop-blur-[12px] border border-white/50 rounded-[var(--radius-card,20px)] overflow-hidden">
+      <div class="flex flex-col bg-white/70 backdrop-blur-[16px] border border-white/60 rounded-[var(--radius-card,20px)] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         {children}
       </div>
     </section>

@@ -168,7 +168,7 @@ export function PriceBook() {
 
 			<div className="px-5 pb-[100px] max-w-[600px] w-full mx-auto">
 				{/* Search */}
-				<div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-[14px] mb-4">
+				<div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-white/70 backdrop-blur-[16px] border border-white/60 rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] mb-4">
 					<Search size={16} className="text-[var(--gray-400,#94a3b8)] shrink-0" />
 					<input
 						type="text"
@@ -278,7 +278,7 @@ export function PriceBook() {
 				) : (
 					<div className="flex flex-col gap-2.5">
 						{filtered.map((entry) => (
-							<div key={entry.id} className="bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-2xl p-4">
+							<div key={entry.id} className="bg-white/70 backdrop-blur-[16px] border border-white/60 rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
 								<div className="flex items-center justify-between mb-2.5">
 									<div className="flex items-center gap-2 min-w-0 flex-1">
 										<DollarSign size={16} className="text-[var(--brand-blue,#0066ff)]" />
