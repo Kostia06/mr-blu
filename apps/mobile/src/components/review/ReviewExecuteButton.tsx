@@ -1,5 +1,6 @@
-import { View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { Rocket, Lock } from 'lucide-react-native';
 
 interface ReviewExecuteButtonProps {
@@ -28,10 +29,19 @@ export function ReviewExecuteButton({
   const insets = useSafeAreaInsets();
   const isDisabled = isExecuting || isLocked;
 
+  const Wrapper = Platform.OS === 'ios' ? BlurView : View;
+  const wrapperProps = Platform.OS === 'ios'
+    ? { intensity: 60, tint: 'light' as const }
+    : {};
+
   return (
-    <View
-      className="px-4 pt-3 pb-2 bg-white border-t border-gray-100"
-      style={{ paddingBottom: Math.max(insets.bottom, 8) }}
+    <Wrapper
+      {...wrapperProps}
+      className="px-4 pt-3 pb-2 border-t border-white/30"
+      style={[
+        { paddingBottom: Math.max(insets.bottom, 8) },
+        Platform.OS === 'android' ? { backgroundColor: 'rgba(255,255,255,0.85)' } : undefined,
+      ]}
     >
       <Pressable
         onPress={onPress}
@@ -54,6 +64,6 @@ export function ReviewExecuteButton({
           </View>
         )}
       </Pressable>
-    </View>
+    </Wrapper>
   );
 }

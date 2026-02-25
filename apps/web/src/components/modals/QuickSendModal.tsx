@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'preact/hooks';
 import { Send, Mail, Check, X, AlertCircle } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
 import { sendDocument } from '@/lib/api/documents';
+import { cn } from '@/lib/utils';
 
 interface DocumentInfo {
   id: string;
@@ -105,74 +106,83 @@ export function QuickSendModal({ open, document, onClose, onSuccess }: QuickSend
 
   if (!open || !document) return null;
 
-  const emailInputBorder =
-    email.length === 0
-      ? '2px solid var(--gray-200, #e2e8f0)'
-      : isEmailValid
-        ? '2px solid #10b981'
-        : '2px solid #ef4444';
-
   return (
     <>
-      <style>{animationKeyframes}</style>
+      <style>{`
+        @keyframes sendModalSpin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes sendModalSuccessPop {
+          0% { transform: scale(0.5); opacity: 0; }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
       {/* Backdrop */}
       <button
-        style={styles.backdrop}
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] border-none cursor-default"
         onClick={handleClose}
         aria-label={t('aria.closeModal')}
       />
 
       {/* Modal */}
       <div
-        style={styles.container}
+        class="fixed inset-0 flex items-center justify-center z-[1001] p-4 pointer-events-none"
         role="dialog"
         aria-modal="true"
         aria-labelledby="send-modal-title"
       >
-        <div style={styles.content}>
+        <div class="relative bg-white/[0.98] backdrop-blur-[20px] rounded-[var(--radius-lg,20px)] pt-8 px-6 pb-6 max-w-[400px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.2)] pointer-events-auto">
 
-          <button style={styles.closeBtn} onClick={handleClose} aria-label={t('common.close')}>
+          <button class="absolute top-3 right-3 w-9 h-9 flex items-center justify-center bg-[var(--gray-100,#f1f5f9)] border-none rounded-full text-[var(--gray-500,#64748b)] cursor-pointer" onClick={handleClose} aria-label={t('common.close')}>
             <X size={20} />
           </button>
 
           {success ? (
-            <div style={styles.step}>
-              <div style={styles.iconWrapperSuccess}>
+            <div class="flex flex-col items-center text-center">
+              <div class="w-[72px] h-[72px] flex items-center justify-center rounded-full mb-4 bg-emerald-500/15 text-emerald-500 animate-[sendModalSuccessPop_0.4s_ease-out]">
                 <Check size={36} />
               </div>
-              <h2 style={{ ...styles.title, color: '#10b981' }}>{t('review.sent')}</h2>
-              <p style={styles.successMessage}>
+              <h2 class="font-[var(--font-display,system-ui)] text-[22px] font-bold text-emerald-500 m-0 mb-3">{t('review.sent')}</h2>
+              <p class="text-[15px] text-[var(--gray-600,#475569)] m-0">
                 {t('review.sentToRecipient', { recipient: email })}
               </p>
             </div>
           ) : (
-            <div style={styles.step}>
-              <div style={styles.iconWrapperSend}>
+            <div class="flex flex-col items-center text-center">
+              <div class="w-[72px] h-[72px] flex items-center justify-center rounded-full mb-4 bg-[rgba(0,102,255,0.1)] text-[var(--blu-primary,#0066ff)]">
                 <Send size={28} />
               </div>
 
-              <h2 id="send-modal-title" style={styles.title}>
+              <h2 id="send-modal-title" class="font-[var(--font-display,system-ui)] text-[22px] font-bold text-[var(--gray-900,#0f172a)] m-0 mb-3">
                 {t('docDetail.sendToClient')}
               </h2>
 
               {/* Document info */}
-              <div style={styles.documentInfo}>
-                <span style={styles.docTitle}>{document.title}</span>
+              <div class="flex items-center gap-3 py-3 px-4 bg-[var(--gray-50,#f8fafc)] rounded-[10px] mb-5 w-full">
+                <span class="flex-1 text-sm font-medium text-[var(--gray-700,#334155)] text-left whitespace-nowrap overflow-hidden text-ellipsis">{document.title}</span>
                 {document.amount ? (
-                  <span style={styles.docAmount}>{formatAmount(document.amount)}</span>
+                  <span class="text-[15px] font-semibold text-[var(--data-green,#10b981)]">{formatAmount(document.amount)}</span>
                 ) : null}
               </div>
 
               {/* Email input */}
-              <div style={styles.inputGroup}>
-                <label for="recipient-email" style={styles.inputLabel}>
+              <div class="w-full mb-4">
+                <label for="recipient-email" class="flex items-center gap-1.5 text-[13px] font-medium text-[var(--gray-600,#475569)] mb-2 text-left">
                   <Mail size={16} />
                   {t('review.recipientEmail')}
                 </label>
                 <input
                   id="recipient-email"
                   type="email"
-                  style={{ ...styles.emailInput, border: emailInputBorder }}
+                  class={cn(
+                    'w-full py-3.5 px-4 bg-[var(--gray-50,#f8fafc)] rounded-xl text-[15px] text-[var(--gray-900,#0f172a)] box-border outline-none border-2',
+                    email.length === 0
+                      ? 'border-[var(--gray-200,#e2e8f0)]'
+                      : isEmailValid
+                        ? 'border-emerald-500'
+                        : 'border-red-500'
+                  )}
                   value={email}
                   onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
                   placeholder={t('docDetail.emailPlaceholder')}
@@ -181,13 +191,13 @@ export function QuickSendModal({ open, document, onClose, onSuccess }: QuickSend
               </div>
 
               {/* Optional message */}
-              <div style={styles.inputGroup}>
-                <label for="custom-message" style={styles.inputLabelOptional}>
+              <div class="w-full mb-4">
+                <label for="custom-message" class="flex items-center gap-1.5 text-[13px] font-medium text-[var(--gray-600,#475569)] mb-2 text-left">
                   {t('review.customMessage')}
                 </label>
                 <textarea
                   id="custom-message"
-                  style={styles.messageInput}
+                  class="w-full py-3.5 px-4 bg-[var(--gray-50,#f8fafc)] border-2 border-[var(--gray-200,#e2e8f0)] rounded-xl text-[15px] text-[var(--gray-900,#0f172a)] resize-none font-[inherit] box-border outline-none"
                   value={customMessage}
                   onInput={(e) => setCustomMessage((e.target as HTMLTextAreaElement).value)}
                   placeholder={t('placeholder.addNote')}
@@ -197,28 +207,27 @@ export function QuickSendModal({ open, document, onClose, onSuccess }: QuickSend
               </div>
 
               {error && (
-                <div style={styles.errorMessage}>
+                <div class="flex items-center gap-1.5 py-2.5 px-3.5 bg-red-500/10 rounded-lg text-red-600 text-[13px] mb-4 w-full">
                   <AlertCircle size={14} />
                   <span>{error}</span>
                 </div>
               )}
 
-              <div style={styles.actions}>
-                <button style={styles.btnSecondary} onClick={handleClose} disabled={isSending}>
+              <div class="flex gap-3 w-full">
+                <button class="flex-1 py-3.5 px-5 border-none rounded-xl text-[15px] font-semibold cursor-pointer flex items-center justify-center gap-2 bg-[var(--gray-100,#f1f5f9)] text-[var(--gray-700,#334155)]" onClick={handleClose} disabled={isSending}>
                   {t('common.cancel')}
                 </button>
                 <button
-                  style={{
-                    ...styles.btnPrimary,
-                    opacity: !isEmailValid || isSending ? '0.5' : '1',
-                    cursor: !isEmailValid || isSending ? 'not-allowed' : 'pointer',
-                  }}
+                  class={cn(
+                    'flex-1 py-3.5 px-5 border-none rounded-xl text-[15px] font-semibold flex items-center justify-center gap-2 bg-[var(--blu-primary,#0066ff)] text-white',
+                    !isEmailValid || isSending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                  )}
                   onClick={handleSend}
                   disabled={!isEmailValid || isSending}
                 >
                   {isSending ? (
                     <>
-                      <span style={styles.spinner} />
+                      <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-[sendModalSpin_0.8s_linear_infinite] inline-block" />
                       {t('docDetail.sending')}
                     </>
                   ) : (
@@ -236,243 +245,3 @@ export function QuickSendModal({ open, document, onClose, onSuccess }: QuickSend
     </>
   );
 }
-
-const animationKeyframes = `
-@keyframes sendModalSpin {
-  to { transform: rotate(360deg); }
-}
-@keyframes sendModalSuccessPop {
-  0% { transform: scale(0.5); opacity: 0; }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
-}
-`;
-
-const styles: Record<string, Record<string, string>> = {
-  backdrop: {
-    position: 'fixed',
-    inset: '0',
-    background: 'rgba(0, 0, 0, 0.5)',
-    backdropFilter: 'blur(4px)',
-    WebkitBackdropFilter: 'blur(4px)',
-    zIndex: '1000',
-    border: 'none',
-    cursor: 'default',
-  },
-  container: {
-    position: 'fixed',
-    inset: '0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: '1001',
-    padding: '16px',
-    pointerEvents: 'none',
-  },
-  content: {
-    position: 'relative',
-    background: 'rgba(255, 255, 255, 0.98)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderRadius: 'var(--radius-lg, 20px)',
-    padding: '32px 24px 24px',
-    maxWidth: '400px',
-    width: '100%',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
-    pointerEvents: 'auto',
-  },
-  dragHandle: {
-    position: 'absolute',
-    top: '8px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: '36px',
-    height: '5px',
-    background: '#D1D1D6',
-    borderRadius: '3px',
-  },
-  closeBtn: {
-    position: 'absolute',
-    top: '12px',
-    right: '12px',
-    width: '36px',
-    height: '36px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'var(--gray-100, #f1f5f9)',
-    border: 'none',
-    borderRadius: '50%',
-    color: 'var(--gray-500, #64748b)',
-    cursor: 'pointer',
-  },
-  step: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textAlign: 'center',
-  },
-  iconWrapperSend: {
-    width: '72px',
-    height: '72px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '50%',
-    marginBottom: '16px',
-    background: 'rgba(0, 102, 255, 0.1)',
-    color: 'var(--blu-primary, #0066ff)',
-  },
-  iconWrapperSuccess: {
-    width: '72px',
-    height: '72px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '50%',
-    marginBottom: '16px',
-    background: 'rgba(16, 185, 129, 0.15)',
-    color: '#10b981',
-    animation: 'sendModalSuccessPop 0.4s ease-out',
-  },
-  title: {
-    fontFamily: 'var(--font-display, system-ui)',
-    fontSize: '22px',
-    fontWeight: '700',
-    color: 'var(--gray-900, #0f172a)',
-    margin: '0 0 12px',
-  },
-  successMessage: {
-    fontSize: '15px',
-    color: 'var(--gray-600, #475569)',
-    margin: '0',
-  },
-  documentInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px 16px',
-    background: 'var(--gray-50, #f8fafc)',
-    borderRadius: '10px',
-    marginBottom: '20px',
-    width: '100%',
-  },
-  docTitle: {
-    flex: '1',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: 'var(--gray-700, #334155)',
-    textAlign: 'left',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  docAmount: {
-    fontSize: '15px',
-    fontWeight: '600',
-    color: 'var(--data-green, #10b981)',
-  },
-  inputGroup: {
-    width: '100%',
-    marginBottom: '16px',
-  },
-  inputLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    fontSize: '13px',
-    fontWeight: '500',
-    color: 'var(--gray-600, #475569)',
-    marginBottom: '8px',
-    textAlign: 'left',
-  },
-  inputLabelOptional: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    fontSize: '13px',
-    fontWeight: '500',
-    color: 'var(--gray-600, #475569)',
-    marginBottom: '8px',
-    textAlign: 'left',
-  },
-  emailInput: {
-    width: '100%',
-    padding: '14px 16px',
-    background: 'var(--gray-50, #f8fafc)',
-    borderRadius: '12px',
-    fontSize: '15px',
-    color: 'var(--gray-900, #0f172a)',
-    boxSizing: 'border-box',
-    outline: 'none',
-  },
-  messageInput: {
-    width: '100%',
-    padding: '14px 16px',
-    background: 'var(--gray-50, #f8fafc)',
-    border: '2px solid var(--gray-200, #e2e8f0)',
-    borderRadius: '12px',
-    fontSize: '15px',
-    color: 'var(--gray-900, #0f172a)',
-    resize: 'none',
-    fontFamily: 'inherit',
-    boxSizing: 'border-box',
-    outline: 'none',
-  },
-  errorMessage: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '10px 14px',
-    background: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: '8px',
-    color: '#dc2626',
-    fontSize: '13px',
-    marginBottom: '16px',
-    width: '100%',
-  },
-  actions: {
-    display: 'flex',
-    gap: '12px',
-    width: '100%',
-  },
-  btnSecondary: {
-    flex: '1',
-    padding: '14px 20px',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '15px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    background: 'var(--gray-100, #f1f5f9)',
-    color: 'var(--gray-700, #334155)',
-  },
-  btnPrimary: {
-    flex: '1',
-    padding: '14px 20px',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '15px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    background: 'var(--blu-primary, #0066ff)',
-    color: 'white',
-  },
-  spinner: {
-    width: '16px',
-    height: '16px',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    borderTopColor: 'white',
-    borderRadius: '50%',
-    animation: 'sendModalSpin 0.8s linear infinite',
-    display: 'inline-block',
-  },
-};

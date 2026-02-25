@@ -10,6 +10,7 @@ import { updateBusiness } from '@/lib/api/user';
 import { FormInput } from '@/components/forms/FormInput';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { GlassBackground } from '@/components/layout/GlassBackground';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 export function BusinessSettings() {
   const { t } = useI18nStore();
@@ -92,7 +93,7 @@ export function BusinessSettings() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="bg-white rounded-card p-4 shadow-sm mb-6">
+          <GlassCard className="mb-6">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               {t('settings.companyInfo')}
             </Text>
@@ -117,9 +118,9 @@ export function BusinessSettings() {
               placeholder={t('placeholder.ein')}
               hint={t('settings.taxIdHint')}
             />
-          </View>
+          </GlassCard>
 
-          <View className="bg-white rounded-card p-4 shadow-sm mb-6">
+          <GlassCard className="mb-6">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
               {t('settings.businessAddressTitle')}
             </Text>
@@ -157,7 +158,7 @@ export function BusinessSettings() {
                 />
               </View>
             </View>
-          </View>
+          </GlassCard>
         </ScrollView>
       </KeyboardAvoidingView>
     </GlassBackground>

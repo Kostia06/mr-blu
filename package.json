@@ -12,7 +12,8 @@
     "deploy": "pnpm build:web && pnpm --filter @mrblu/web deploy",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "clean": "turbo clean && rm -rf node_modules"
+    "clean": "turbo clean && rm -rf node_modules",
+    "postinstall": "mkdir -p apps/web/node_modules/.bin && ln -sf ../../../node_modules/.bin/vite apps/web/node_modules/.bin/vite && ln -sf ../../../node_modules/.bin/tsc apps/web/node_modules/.bin/tsc"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

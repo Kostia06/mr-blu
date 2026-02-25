@@ -1,12 +1,5 @@
-import { Pressable, View, Text } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSpring,
-} from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { Pressable, View, Text, Animated } from 'react-native';
+import { useEffect, useRef } from 'react';
 import { Mic, Square, Pause, Play } from 'lucide-react-native';
 
 type RecordingState = 'idle' | 'recording' | 'paused' | 'processing';
@@ -19,42 +12,44 @@ interface RecordButtonProps {
 }
 
 export function RecordButton({ state, audioLevel, onPress, onLongPress }: RecordButtonProps) {
-  const scale = useSharedValue(1);
-  const pulseScale = useSharedValue(1);
-  const ringOpacity = useSharedValue(0);
+  const scale = useRef(new Animated.Value(1)).current;
+  const pulseScale = useRef(new Animated.Value(1)).current;
+  const ringOpacity = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
     if (state === 'recording') {
-      ringOpacity.value = withRepeat(
-        withTiming(0.5, { duration: 1500 }),
-        -1,
-        true
+      pulseAnim.current = Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(ringOpacity, { toValue: 0.5, duration: 1500, useNativeDriver: true }),
+            Animated.timing(pulseScale, { toValue: 1.15, duration: 1500, useNativeDriver: true }),
+          ]),
+          Animated.parallel([
+            Animated.timing(ringOpacity, { toValue: 0, duration: 1500, useNativeDriver: true }),
+            Animated.timing(pulseScale, { toValue: 1, duration: 1500, useNativeDriver: true }),
+          ]),
+        ])
       );
-      pulseScale.value = withRepeat(
-        withTiming(1.15, { duration: 1500 }),
-        -1,
-        true
-      );
+      pulseAnim.current.start();
     } else {
-      ringOpacity.value = withTiming(0);
-      pulseScale.value = withTiming(1);
+      pulseAnim.current?.stop();
+      Animated.parallel([
+        Animated.timing(ringOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+        Animated.timing(pulseScale, { toValue: 1, duration: 300, useNativeDriver: true }),
+      ]).start();
     }
   }, [state]);
 
   useEffect(() => {
     if (state === 'recording') {
-      scale.value = withSpring(1 + audioLevel * 0.15, { damping: 15 });
+      Animated.spring(scale, {
+        toValue: 1 + audioLevel * 0.15,
+        damping: 15,
+        useNativeDriver: true,
+      }).start();
     }
   }, [audioLevel, state]);
-
-  const buttonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const ringStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-    opacity: ringOpacity.value,
-  }));
 
   const isRecording = state === 'recording';
   const isPaused = state === 'paused';
@@ -68,10 +63,10 @@ export function RecordButton({ state, audioLevel, onPress, onLongPress }: Record
       {isRecording && (
         <Animated.View
           className="absolute w-24 h-24 rounded-full border-2 border-red-400"
-          style={ringStyle}
+          style={{ transform: [{ scale: pulseScale }], opacity: ringOpacity }}
         />
       )}
-      <Animated.View style={buttonStyle}>
+      <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable
           onPress={onPress}
           onLongPress={onLongPress}

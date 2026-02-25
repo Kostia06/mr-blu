@@ -3,6 +3,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { useReviewOrchestrator } from '@/hooks/review/useReviewOrchestrator';
 import type { ParsedData } from '@/lib/review/review-types';
 
+import { GlassBackground } from '@/components/layout/GlassBackground';
 import { ReviewHeader } from './ReviewHeader';
 import { ReviewLoadingState } from './ReviewLoadingState';
 import { ReviewPreviewCard } from './ReviewPreviewCard';
@@ -28,42 +29,42 @@ export function ReviewPage() {
 
   if (state.isParsing) {
     return (
-      <View className="flex-1 bg-blu-bg">
+      <GlassBackground>
         <ReviewHeader intentType={null} />
         <ReviewLoadingState />
-      </View>
+      </GlassBackground>
     );
   }
 
   if (state.allActionsComplete) {
     return (
-      <View className="flex-1 bg-blu-bg">
+      <GlassBackground>
         <ReviewHeader intentType={state.intentType} />
         <DoneState
           documentId={state.savedDocumentId}
           documentType={state.data.documentType}
           documentNumber={(state.data as Record<string, unknown>).documentNumber as string || ''}
         />
-      </View>
+      </GlassBackground>
     );
   }
 
   if (state.intentType === 'information_query') {
     return (
-      <View className="flex-1 bg-blu-bg">
+      <GlassBackground>
         <ReviewHeader intentType={state.intentType} />
         <QueryResultsFlow
           queryData={state.queryData}
           queryResult={state.queryResult}
           isLoading={state.isQueryLoading}
         />
-      </View>
+      </GlassBackground>
     );
   }
 
   if (state.intentType === 'document_clone') {
     return (
-      <View className="flex-1 bg-blu-bg">
+      <GlassBackground>
         <ReviewHeader intentType={state.intentType} />
         <CloneDocumentFlow
           cloneData={state.clone.cloneData}
@@ -76,13 +77,13 @@ export function ReviewPage() {
           onUseSuggestedClient={state.clone.useCloneSuggestedClient}
           onConfirm={state.handleCloneConfirm}
         />
-      </View>
+      </GlassBackground>
     );
   }
 
   if (state.intentType === 'document_merge') {
     return (
-      <View className="flex-1 bg-blu-bg">
+      <GlassBackground>
         <ReviewHeader intentType={state.intentType} />
         <MergeDocumentsFlow
           mergeData={state.merge.mergeData}
@@ -91,13 +92,13 @@ export function ReviewPage() {
           onSelectDocument={state.merge.selectMergeSourceDocument}
           onConfirmMerge={state.handleMergeConfirm}
         />
-      </View>
+      </GlassBackground>
     );
   }
 
   if (state.intentType === 'document_send') {
     return (
-      <View className="flex-1 bg-blu-bg">
+      <GlassBackground>
         <ReviewHeader intentType={state.intentType} />
         <SendDocumentFlow
           sendData={state.send.sendData}
@@ -123,13 +124,13 @@ export function ReviewPage() {
           onAddSendItem={state.send.addSendItem}
           isSavingDocument={state.send.isSavingSendDocument}
         />
-      </View>
+      </GlassBackground>
     );
   }
 
   if (state.intentType === 'document_transform') {
     return (
-      <View className="flex-1 bg-blu-bg">
+      <GlassBackground>
         <ReviewHeader intentType={state.intentType} />
         <TransformReview
           transformData={state.transform.transformData}
@@ -152,12 +153,12 @@ export function ReviewPage() {
           onExecuteTransform={state.transform.handleExecuteTransform}
           onBack={() => router.back()}
         />
-      </View>
+      </GlassBackground>
     );
   }
 
   return (
-    <View className="flex-1 bg-blu-bg">
+    <GlassBackground>
       <ReviewHeader intentType={state.intentType} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -218,7 +219,7 @@ export function ReviewPage() {
         label={getExecuteLabel(state.data)}
         total={state.data.total}
       />
-    </View>
+    </GlassBackground>
   );
 }
 

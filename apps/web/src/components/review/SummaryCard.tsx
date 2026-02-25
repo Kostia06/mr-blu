@@ -42,51 +42,29 @@ export function SummaryCard({ summary, variant = 'default', label }: SummaryCard
 
   return (
     <div
+      class="flex gap-3 px-4 py-3.5 rounded-[14px]"
       style={{
-        display: 'flex',
-        gap: '12px',
-        padding: '14px 16px',
         background: config.bg,
         border: `1px solid ${config.border}`,
-        borderRadius: '14px',
       }}
     >
       <div
+        class="flex items-center justify-center w-8 h-8 rounded-[10px] shrink-0"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '32px',
-          height: '32px',
-          borderRadius: '10px',
           background: config.iconBg,
           color: config.accent,
-          flexShrink: '0',
         }}
       >
         <Sparkles size={16} />
       </div>
-      <div style={{ flex: '1', minWidth: '0' }}>
+      <div class="flex-1 min-w-0">
         <div
-          style={{
-            fontSize: '12px',
-            fontWeight: '600',
-            color: config.accent,
-            letterSpacing: '0.02em',
-            textTransform: 'uppercase',
-            marginBottom: '4px',
-          }}
+          class="text-xs font-semibold tracking-[0.02em] uppercase mb-1"
+          style={{ color: config.accent }}
         >
           {label || t('review.iUnderstood')}
         </div>
-        <p
-          style={{
-            fontSize: '14px',
-            lineHeight: '1.5',
-            color: 'var(--gray-700, #334155)',
-            margin: '0',
-          }}
-        >
+        <p class="text-sm leading-normal text-[var(--gray-700,#334155)] m-0">
           {summary || t('review.processingRequest')}
         </p>
       </div>

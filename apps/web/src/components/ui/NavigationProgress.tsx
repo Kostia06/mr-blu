@@ -31,23 +31,15 @@ export function NavigationProgress() {
   if (!visible && progress === 0) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: 3,
-      zIndex: 9999,
-      pointerEvents: 'none',
-    }}>
-      <div style={{
-        height: '100%',
-        width: `${progress}%`,
-        background: 'var(--blu-primary, #0066ff)',
-        transition: progress > 0 ? 'width 200ms ease, opacity 200ms ease' : 'none',
-        opacity: visible ? 1 : 0,
-        boxShadow: '0 0 10px rgba(0, 102, 255, 0.5)',
-      }} />
+    <div class="fixed top-0 left-0 right-0 h-[3px] z-[9999] pointer-events-none">
+      <div
+        class="h-full bg-[var(--blu-primary,#0066ff)] shadow-[0_0_10px_rgba(0,102,255,0.5)]"
+        style={{
+          width: `${progress}%`,
+          transition: progress > 0 ? 'width 200ms ease, opacity 200ms ease' : 'none',
+          opacity: visible ? 1 : 0,
+        }}
+      />
     </div>
   );
 }

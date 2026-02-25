@@ -1,6 +1,8 @@
 import { Route, Switch } from 'wouter'
 import { lazy, Suspense } from 'preact/compat'
+import { useEffect, useRef } from 'preact/hooks'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase/client'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { NavigationProgress } from '@/components/ui/NavigationProgress'
@@ -69,7 +71,66 @@ function DashboardRoutes() {
   )
 }
 
+function useViewportHeight() {
+  useEffect(() => {
+    function setVh() {
+      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`)
+    }
+    setVh()
+    window.addEventListener('resize', setVh)
+    window.addEventListener('orientationchange', setVh)
+    return () => {
+      window.removeEventListener('resize', setVh)
+      window.removeEventListener('orientationchange', setVh)
+    }
+  }, [])
+}
+
+function useLifecycle() {
+  const lastVisibleRef = useRef(Date.now())
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState !== 'visible') return
+
+      const elapsed = Date.now() - lastVisibleRef.current
+      lastVisibleRef.current = Date.now()
+
+      // Refresh auth if tab was hidden for more than 30 seconds
+      if (elapsed > 30_000) {
+        supabase.auth.getSession()
+        queryClient.invalidateQueries()
+      }
+    }
+
+    function handlePageShow(e: PageTransitionEvent) {
+      if (e.persisted) {
+        supabase.auth.getSession()
+        queryClient.invalidateQueries()
+      }
+    }
+
+    function handleOnline() {
+      supabase.auth.getSession()
+      queryClient.invalidateQueries()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pageshow', handlePageShow)
+    window.addEventListener('online', handleOnline)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pageshow', handlePageShow)
+      window.removeEventListener('online', handleOnline)
+    }
+  }, [])
+}
+
 export function App() {
+  useViewportHeight()
+  useLifecycle()
+
   return (
     <QueryClientProvider client={queryClient}>
       <NavigationProgress />

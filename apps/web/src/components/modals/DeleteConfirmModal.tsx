@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 
 interface DocumentInfo {
   id: string;
@@ -91,50 +92,54 @@ export function DeleteConfirmModal({ open, document, onClose, onConfirm }: Delet
 
   return (
     <>
-      <style>{spinKeyframes}</style>
+      <style>{`
+        @keyframes deleteModalSpin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       {/* Backdrop */}
       <button
-        style={styles.backdrop}
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] border-none cursor-default"
         onClick={handleClose}
         aria-label={t('aria.closeModal')}
       />
 
       {/* Modal */}
       <div
-        style={styles.container}
+        class="fixed inset-0 flex items-center justify-center z-[1001] p-5"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-modal-title"
       >
-        <div style={styles.content}>
-          <button style={styles.closeBtn} onClick={handleClose} aria-label={t('common.close')}>
+        <div class="relative bg-white/[0.98] backdrop-blur-[20px] rounded-[var(--radius-lg,20px)] pt-8 px-6 pb-6 max-w-[400px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
+          <button class="absolute top-3 right-3 w-9 h-9 flex items-center justify-center bg-[var(--gray-100,#f1f5f9)] border-none rounded-full text-[var(--gray-500,#64748b)] cursor-pointer" onClick={handleClose} aria-label={t('common.close')}>
             <X size={20} />
           </button>
 
-          <div style={styles.step}>
-            <div style={styles.iconWrapperWarning}>
+          <div class="flex flex-col items-center text-center">
+            <div class="w-[72px] h-[72px] flex items-center justify-center rounded-full mb-4 bg-red-500/10 text-red-500">
               <Trash2 size={32} />
             </div>
 
-            <h2 id="delete-modal-title" style={styles.title}>
+            <h2 id="delete-modal-title" class="font-[var(--font-display,system-ui)] text-[22px] font-bold text-[var(--gray-900,#0f172a)] m-0 mb-4">
               {t('delete.title')}
             </h2>
 
-            <div style={styles.warningBox}>
+            <div class="flex items-center gap-2 py-3 px-4 bg-amber-500/10 rounded-[10px] text-amber-600 text-sm font-medium mb-5 w-full">
               <AlertTriangle size={16} />
               <span>{t('delete.warning')}</span>
             </div>
 
-            <div style={styles.summary}>
-              <div style={styles.summaryRow}>
-                <span style={styles.summaryLabel}>{t('documents.client')}</span>
-                <span style={styles.summaryValue}>{document.client}</span>
+            <div class="w-full bg-[var(--gray-50,#f8fafc)] rounded-xl p-4 mb-6">
+              <div class="flex justify-between items-center py-2 border-b border-[var(--gray-100,#f1f5f9)]">
+                <span class="text-sm text-[var(--gray-500,#64748b)]">{t('documents.client')}</span>
+                <span class="text-sm font-semibold text-[var(--gray-900,#0f172a)]">{document.client}</span>
               </div>
-              <div style={{ ...styles.summaryRow, borderBottom: 'none' }}>
-                <span style={styles.summaryLabel}>{t('review.documentType')}</span>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-[var(--gray-500,#64748b)]">{t('review.documentType')}</span>
                 <span
+                  class="py-1 px-2.5 rounded-full text-xs capitalize font-semibold"
                   style={{
-                    ...styles.typeBadge,
                     background: typeBadgeBg,
                     color: typeBadgeColor,
                   }}
@@ -143,9 +148,9 @@ export function DeleteConfirmModal({ open, document, onClose, onConfirm }: Delet
                 </span>
               </div>
               {document.amount ? (
-                <div style={{ ...styles.summaryRow, borderBottom: 'none' }}>
-                  <span style={styles.summaryLabel}>{t('documents.amount')}</span>
-                  <span style={{ ...styles.summaryValue, color: 'var(--data-green, #10b981)' }}>
+                <div class="flex justify-between items-center py-2">
+                  <span class="text-sm text-[var(--gray-500,#64748b)]">{t('documents.amount')}</span>
+                  <span class="text-sm font-semibold text-[var(--data-green,#10b981)]">
                     {formatAmount(document.amount)}
                   </span>
                 </div>
@@ -153,32 +158,31 @@ export function DeleteConfirmModal({ open, document, onClose, onConfirm }: Delet
             </div>
 
             {error && (
-              <div style={styles.errorMessage}>
+              <div class="flex items-center gap-1.5 py-2.5 px-3.5 bg-red-500/10 rounded-lg text-red-600 text-[13px] mb-4 w-full">
                 <AlertTriangle size={14} />
                 <span>{error}</span>
               </div>
             )}
 
-            <div style={styles.actions}>
+            <div class="flex gap-3 w-full">
               <button
-                style={styles.btnSecondary}
+                class="flex-1 py-3.5 px-5 border-none rounded-xl text-[15px] font-semibold cursor-pointer flex items-center justify-center gap-2 bg-[var(--gray-100,#f1f5f9)] text-[var(--gray-700,#334155)]"
                 onClick={handleClose}
                 disabled={isDeleting}
               >
                 {t('common.cancel')}
               </button>
               <button
-                style={{
-                  ...styles.btnDanger,
-                  opacity: isDeleting ? '0.5' : '1',
-                  cursor: isDeleting ? 'not-allowed' : 'pointer',
-                }}
+                class={cn(
+                  'flex-1 py-3.5 px-5 border-none rounded-xl text-[15px] font-semibold flex items-center justify-center gap-2 bg-red-500 text-white',
+                  isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                )}
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
                 {isDeleting ? (
                   <>
-                    <span style={styles.spinner} />
+                    <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-[deleteModalSpin_0.8s_linear_infinite] inline-block" />
                     {t('docDetail.deleting')}
                   </>
                 ) : (
@@ -192,180 +196,3 @@ export function DeleteConfirmModal({ open, document, onClose, onConfirm }: Delet
     </>
   );
 }
-
-const spinKeyframes = `
-@keyframes deleteModalSpin {
-  to { transform: rotate(360deg); }
-}
-`;
-
-const styles: Record<string, Record<string, string>> = {
-  backdrop: {
-    position: 'fixed',
-    inset: '0',
-    background: 'rgba(0, 0, 0, 0.5)',
-    backdropFilter: 'blur(4px)',
-    WebkitBackdropFilter: 'blur(4px)',
-    zIndex: '1000',
-    border: 'none',
-    cursor: 'default',
-  },
-  container: {
-    position: 'fixed',
-    inset: '0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: '1001',
-    padding: '20px',
-  },
-  content: {
-    position: 'relative',
-    background: 'rgba(255, 255, 255, 0.98)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderRadius: 'var(--radius-lg, 20px)',
-    padding: '32px 24px 24px',
-    maxWidth: '400px',
-    width: '100%',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
-  },
-  closeBtn: {
-    position: 'absolute',
-    top: '12px',
-    right: '12px',
-    width: '36px',
-    height: '36px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'var(--gray-100, #f1f5f9)',
-    border: 'none',
-    borderRadius: '50%',
-    color: 'var(--gray-500, #64748b)',
-    cursor: 'pointer',
-  },
-  step: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textAlign: 'center',
-  },
-  iconWrapperWarning: {
-    width: '72px',
-    height: '72px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '50%',
-    marginBottom: '16px',
-    background: 'rgba(239, 68, 68, 0.1)',
-    color: '#ef4444',
-  },
-  title: {
-    fontFamily: 'var(--font-display, system-ui)',
-    fontSize: '22px',
-    fontWeight: '700',
-    color: 'var(--gray-900, #0f172a)',
-    margin: '0 0 16px',
-  },
-  warningBox: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px 16px',
-    background: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: '10px',
-    color: '#d97706',
-    fontSize: '14px',
-    fontWeight: '500',
-    marginBottom: '20px',
-    width: '100%',
-  },
-  summary: {
-    width: '100%',
-    background: 'var(--gray-50, #f8fafc)',
-    borderRadius: '12px',
-    padding: '16px',
-    marginBottom: '24px',
-  },
-  summaryRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '8px 0',
-    borderBottom: '1px solid var(--gray-100, #f1f5f9)',
-  },
-  summaryLabel: {
-    fontSize: '14px',
-    color: 'var(--gray-500, #64748b)',
-  },
-  summaryValue: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: 'var(--gray-900, #0f172a)',
-  },
-  typeBadge: {
-    padding: '4px 10px',
-    borderRadius: '100px',
-    fontSize: '12px',
-    textTransform: 'capitalize',
-    fontWeight: '600',
-  },
-  errorMessage: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '10px 14px',
-    background: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: '8px',
-    color: '#dc2626',
-    fontSize: '13px',
-    marginBottom: '16px',
-    width: '100%',
-  },
-  actions: {
-    display: 'flex',
-    gap: '12px',
-    width: '100%',
-  },
-  btnSecondary: {
-    flex: '1',
-    padding: '14px 20px',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '15px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    background: 'var(--gray-100, #f1f5f9)',
-    color: 'var(--gray-700, #334155)',
-  },
-  btnDanger: {
-    flex: '1',
-    padding: '14px 20px',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '15px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    background: '#ef4444',
-    color: 'white',
-  },
-  spinner: {
-    width: '16px',
-    height: '16px',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    borderTopColor: 'white',
-    borderRadius: '50%',
-    animation: 'deleteModalSpin 0.8s linear infinite',
-    display: 'inline-block',
-  },
-};

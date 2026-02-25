@@ -7,6 +7,7 @@ import {
   sendDocument as sendDocumentDirect,
   shareDocument,
 } from '@/lib/api/documents';
+import { copyToClipboard } from '@/lib/clipboard';
 
 interface MergeConflictData {
   existingClient: {
@@ -145,12 +146,12 @@ export function useReviewAPI() {
 
     const link = await generateShareLink(docId, documentType);
     if (link) {
-      try {
-        await navigator.clipboard.writeText(link);
+      const ok = await copyToClipboard(link);
+      if (ok) {
         setShareLink(link);
         setCopyLinkStatus('copied');
         setTimeout(() => setCopyLinkStatus('idle'), 3000);
-      } catch {
+      } else {
         setCopyLinkStatus('error');
       }
     } else {
@@ -188,12 +189,10 @@ export function useReviewAPI() {
 
   const copyViewLink = useCallback(async (): Promise<void> => {
     if (viewLinkUrl) {
-      try {
-        await navigator.clipboard.writeText(viewLinkUrl);
+      const ok = await copyToClipboard(viewLinkUrl);
+      if (ok) {
         setViewLinkCopied(true);
         setTimeout(() => setViewLinkCopied(false), 3000);
-      } catch {
-        console.error('Failed to copy link');
       }
     }
   }, [viewLinkUrl]);

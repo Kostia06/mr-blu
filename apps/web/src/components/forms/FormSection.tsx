@@ -1,4 +1,5 @@
 import type { ComponentChildren } from 'preact';
+import { cn } from '@/lib/utils';
 
 type SectionVariant = 'default' | 'card' | 'inline';
 
@@ -10,55 +11,6 @@ interface FormSectionProps {
   children: ComponentChildren;
 }
 
-const styles = {
-  base: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '20px',
-  },
-  card: {
-    padding: '24px',
-    borderRadius: 'var(--radius-md, 12px)',
-    border: '1px solid var(--gray-200)',
-    background: 'rgba(255,255,255,0.6)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-  },
-  inline: {
-    flexDirection: 'row' as const,
-    alignItems: 'flex-start',
-    gap: '32px',
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '4px',
-  },
-  inlineHeader: {
-    minWidth: '200px',
-    maxWidth: '280px',
-    flexShrink: 0,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: 600,
-    color: 'var(--gray-900)',
-    lineHeight: 1.4,
-  },
-  description: {
-    fontSize: 14,
-    color: 'var(--gray-500)',
-    lineHeight: 1.5,
-  },
-  content: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '16px',
-    flex: 1,
-    minWidth: 0,
-  },
-};
-
 export function FormSection({
   title,
   description,
@@ -68,25 +20,30 @@ export function FormSection({
 }: FormSectionProps) {
   const isCard = variant === 'card';
   const isInline = variant === 'inline';
-
-  const sectionStyle: Record<string, string | number> = {
-    ...styles.base,
-    ...(isCard ? styles.card : {}),
-    ...(isInline ? styles.inline : {}),
-  };
-
   const hasHeader = title || description;
 
   return (
-    <div style={sectionStyle} class={className}>
+    <div
+      class={cn(
+        'flex flex-col gap-5',
+        isCard && 'p-6 rounded-[var(--radius-card,20px)] border border-white/50 bg-white/40 backdrop-blur-[12px] overflow-hidden',
+        isInline && 'flex-row items-start gap-8',
+        className,
+      )}
+    >
       {hasHeader && (
-        <div style={{ ...styles.header, ...(isInline ? styles.inlineHeader : {}) }}>
-          {title && <h3 style={styles.title}>{title}</h3>}
-          {description && <p style={styles.description}>{description}</p>}
+        <div
+          class={cn(
+            'flex flex-col gap-1',
+            isInline && 'min-w-[200px] max-w-[280px] shrink-0',
+          )}
+        >
+          {title && <h3 class="text-[17px] font-semibold text-[var(--gray-900)] leading-[1.4]">{title}</h3>}
+          {description && <p class="text-sm text-[var(--gray-500)] leading-normal">{description}</p>}
         </div>
       )}
 
-      <div style={styles.content}>{children}</div>
+      <div class="flex flex-col gap-4 flex-1 min-w-0">{children}</div>
     </div>
   );
 }

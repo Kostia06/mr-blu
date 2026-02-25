@@ -18,6 +18,7 @@ import {
 import { useI18nStore } from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
 import { logout } from '@/lib/api/auth';
+import { cn } from '@/lib/utils';
 
 const SCROLL_DOWN_THRESHOLD = 10;
 const SCROLL_UP_THRESHOLD = 10;
@@ -43,9 +44,13 @@ interface Section {
 
 function SettingsSection({ title, children }: { title: string; children: ComponentChildren }) {
   return (
-    <section style={sectionStyles.wrapper}>
-      <h2 style={sectionStyles.title}>{title}</h2>
-      <div style={sectionStyles.items}>{children}</div>
+    <section class="flex flex-col gap-2">
+      <h2 class="text-xs font-semibold text-[var(--gray-500,#64748b)] uppercase tracking-[0.05em] m-0 px-1 mb-1">
+        {title}
+      </h2>
+      <div class="flex flex-col bg-white/40 backdrop-blur-[12px] border border-white/50 rounded-[var(--radius-card,20px)] overflow-hidden">
+        {children}
+      </div>
     </section>
   );
 }
@@ -62,13 +67,15 @@ function SettingsItem({
   href: string;
 }) {
   return (
-    <Link href={href} style={itemStyles.root}>
-      <span style={itemStyles.icon}>{icon}</span>
-      <span style={itemStyles.content}>
-        <span style={itemStyles.label}>{label}</span>
-        {value && <span style={itemStyles.value}>{value}</span>}
+    <Link href={href} class="flex items-center gap-3.5 w-full p-4 bg-transparent border-none no-underline cursor-pointer text-left">
+      <span class="flex items-center justify-center w-9 h-9 bg-[var(--gray-100,#f1f5f9)] rounded-[var(--radius-input,12px)] text-[var(--gray-600,#475569)] shrink-0">
+        {icon}
       </span>
-      <span style={itemStyles.arrow}>
+      <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+        <span class="text-[15px] font-medium text-[var(--gray-900,#0f172a)]">{label}</span>
+        {value && <span class="text-[13px] text-[var(--gray-500,#64748b)] whitespace-nowrap overflow-hidden text-ellipsis">{value}</span>}
+      </span>
+      <span class="flex items-center justify-center text-[var(--gray-400,#94a3b8)] shrink-0">
         <ChevronRight size={18} strokeWidth={2} />
       </span>
     </Link>
@@ -177,26 +184,28 @@ export function SettingsHub({ user }: SettingsHubProps) {
     }
   }
 
-  const headerStyle: Record<string, string | number> = {
-    ...styles.pageHeader,
-    ...(headerHidden ? styles.pageHeaderHidden : {}),
-  };
-
   return (
-    <main style={styles.page}>
-      <header style={headerStyle}>
+    <main class="min-h-screen bg-transparent">
+      <header
+        class={cn(
+          'sticky top-0 z-[var(--z-sticky,40)] flex items-center justify-between px-[var(--page-padding-x,20px)] pb-[var(--space-3,12px)] pt-[calc(var(--space-3,12px)+var(--safe-area-top,0px))] bg-transparent max-w-[var(--page-max-width,600px)] mx-auto w-full transition-[transform,opacity] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity]',
+          headerHidden && '-translate-y-full opacity-0 pointer-events-none'
+        )}
+      >
         <button
-          style={styles.backBtn}
+          class="w-[var(--btn-height-md,40px)] h-[var(--btn-height-md,40px)] flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[12px] border-none rounded-[var(--radius-button,14px)] text-[var(--gray-600,#475569)] cursor-pointer"
           onClick={() => navigateTo('/dashboard')}
           aria-label={t('aria.backToDashboard')}
         >
           <ChevronLeft size={22} strokeWidth={2} />
         </button>
-        <h1 style={styles.pageTitle}>{t('settings.title')}</h1>
-        <div style={styles.headerSpacer} />
+        <h1 class="font-[var(--font-display,system-ui)] text-lg font-bold text-[var(--gray-900,#0f172a)] m-0 tracking-[-0.02em]">
+          {t('settings.title')}
+        </h1>
+        <div class="w-10" />
       </header>
 
-      <div style={styles.pageContent}>
+      <div class="px-[var(--page-padding-x,20px)] max-w-[var(--page-max-width,600px)] w-full mx-auto flex flex-col justify-center min-h-[calc(100vh-60px)] gap-[var(--section-gap,24px)] pb-[100px]">
         {sections.map((section) => (
           <SettingsSection key={section.title} title={section.title}>
             {section.items.map((item) => (
@@ -211,194 +220,23 @@ export function SettingsHub({ user }: SettingsHubProps) {
           </SettingsSection>
         ))}
 
-        <div style={styles.logoutWrapper}>
-          <button style={styles.logoutBtn} onClick={handleSignOut} disabled={signingOut}>
-            <span style={styles.logoutIcon}>
+        <div class="mt-2">
+          <button
+            class="flex items-center justify-center gap-2.5 w-full py-4 px-6 bg-transparent border-none rounded-[var(--radius-button,14px)] text-[var(--data-red,#ef4444)] text-[15px] font-semibold cursor-pointer"
+            onClick={handleSignOut}
+            disabled={signingOut}
+          >
+            <span class="flex items-center justify-center">
               <LogOut size={18} strokeWidth={2} />
             </span>
             <span>{signingOut ? '...' : t('settings.signOut')}</span>
           </button>
         </div>
 
-        <p style={styles.versionText}>{t('settings.versionNumber')}</p>
+        <p class="text-center text-xs text-[var(--gray-400,#94a3b8)] mt-2 mb-0">
+          {t('settings.versionNumber')}
+        </p>
       </div>
     </main>
   );
 }
-
-/* ---------- styles ---------- */
-
-const styles: Record<string, Record<string, string | number>> = {
-  page: {
-    minHeight: '100vh',
-    background: 'transparent',
-  },
-  pageHeader: {
-    position: 'sticky',
-    top: 0,
-    zIndex: 'var(--z-sticky, 40)' as unknown as number,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 'var(--space-3, 12px) var(--page-padding-x, 20px)',
-    paddingTop: 'calc(var(--space-3, 12px) + var(--safe-area-top, 0px))',
-    background: 'transparent',
-    maxWidth: 'var(--page-max-width, 600px)',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    width: '100%',
-    transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s cubic-bezier(0.16,1,0.3,1)',
-    willChange: 'transform, opacity',
-  },
-  pageHeaderHidden: {
-    transform: 'translateY(-100%)',
-    opacity: 0,
-    pointerEvents: 'none',
-  },
-  backBtn: {
-    width: 'var(--btn-height-md, 40px)',
-    height: 'var(--btn-height-md, 40px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'var(--glass-white-50, rgba(255,255,255,0.5))',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: 'none',
-    borderRadius: 'var(--radius-button, 14px)',
-    color: 'var(--gray-600, #475569)',
-    cursor: 'pointer',
-  },
-  pageTitle: {
-    fontFamily: 'var(--font-display, system-ui)',
-    fontSize: 18,
-    fontWeight: 700,
-    color: 'var(--gray-900, #0f172a)',
-    margin: 0,
-    letterSpacing: '-0.02em',
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  pageContent: {
-    padding: 'var(--page-padding-x, 20px)',
-    maxWidth: 'var(--page-max-width, 600px)',
-    width: '100%',
-    margin: '0 auto',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    minHeight: 'calc(100vh - 60px)',
-    gap: 'var(--section-gap, 24px)',
-    paddingBottom: 100,
-  },
-  logoutWrapper: {
-    marginTop: 8,
-  },
-  logoutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    width: '100%',
-    padding: '16px 24px',
-    background: 'transparent',
-    border: 'none',
-    borderRadius: 'var(--radius-button, 14px)',
-    color: 'var(--data-red, #ef4444)',
-    fontSize: 15,
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  logoutIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  versionText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: 'var(--gray-400, #94a3b8)',
-    margin: '8px 0 0',
-  },
-};
-
-const sectionStyles: Record<string, Record<string, string | number>> = {
-  wrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-  },
-  title: {
-    fontSize: 12,
-    fontWeight: 600,
-    color: 'var(--gray-500, #64748b)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    margin: 0,
-    padding: '0 4px',
-    marginBottom: 4,
-  },
-  items: {
-    display: 'flex',
-    flexDirection: 'column',
-    background: 'rgba(255,255,255,0.4)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255,255,255,0.5)',
-    borderRadius: 'var(--radius-card, 20px)',
-    overflow: 'hidden',
-  },
-};
-
-const itemStyles: Record<string, Record<string, string | number>> = {
-  root: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    width: '100%',
-    padding: 16,
-    background: 'transparent',
-    border: 'none',
-    textDecoration: 'none',
-    cursor: 'pointer',
-    textAlign: 'left',
-  },
-  icon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 36,
-    height: 36,
-    background: 'var(--gray-100, #f1f5f9)',
-    borderRadius: 'var(--radius-input, 12px)',
-    color: 'var(--gray-600, #475569)',
-    flexShrink: 0,
-  },
-  content: {
-    flex: 1,
-    minWidth: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: 500,
-    color: 'var(--gray-900, #0f172a)',
-  },
-  value: {
-    fontSize: 13,
-    color: 'var(--gray-500, #64748b)',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  arrow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'var(--gray-400, #94a3b8)',
-    flexShrink: 0,
-  },
-};

@@ -8,13 +8,11 @@ const MAX_AUDIO_BUFFER_SIZE = 50;
 const NOISE_THRESHOLD = 0.35;
 const NOISE_SUGGESTION_THRESHOLD = 5;
 
-const MIME_TYPES = [
-  'audio/webm;codecs=opus',
-  'audio/webm',
-  'audio/mp4',
-  'audio/ogg;codecs=opus',
-  '',
-];
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator?.userAgent ?? '');
+
+const MIME_TYPES = IS_IOS
+  ? ['audio/mp4', 'audio/aac', '']
+  : ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', ''];
 
 export function useVoiceRecording() {
   const [currentState, setCurrentState] = useState<RecordingState>('idle');
@@ -284,7 +282,14 @@ export function useVoiceRecording() {
           throw new Error('MediaDevices API not available.');
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            ...(IS_IOS && { sampleRate: 44100, channelCount: 1 }),
+          },
+        });
         mediaStreamRef.current = stream;
 
         try {

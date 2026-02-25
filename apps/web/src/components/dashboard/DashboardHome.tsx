@@ -305,6 +305,13 @@ export function DashboardHome({ firstName, pendingReview }: DashboardHomeProps) 
                   <FileText size={16} strokeWidth={2} />
                 </div>
                 <span>{t('dashboard.continueDraft')}</span>
+                <button
+                  class="pending-review-dismiss"
+                  onClick={(e) => { e.stopPropagation(); dismissPendingReview(); }}
+                  aria-label="Dismiss draft"
+                >
+                  <X size={14} strokeWidth={2.5} />
+                </button>
               </div>
             )}
           </div>
@@ -527,6 +534,7 @@ const componentStyles = `
     justify-content: center;
     gap: var(--space-2, 8px);
     padding: var(--space-3, 12px) var(--space-5, 20px);
+    padding-right: 36px;
     background: var(--glass-blu-light-90, rgba(255, 255, 255, 0.9));
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -556,6 +564,30 @@ const componentStyles = `
     display: flex;
     align-items: center;
     color: var(--blu-primary, #0066ff);
+  }
+
+  .pending-review-dismiss {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--gray-400, #94a3b8);
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.15s ease;
+  }
+
+  .pending-review-dismiss:hover {
+    background: var(--gray-100, #f1f5f9);
+    color: var(--gray-600, #475569);
   }
 
   .idle-content {

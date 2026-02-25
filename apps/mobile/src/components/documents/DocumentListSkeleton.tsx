@@ -5,7 +5,7 @@ export function DocumentListSkeleton() {
   return (
     <View className="px-5">
       {Array.from({ length: 5 }).map((_, i) => (
-        <View key={i} className="bg-white rounded-card p-4 mb-3">
+        <View key={i} className="rounded-card p-4 mb-3" style={{ backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' }}>
           <View className="flex-row items-center">
             <Skeleton width={40} height={40} borderRadius={20} />
             <View className="flex-1 ml-3">

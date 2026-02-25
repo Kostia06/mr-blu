@@ -11,9 +11,10 @@ export function FormInput({ label, error, hint, ...props }: FormInputProps) {
     <View className="mb-4">
       <Text className="text-sm font-medium text-gray-700 mb-1.5">{label}</Text>
       <TextInput
-        className={`bg-white border rounded-input px-4 py-3 text-base text-gray-900 ${
-          error ? 'border-red-400' : 'border-gray-200'
+        className={`rounded-input px-4 py-3 text-base text-gray-900 ${
+          error ? 'border border-red-400' : 'border border-gray-200'
         }`}
+        style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
         placeholderTextColor="#94A3B8"
         {...props}
       />

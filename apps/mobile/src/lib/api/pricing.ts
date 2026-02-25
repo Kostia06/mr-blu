@@ -109,14 +109,14 @@ export async function savePricing(items: PricingSaveItem[]): Promise<boolean> {
     name: item.material || item.description,
     unit_price: item.rate,
     unit: item.measurementType || 'unit',
-    category: null,
+    category: 'other',
     times_used: 1,
     last_used_at: new Date().toISOString(),
   }));
 
   const { error } = await supabase
     .from('price_items')
-    .upsert(rows, { onConflict: 'user_id,name' });
+    .upsert(rows, { onConflict: 'user_id,name,unit' });
 
   return !error;
 }
@@ -143,6 +143,44 @@ export async function listPricing(): Promise<{ items: PricingEntry[] }> {
   }));
 
   return { items };
+}
+
+export interface AddPricingData {
+  name: string;
+  unit: string;
+  unitPrice: number;
+}
+
+export async function addPricing(data: AddPricingData): Promise<PricingEntry | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: row, error } = await supabase
+    .from('price_items')
+    .upsert({
+      user_id: user.id,
+      name: data.name,
+      unit: data.unit,
+      unit_price: data.unitPrice,
+      category: 'other',
+      times_used: 0,
+      last_used_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,name,unit' })
+    .select('*')
+    .single();
+
+  if (error || !row) return null;
+
+  return {
+    id: row.id,
+    material: row.name,
+    measurement_type: row.unit || 'unit',
+    rate_per_unit: row.unit_price,
+    base_quantity: 1,
+    base_rate: row.unit_price,
+    usage_count: row.times_used || 0,
+    last_used_at: row.last_used_at || '',
+  };
 }
 
 export async function deletePricing(id: string): Promise<boolean> {

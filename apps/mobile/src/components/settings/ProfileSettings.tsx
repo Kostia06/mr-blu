@@ -9,6 +9,7 @@ import { updateProfile, updateEmail } from '@/lib/api/user';
 import { FormInput } from '@/components/forms/FormInput';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { GlassBackground } from '@/components/layout/GlassBackground';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 
 export function ProfileSettings() {
@@ -100,7 +101,7 @@ export function ProfileSettings() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="bg-white rounded-card p-4 shadow-sm mb-6">
+          <GlassCard className="mb-6">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               {t('profile.personalInfo')}
             </Text>
@@ -124,9 +125,9 @@ export function ProfileSettings() {
               keyboardType="phone-pad"
               hint={t('profile.phoneHint')}
             />
-          </View>
+          </GlassCard>
 
-          <View className="bg-white rounded-card p-4 shadow-sm mb-6">
+          <GlassCard className="mb-6">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               {t('profile.emailAddress')}
             </Text>
@@ -172,7 +173,7 @@ export function ProfileSettings() {
                 </Button>
               </View>
             )}
-          </View>
+          </GlassCard>
         </ScrollView>
       </KeyboardAvoidingView>
     </GlassBackground>

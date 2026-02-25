@@ -12,6 +12,7 @@ import {
 import { FormToggle } from '@/components/forms/FormToggle';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { GlassBackground } from '@/components/layout/GlassBackground';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 const ICON_MAP = {
   emailOnInvoiceSent: Receipt,
@@ -130,7 +131,7 @@ export function NotificationsSettings() {
             <ActivityIndicator size="large" color="#0066FF" />
           </View>
         ) : (
-          <View className="bg-white rounded-card p-4 shadow-sm mb-6">
+          <GlassCard className="mb-6">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
               {t('settings.emailNotificationsTitle')}
             </Text>
@@ -147,15 +148,15 @@ export function NotificationsSettings() {
                 onToggle={() => togglePreference(option.key)}
               />
             ))}
-          </View>
+          </GlassCard>
         )}
 
-        <View className="flex-row bg-gray-100 rounded-button p-4 gap-3">
+        <GlassCard className="flex-row gap-3">
           <Info size={18} color="#64748B" />
           <Text className="flex-1 text-[13px] text-gray-500 leading-5">
             {t('settings.notifAutoSave')}
           </Text>
-        </View>
+        </GlassCard>
       </ScrollView>
     </GlassBackground>
   );

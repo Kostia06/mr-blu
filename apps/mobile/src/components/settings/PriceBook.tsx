@@ -11,9 +11,9 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Trash2, Pencil, Check, X, BookOpen, DollarSign } from 'lucide-react-native';
+import { Search, Trash2, Pencil, Check, X, BookOpen, DollarSign, Plus } from 'lucide-react-native';
 import { useI18nStore } from '@/lib/i18n';
-import { listPricing, deletePricing, updatePricing } from '@/lib/api/pricing';
+import { listPricing, deletePricing, updatePricing, addPricing } from '@/lib/api/pricing';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { GlassBackground } from '@/components/layout/GlassBackground';
 
@@ -63,6 +63,11 @@ export function PriceBook() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRate, setEditRate] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addName, setAddName] = useState('');
+  const [addUnit, setAddUnit] = useState('unit');
+  const [addRate, setAddRate] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -115,6 +120,38 @@ export function PriceBook() {
   function cancelEdit() {
     setEditingId(null);
     setEditRate('');
+  }
+
+  const handleAdd = useCallback(async () => {
+    const rate = parseFloat(addRate);
+    if (!addName.trim() || isNaN(rate) || rate <= 0) return;
+
+    setAdding(true);
+    try {
+      const entry = await addPricing({
+        name: addName.trim(),
+        unit: addUnit,
+        unitPrice: rate,
+      });
+      if (entry) {
+        setEntries((prev) => [entry, ...prev]);
+        setAddName('');
+        setAddUnit('unit');
+        setAddRate('');
+        setShowAddForm(false);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setAdding(false);
+    }
+  }, [addName, addUnit, addRate]);
+
+  function cancelAdd() {
+    setShowAddForm(false);
+    setAddName('');
+    setAddUnit('unit');
+    setAddRate('');
   }
 
   async function saveEdit(id: string) {
@@ -213,9 +250,18 @@ export function PriceBook() {
     );
   }, [editingId, editRate, deletingId, handleDelete]);
 
+  const addButton = (
+    <Pressable
+      onPress={() => setShowAddForm(true)}
+      className="w-10 h-10 rounded-button bg-white items-center justify-center shadow-sm"
+    >
+      <Plus size={20} color="#0066FF" strokeWidth={2.5} />
+    </Pressable>
+  );
+
   return (
     <GlassBackground>
-      <ScreenHeader title={t('settings.priceBook') || 'Price Book'} showBack />
+      <ScreenHeader title={t('settings.priceBook') || 'Price Book'} showBack rightAction={addButton} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
@@ -231,6 +277,71 @@ export function PriceBook() {
               className="flex-1 text-[15px] text-gray-900"
             />
           </View>
+
+          {showAddForm && (
+            <View className="bg-white rounded-2xl p-4 shadow-sm mb-3 border-2 border-blu-primary">
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-sm font-bold text-blu-primary">
+                  {t('settings.priceBookAdd') || 'Add Item'}
+                </Text>
+                <View className="flex-row gap-1">
+                  <Pressable
+                    onPress={handleAdd}
+                    disabled={adding || !addName.trim() || !addRate}
+                    className="w-8 h-8 items-center justify-center"
+                    hitSlop={8}
+                  >
+                    {adding ? (
+                      <ActivityIndicator size="small" color="#10B981" />
+                    ) : (
+                      <Check size={16} color="#10B981" />
+                    )}
+                  </Pressable>
+                  <Pressable onPress={cancelAdd} className="w-8 h-8 items-center justify-center" hitSlop={8}>
+                    <X size={16} color="#94A3B8" />
+                  </Pressable>
+                </View>
+              </View>
+              <TextInput
+                value={addName}
+                onChangeText={setAddName}
+                placeholder={t('settings.priceBookName') || 'Material name'}
+                placeholderTextColor="#94A3B8"
+                className="bg-gray-50 border-2 border-blu-primary rounded-xl px-3 py-2.5 text-[15px] font-semibold text-gray-900 mb-2"
+                autoFocus
+                onSubmitEditing={handleAdd}
+              />
+              <View className="flex-row items-center gap-2 mb-2">
+                <BookOpen size={14} color="#94A3B8" />
+                <View className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                  <Pressable
+                    onPress={() => {
+                      const units = Object.keys(MEASUREMENT_LABELS);
+                      const currentIdx = units.indexOf(addUnit);
+                      const nextIdx = (currentIdx + 1) % units.length;
+                      setAddUnit(units[nextIdx]);
+                    }}
+                  >
+                    <Text className="text-[13px] text-gray-900">
+                      {MEASUREMENT_LABELS[addUnit] || addUnit}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+              <View className="flex-row items-center gap-2">
+                <DollarSign size={14} color="#94A3B8" />
+                <TextInput
+                  value={addRate}
+                  onChangeText={setAddRate}
+                  placeholder="0.00"
+                  placeholderTextColor="#94A3B8"
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-[13px] text-gray-900"
+                  keyboardType="decimal-pad"
+                  onSubmitEditing={handleAdd}
+                />
+              </View>
+            </View>
+          )}
 
           {loading ? (
             <View className="flex-1 items-center justify-center py-16">

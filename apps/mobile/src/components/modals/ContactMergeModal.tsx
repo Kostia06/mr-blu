@@ -118,12 +118,13 @@ export function ContactMergeModal({
     >
       {/* Backdrop */}
       <Pressable
-        className="flex-1 bg-black/50 justify-end"
+        className="flex-1 justify-end"
+        style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
         onPress={handleClose}
       >
         {/* Modal content */}
         <Pressable className="w-full" onPress={() => {}}>
-          <View className="bg-white rounded-t-3xl px-6 pt-3 pb-10 max-h-[85%]">
+          <View className="rounded-t-3xl px-6 pt-3 pb-10 max-h-[85%]" style={{ backgroundColor: 'rgba(255,255,255,0.95)' }}>
             {/* Drag handle */}
             <View className="w-9 h-1.5 bg-gray-300 rounded-full self-center mb-5" />
 

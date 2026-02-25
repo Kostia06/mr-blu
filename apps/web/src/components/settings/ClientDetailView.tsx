@@ -141,8 +141,11 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
     setEditing(false);
   }
 
+  const [saving, setSaving] = useState(false);
+
   async function saveEdit() {
-    if (!client || !editFields.name.trim()) return;
+    if (!client || !editFields.name.trim() || saving) return;
+    setSaving(true);
     try {
       await updateClient(client.id, {
         name: editFields.name.trim(),
@@ -161,71 +164,71 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
     } catch {
       // silently fail
     } finally {
+      setSaving(false);
       setEditing(false);
     }
   }
 
   if (loading) {
     return (
-      <main style={styles.page}>
+      <main class="min-h-screen bg-transparent">
         <SettingsPageHeader
           title="Client"
           backHref="/dashboard/settings/clients"
           backLabel={t('clients.backToSettings')}
         />
-        <div style={styles.centered}>
-          <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: 'var(--brand-blue, #0066ff)' }} />
+        <div class="flex flex-col items-center justify-center gap-3 px-5 py-[60px] text-center">
+          <Loader2 size={32} class="animate-spin text-[var(--brand-blue,#0066ff)]" />
         </div>
-        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </main>
     );
   }
 
   if (!client) {
     return (
-      <main style={styles.page}>
+      <main class="min-h-screen bg-transparent">
         <SettingsPageHeader
           title="Client"
           backHref="/dashboard/settings/clients"
           backLabel={t('clients.backToSettings')}
         />
-        <div style={styles.centered}>
-          <FileQuestion size={40} style={{ color: 'var(--gray-300, #cbd5e1)' }} />
-          <p style={styles.emptyText}>{t('clients.clientNotFound')}</p>
+        <div class="flex flex-col items-center justify-center gap-3 px-5 py-[60px] text-center">
+          <FileQuestion size={40} class="text-[var(--gray-300,#cbd5e1)]" />
+          <p class="m-0 text-sm font-medium text-[var(--gray-400,#94a3b8)]">{t('clients.clientNotFound')}</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main style={styles.page}>
+    <main class="min-h-screen bg-transparent">
       <SettingsPageHeader
         title={client.name}
         backHref="/dashboard/settings/clients"
         backLabel={t('clients.backToSettings')}
         right={
           editing ? (
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button style={styles.headerBtn} onClick={saveEdit} aria-label="Save">
-                <Check size={18} style={{ color: '#10b981' }} />
+            <div class="flex gap-1">
+              <button class="flex h-10 w-10 items-center justify-center bg-white/50 backdrop-blur-[12px] border-none rounded-[14px] cursor-pointer" onClick={saveEdit} disabled={saving} aria-label="Save">
+                {saving ? <Loader2 size={18} class="animate-spin" /> : <Check size={18} class="text-emerald-500" />}
               </button>
-              <button style={styles.headerBtn} onClick={cancelEdit} aria-label="Cancel">
-                <X size={18} style={{ color: '#94a3b8' }} />
+              <button class="flex h-10 w-10 items-center justify-center bg-white/50 backdrop-blur-[12px] border-none rounded-[14px] cursor-pointer" onClick={cancelEdit} aria-label="Cancel">
+                <X size={18} class="text-slate-400" />
               </button>
             </div>
           ) : (
-            <button style={styles.headerBtn} onClick={startEdit} aria-label="Edit">
-              <Pencil size={16} style={{ color: '#64748b' }} />
+            <button class="flex h-10 w-10 items-center justify-center bg-white/50 backdrop-blur-[12px] border-none rounded-[14px] cursor-pointer" onClick={startEdit} aria-label="Edit">
+              <Pencil size={16} class="text-slate-500" />
             </button>
           )
         }
       />
 
-      <div style={styles.content}>
+      <div class="px-5 pb-[100px] max-w-[600px] w-full mx-auto">
         {/* Client Info Card */}
-        <div style={styles.card}>
-          <div style={styles.infoHeader}>
-            <div style={styles.avatar}>
+        <div class="bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-2xl p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-11 h-11 flex items-center justify-center bg-[rgba(0,102,255,0.1)] rounded-full text-lg font-bold text-[var(--blu-primary,#0066ff)] shrink-0">
               {client.name.charAt(0).toUpperCase()}
             </div>
             {editing ? (
@@ -235,7 +238,7 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
                 onInput={(e) =>
                   setEditFields((f) => ({ ...f, name: (e.target as HTMLInputElement).value }))
                 }
-                style={styles.editNameInput}
+                class="flex-1 border-[1.5px] border-[var(--blu-primary,#0066ff)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[15px] font-semibold text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') saveEdit();
@@ -243,14 +246,14 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
                 }}
               />
             ) : (
-              <span style={styles.clientName}>{client.name}</span>
+              <span class="text-[17px] font-bold text-[var(--gray-900,#0f172a)]">{client.name}</span>
             )}
           </div>
 
           {editing ? (
-            <div style={styles.editFields}>
-              <div style={styles.editFieldRow}>
-                <Mail size={14} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <Mail size={14} class="text-[var(--gray-400)] shrink-0" />
                 <input
                   type="email"
                   value={editFields.email}
@@ -258,11 +261,11 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
                     setEditFields((f) => ({ ...f, email: (e.target as HTMLInputElement).value }))
                   }
                   placeholder="Email"
-                  style={styles.editFieldInput}
+                  class="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
                 />
               </div>
-              <div style={styles.editFieldRow}>
-                <Phone size={14} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
+              <div class="flex items-center gap-2">
+                <Phone size={14} class="text-[var(--gray-400)] shrink-0" />
                 <input
                   type="tel"
                   value={editFields.phone}
@@ -270,11 +273,11 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
                     setEditFields((f) => ({ ...f, phone: (e.target as HTMLInputElement).value }))
                   }
                   placeholder="Phone"
-                  style={styles.editFieldInput}
+                  class="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
                 />
               </div>
-              <div style={styles.editFieldRow}>
-                <MapPin size={14} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
+              <div class="flex items-center gap-2">
+                <MapPin size={14} class="text-[var(--gray-400)] shrink-0" />
                 <input
                   type="text"
                   value={editFields.address}
@@ -282,349 +285,108 @@ export function ClientDetailView({ clientId }: { clientId: string }) {
                     setEditFields((f) => ({ ...f, address: (e.target as HTMLInputElement).value }))
                   }
                   placeholder="Address"
-                  style={styles.editFieldInput}
+                  class="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit]"
                 />
               </div>
-              <div style={styles.editFieldRow}>
-                <StickyNote size={14} style={{ color: 'var(--gray-400)', flexShrink: '0', alignSelf: 'flex-start', marginTop: 6 }} />
+              <div class="flex items-center gap-2">
+                <StickyNote size={14} class="text-[var(--gray-400)] shrink-0 self-start mt-1.5" />
                 <textarea
                   value={editFields.notes}
                   onInput={(e) =>
                     setEditFields((f) => ({ ...f, notes: (e.target as HTMLTextAreaElement).value }))
                   }
                   placeholder={t('clients.notesPlaceholder')}
-                  style={styles.notesInput}
+                  class="flex-1 border border-[var(--gray-200,#e2e8f0)] bg-white/80 rounded-[10px] px-2.5 py-1.5 text-[13px] text-[var(--gray-900,#0f172a)] outline-none font-[inherit] resize-y min-h-[48px]"
                   rows={3}
                 />
               </div>
             </div>
           ) : (
-            <div style={styles.detailRows}>
+            <div class="flex flex-col gap-2">
               {client.email && (
-                <div style={styles.detailRow}>
-                  <Mail size={14} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
-                  <span style={styles.detailText}>{client.email}</span>
+                <div class="flex items-center gap-2">
+                  <Mail size={14} class="text-[var(--gray-400,#94a3b8)] shrink-0" />
+                  <span class="text-sm text-[var(--gray-500,#64748b)]">{client.email}</span>
                 </div>
               )}
               {client.phone && (
-                <div style={styles.detailRow}>
-                  <Phone size={14} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
-                  <span style={styles.detailText}>{client.phone}</span>
+                <div class="flex items-center gap-2">
+                  <Phone size={14} class="text-[var(--gray-400,#94a3b8)] shrink-0" />
+                  <span class="text-sm text-[var(--gray-500,#64748b)]">{client.phone}</span>
                 </div>
               )}
               {client.address && (
-                <div style={styles.detailRow}>
-                  <MapPin size={14} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
-                  <span style={styles.detailText}>{client.address}</span>
+                <div class="flex items-center gap-2">
+                  <MapPin size={14} class="text-[var(--gray-400,#94a3b8)] shrink-0" />
+                  <span class="text-sm text-[var(--gray-500,#64748b)]">{client.address}</span>
                 </div>
               )}
               {client.notes && (
-                <div style={styles.notesDisplay}>
-                  <StickyNote size={14} style={{ color: 'var(--gray-400, #94a3b8)', flexShrink: '0' }} />
-                  <span style={styles.notesText}>{client.notes}</span>
+                <div class="flex gap-2 mt-1 py-2 border-t border-black/[0.04]">
+                  <StickyNote size={14} class="text-[var(--gray-400,#94a3b8)] shrink-0" />
+                  <span class="text-[13px] text-[var(--gray-400,#94a3b8)] italic whitespace-pre-wrap break-words leading-[1.4]">{client.notes}</span>
                 </div>
               )}
               {!client.email && !client.phone && !client.address && !client.notes && (
-                <span style={styles.noDetails}>{t('clients.noContactInfo')}</span>
+                <span class="text-[13px] text-[var(--gray-400,#94a3b8)] italic">{t('clients.noContactInfo')}</span>
               )}
             </div>
           )}
         </div>
 
         {/* Documents Section */}
-        <h2 style={styles.sectionTitle}>{t('clients.documents')}</h2>
+        <h2 class="text-[15px] font-bold text-[var(--gray-900,#0f172a)] mt-6 mb-3 tracking-[-0.01em]">{t('clients.documents')}</h2>
 
         {docsLoading ? (
-          <div style={styles.centered}>
-            <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: 'var(--brand-blue, #0066ff)' }} />
+          <div class="flex flex-col items-center justify-center gap-3 px-5 py-[60px] text-center">
+            <Loader2 size={24} class="animate-spin text-[var(--brand-blue,#0066ff)]" />
           </div>
         ) : documents.length === 0 ? (
-          <div style={styles.emptyDocs}>
-            <FileText size={32} style={{ color: 'var(--gray-300, #cbd5e1)' }} />
-            <p style={styles.emptyText}>{t('clients.noDocuments')}</p>
+          <div class="flex flex-col items-center gap-2 px-5 py-10 text-center">
+            <FileText size={32} class="text-[var(--gray-300,#cbd5e1)]" />
+            <p class="m-0 text-sm font-medium text-[var(--gray-400,#94a3b8)]">{t('clients.noDocuments')}</p>
           </div>
         ) : (
-          <div style={styles.docList}>
+          <div class="flex flex-col gap-1.5">
             {documents.map((doc) => {
               const statusStyle = getStatusColor(doc.status);
               return (
                 <button
                   key={doc.id}
-                  style={styles.docRow}
+                  class="flex items-center gap-3 px-3.5 py-3 bg-white/50 backdrop-blur-[12px] border border-white/50 rounded-[14px] cursor-pointer text-left w-full font-[inherit]"
                   onClick={() => navigateTo(`/dashboard/documents/${doc.id}?type=${doc.document_type}`)}
                 >
-                  <div style={styles.docIcon}>{getDocIcon(doc.document_type)}</div>
-                  <div style={styles.docInfo}>
-                    <span style={styles.docNumber}>
+                  <div class="w-9 h-9 flex items-center justify-center bg-[rgba(0,102,255,0.08)] rounded-[10px] text-[var(--blu-primary,#0066ff)] shrink-0">
+                    {getDocIcon(doc.document_type)}
+                  </div>
+                  <div class="flex-1 flex flex-col gap-0.5 min-w-0">
+                    <span class="text-sm font-semibold text-[var(--gray-900,#0f172a)] capitalize">
                       {doc.document_number || doc.document_type}
                     </span>
-                    <span style={styles.docDate}>{formatDate(doc.created_at)}</span>
+                    <span class="text-xs text-[var(--gray-400,#94a3b8)]">{formatDate(doc.created_at)}</span>
                   </div>
-                  <div style={styles.docRight}>
+                  <div class="flex flex-col items-end gap-1 shrink-0">
                     {doc.total > 0 && (
-                      <span style={styles.docTotal}>{formatAmount(doc.total)}</span>
+                      <span class="text-sm font-semibold text-[var(--gray-900,#0f172a)]">{formatAmount(doc.total)}</span>
                     )}
                     <span
-                      style={{
-                        ...styles.statusBadge,
-                        background: statusStyle.bg,
-                        color: statusStyle.text,
-                      }}
+                      class="text-[11px] font-semibold px-2 py-0.5 rounded-md capitalize"
+                      style={{ background: statusStyle.bg, color: statusStyle.text }}
                     >
                       {doc.status}
                     </span>
                   </div>
-                  <ChevronRight size={16} style={{ color: 'var(--gray-300, #cbd5e1)', flexShrink: '0' }} />
+                  <ChevronRight size={16} class="text-[var(--gray-300,#cbd5e1)] shrink-0" />
                 </button>
               );
             })}
           </div>
         )}
 
-        <p style={styles.countText}>
+        <p class="text-center text-xs text-[var(--gray-400,#94a3b8)] mt-4">
           {documents.length} {documents.length === 1 ? 'document' : 'documents'}
         </p>
       </div>
-
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </main>
   );
 }
-
-const styles: Record<string, Record<string, string | number>> = {
-  page: {
-    minHeight: '100vh',
-    background: 'transparent',
-  },
-  content: {
-    padding: '0 20px 100px',
-    maxWidth: 600,
-    width: '100%',
-    margin: '0 auto',
-  },
-  centered: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    padding: '60px 20px',
-    textAlign: 'center',
-  },
-  card: {
-    background: 'rgba(255,255,255,0.5)',
-    backdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255,255,255,0.5)',
-    borderRadius: 16,
-    padding: 16,
-  },
-  infoHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(0, 102, 255, 0.1)',
-    borderRadius: '50%',
-    fontSize: 18,
-    fontWeight: 700,
-    color: 'var(--blu-primary, #0066ff)',
-    flexShrink: 0,
-  },
-  clientName: {
-    fontSize: 17,
-    fontWeight: 700,
-    color: 'var(--gray-900, #0f172a)',
-  },
-  editNameInput: {
-    flex: 1,
-    border: '1.5px solid var(--blu-primary, #0066ff)',
-    background: 'rgba(255,255,255,0.8)',
-    borderRadius: 10,
-    padding: '6px 10px',
-    fontSize: 15,
-    fontWeight: 600,
-    color: 'var(--gray-900, #0f172a)',
-    outline: 'none',
-    fontFamily: 'inherit',
-  },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(255,255,255,0.5)',
-    backdropFilter: 'blur(12px)',
-    border: 'none',
-    borderRadius: 14,
-    cursor: 'pointer',
-  },
-  detailRows: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-  },
-  detailRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-  },
-  detailText: {
-    fontSize: 14,
-    color: 'var(--gray-500, #64748b)',
-  },
-  noDetails: {
-    fontSize: 13,
-    color: 'var(--gray-400, #94a3b8)',
-    fontStyle: 'italic',
-  },
-  editFields: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-  },
-  editFieldRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-  },
-  editFieldInput: {
-    flex: 1,
-    border: '1px solid var(--gray-200, #e2e8f0)',
-    background: 'rgba(255,255,255,0.8)',
-    borderRadius: 10,
-    padding: '6px 10px',
-    fontSize: 13,
-    color: 'var(--gray-900, #0f172a)',
-    outline: 'none',
-    fontFamily: 'inherit',
-  },
-  notesInput: {
-    flex: 1,
-    border: '1px solid var(--gray-200, #e2e8f0)',
-    background: 'rgba(255,255,255,0.8)',
-    borderRadius: 10,
-    padding: '6px 10px',
-    fontSize: 13,
-    color: 'var(--gray-900, #0f172a)',
-    outline: 'none',
-    fontFamily: 'inherit',
-    resize: 'vertical',
-    minHeight: 48,
-  },
-  notesDisplay: {
-    display: 'flex',
-    gap: 8,
-    marginTop: 4,
-    padding: '8px 0',
-    borderTop: '1px solid rgba(0,0,0,0.04)',
-  },
-  notesText: {
-    fontSize: 13,
-    color: 'var(--gray-400, #94a3b8)',
-    fontStyle: 'italic',
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-    lineHeight: 1.4,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: 'var(--gray-900, #0f172a)',
-    margin: '24px 0 12px',
-    letterSpacing: '-0.01em',
-  },
-  emptyDocs: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 8,
-    padding: '40px 20px',
-    textAlign: 'center',
-  },
-  emptyText: {
-    margin: 0,
-    fontSize: 14,
-    fontWeight: 500,
-    color: 'var(--gray-400, #94a3b8)',
-  },
-  docList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 6,
-  },
-  docRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '12px 14px',
-    background: 'rgba(255,255,255,0.5)',
-    backdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255,255,255,0.5)',
-    borderRadius: 14,
-    cursor: 'pointer',
-    textAlign: 'left',
-    width: '100%',
-    fontFamily: 'inherit',
-  },
-  docIcon: {
-    width: 36,
-    height: 36,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(0, 102, 255, 0.08)',
-    borderRadius: 10,
-    color: 'var(--blu-primary, #0066ff)',
-    flexShrink: 0,
-  },
-  docInfo: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-    minWidth: 0,
-  },
-  docNumber: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: 'var(--gray-900, #0f172a)',
-    textTransform: 'capitalize',
-  },
-  docDate: {
-    fontSize: 12,
-    color: 'var(--gray-400, #94a3b8)',
-  },
-  docRight: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    gap: 4,
-    flexShrink: 0,
-  },
-  docTotal: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: 'var(--gray-900, #0f172a)',
-  },
-  statusBadge: {
-    fontSize: 11,
-    fontWeight: 600,
-    padding: '2px 8px',
-    borderRadius: 6,
-    textTransform: 'capitalize',
-  },
-  countText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: 'var(--gray-400, #94a3b8)',
-    marginTop: 16,
-  },
-};

@@ -9,6 +9,7 @@ import { useToastStore } from '@/stores/toastStore';
 import { deleteAccount } from '@/lib/api/user';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { GlassBackground } from '@/components/layout/GlassBackground';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 function formatLastSignIn(dateString: string | undefined, locale: string): string {
   if (!dateString) return 'Unknown';
@@ -69,7 +70,7 @@ export function SecuritySettings() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="bg-white rounded-card overflow-hidden shadow-sm mb-6">
+        <GlassCard padding={0} className="overflow-hidden mb-6">
           <View className="px-4 pt-4 pb-2">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {t('settings.sessionsTitle')}
@@ -86,9 +87,9 @@ export function SecuritySettings() {
               <Text className="text-[13px] text-gray-500">{lastSignIn}</Text>
             </View>
           </View>
-        </View>
+        </GlassCard>
 
-        <View className="bg-white rounded-card overflow-hidden shadow-sm">
+        <GlassCard padding={0} className="overflow-hidden">
           <View className="px-4 pt-4 pb-2">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {t('settings.dangerZoneTitle')}
@@ -116,7 +117,7 @@ export function SecuritySettings() {
             </View>
             <ChevronRight size={18} color="#94A3B8" />
           </Pressable>
-        </View>
+        </GlassCard>
       </ScrollView>
     </GlassBackground>
   );

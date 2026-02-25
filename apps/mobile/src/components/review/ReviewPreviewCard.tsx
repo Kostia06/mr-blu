@@ -73,7 +73,7 @@ export function ReviewPreviewCard({
 
   return (
     <>
-      <Card onPress={openEditor}>
+      <Card variant="glass" onPress={openEditor}>
         <View className="flex-row items-center justify-between mb-3">
           <Badge variant={docType === 'estimate' ? 'warning' : 'info'}>
             {docType.charAt(0).toUpperCase() + docType.slice(1)}

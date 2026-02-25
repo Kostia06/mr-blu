@@ -153,6 +153,9 @@
   --bottom-nav-height: 64px;
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --vh: 1vh;
 
   --color-bg: #FFFFFF;
   --color-bg-secondary: #FAFAFA;
@@ -185,13 +188,20 @@
   color-scheme: dark;
 }
 
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
 html {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -ms-overflow-style: none;
   scrollbar-width: none;
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -269,6 +279,9 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   transition: color 0.3s ease;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior: none;
 }
 
 body::before {
@@ -290,12 +303,13 @@ body::before {
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-button, a {
+button, a, [role="button"] {
   touch-action: manipulation;
   transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-input, textarea {
+input, select, textarea {
+  font-size: 16px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
@@ -319,6 +333,50 @@ input, textarea {
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* Safe area utilities */
+.pl-safe { padding-left: env(safe-area-inset-left, 0px); }
+.pr-safe { padding-right: env(safe-area-inset-right, 0px); }
+.px-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Dynamic viewport height utilities */
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.h-screen-safe {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Bottom nav safe padding */
+.has-bottom-nav {
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+}
+
+/* Scrollable areas with contained overscroll */
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* iOS Safari 100vh fix */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen { min-height: -webkit-fill-available; }
+  .h-screen { height: -webkit-fill-available; }
+}
+
+/* Landscape notch padding */
+@media (orientation: landscape) {
+  .landscape-safe {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

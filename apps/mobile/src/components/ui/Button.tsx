@@ -1,4 +1,4 @@
-import { Pressable, Text, ActivityIndicator, type ViewStyle } from 'react-native';
+import { Pressable, Text, ActivityIndicator, Platform, type ViewStyle } from 'react-native';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -43,6 +43,27 @@ const sizeTextClasses: Record<ButtonSize, string> = {
   lg: 'text-lg',
 };
 
+const SHADOW_STYLES: Partial<Record<ButtonVariant, ViewStyle>> = {
+  primary: Platform.select({
+    ios: {
+      shadowColor: '#0066FF',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+    android: { elevation: 6 },
+  }),
+  danger: Platform.select({
+    ios: {
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+    android: { elevation: 6 },
+  }),
+};
+
 export function Button({
   onPress,
   children,
@@ -59,7 +80,7 @@ export function Button({
       onPress={onPress}
       disabled={disabled || loading}
       className={`flex-row items-center justify-center gap-2 ${variantClasses[variant]} ${sizeClasses[size]} ${fullWidth ? 'w-full' : ''} ${disabled ? 'opacity-50' : ''}`}
-      style={style}
+      style={[!disabled && SHADOW_STYLES[variant], style]}
     >
       {loading ? (
         <ActivityIndicator

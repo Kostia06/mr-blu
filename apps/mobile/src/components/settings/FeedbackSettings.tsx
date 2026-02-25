@@ -87,8 +87,9 @@ export function FeedbackSettings() {
                   className={`px-4 py-2 rounded-full border ${
                     isSelected
                       ? 'bg-blu-primary border-blu-primary'
-                      : 'bg-white border-gray-200'
+                      : 'border-gray-200'
                   }`}
+                  style={!isSelected ? { backgroundColor: 'rgba(255,255,255,0.5)' } : undefined}
                 >
                   <Text
                     className={`text-sm font-medium ${
@@ -104,9 +105,10 @@ export function FeedbackSettings() {
 
           <View className="relative mb-6">
             <TextInput
-              className={`bg-white border rounded-xl px-4 py-4 text-[15px] text-gray-900 min-h-[160px] ${
+              className={`border rounded-xl px-4 py-4 text-[15px] text-gray-900 min-h-[160px] ${
                 isOverLimit ? 'border-red-400' : 'border-gray-200'
               }`}
+              style={{ backgroundColor: 'rgba(255,255,255,0.6)' }}
               value={comment}
               onChangeText={setComment}
               placeholder={t('feedback.placeholder')}

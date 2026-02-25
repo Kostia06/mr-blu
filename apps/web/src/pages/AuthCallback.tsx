@@ -25,28 +25,72 @@ function getOpenInBrowserUrl(): string | null {
 export function AuthCallbackPage() {
   const [showBrowserPrompt, setShowBrowserPrompt] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const next = params.get('next') || '/dashboard'
 
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+    if (isInAppBrowser()) {
+      setShowBrowserPrompt(true)
+      return
+    }
+
+    const errorParam = params.get('error')
+    if (errorParam) {
+      const desc = params.get('error_description') || errorParam
+      setError(desc)
+      setTimeout(() => navigateTo('/login?error=' + encodeURIComponent(desc)), 3000)
+      return
+    }
+
+    async function exchangeSession() {
+      const code = params.get('code')
+
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) {
+          console.error('Code exchange failed:', error.message)
+          setError(error.message)
+          setTimeout(() => navigateTo('/login?error=expired'), 3000)
+          return
+        }
+        window.history.replaceState(null, '', '/auth/callback')
         navigateTo(next)
-      } else if (event === 'SIGNED_OUT') {
+        return
+      }
+
+      // Fallback: hash tokens (implicit flow)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      const accessToken = hashParams.get('access_token')
+      const refreshToken = hashParams.get('refresh_token')
+
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+        if (error) {
+          console.error('Session set failed:', error.message)
+          setError(error.message)
+          setTimeout(() => navigateTo('/login?error=expired'), 3000)
+          return
+        }
+        window.history.replaceState(null, '', '/auth/callback')
+        navigateTo(next)
+        return
+      }
+
+      // No code or tokens — check existing session
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        navigateTo(next)
+      } else {
         navigateTo('/login')
       }
-    })
+    }
 
-    const timeout = setTimeout(() => {
-      if (isInAppBrowser()) {
-        setShowBrowserPrompt(true)
-      } else {
-        navigateTo(next)
-      }
-    }, 3000)
-
-    return () => clearTimeout(timeout)
+    exchangeSession()
   }, [])
 
   async function handleCopyLink() {
@@ -65,6 +109,25 @@ export function AuthCallbackPage() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
+  }
+
+  if (error) {
+    return (
+      <div class="flex flex-col items-center justify-center min-h-screen min-h-dvh p-6">
+        <div class="w-full max-w-[360px] text-center">
+          <div class="w-16 h-16 flex items-center justify-center bg-red-50 rounded-full text-red-500 mx-auto mb-5">
+            <ExternalLink size={28} strokeWidth={1.5} />
+          </div>
+          <h1 class="text-xl font-bold text-[var(--gray-900,#0f172a)] m-0 mb-2">
+            Sign-in failed
+          </h1>
+          <p class="text-sm text-[var(--gray-500,#64748b)] m-0 mb-4 leading-relaxed">
+            {error}
+          </p>
+          <p class="text-xs text-[var(--gray-400,#94a3b8)]">Redirecting to login...</p>
+        </div>
+      </div>
+    )
   }
 
   if (showBrowserPrompt) {

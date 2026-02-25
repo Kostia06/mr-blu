@@ -1,4 +1,5 @@
 import { AlertTriangle, AlertCircle, Info, CheckCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { LucideIcon } from '@/lib/types/lucide';
 
 type AlertVariant = 'warning' | 'error' | 'info' | 'success';
@@ -16,67 +17,36 @@ const iconMap: Record<AlertVariant, LucideIcon> = {
   success: CheckCircle,
 };
 
-const variantStyles: Record<AlertVariant, { bg: string; borderColor: string; color: string }> = {
+const variantClasses: Record<AlertVariant, { container: string; text: string }> = {
   warning: {
-    bg: 'rgba(245, 158, 11, 0.1)',
-    borderColor: 'rgba(245, 158, 11, 0.3)',
-    color: '#d97706',
+    container: 'bg-amber-500/10 border-amber-500/30 text-amber-600',
+    text: 'text-amber-600',
   },
   error: {
-    bg: 'rgba(239, 68, 68, 0.1)',
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    color: '#dc2626',
+    container: 'bg-red-500/10 border-red-500/30 text-red-600',
+    text: 'text-red-600',
   },
   info: {
-    bg: 'rgba(59, 130, 246, 0.1)',
-    borderColor: 'rgba(59, 130, 246, 0.3)',
-    color: '#2563eb',
+    container: 'bg-blue-500/10 border-blue-500/30 text-blue-600',
+    text: 'text-blue-600',
   },
   success: {
-    bg: 'rgba(16, 185, 129, 0.1)',
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-    color: '#059669',
+    container: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600',
+    text: 'text-emerald-600',
   },
 };
 
 export function AlertCard({ variant = 'warning', title, message }: AlertCardProps) {
   const Icon = iconMap[variant];
-  const vStyle = variantStyles[variant];
+  const classes = variantClasses[variant];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '12px',
-        padding: '14px 16px',
-        borderRadius: '12px',
-        background: vStyle.bg,
-        border: `1px solid ${vStyle.borderColor}`,
-        color: vStyle.color,
-      }}
-    >
+    <div class={cn('flex items-start gap-3 px-4 py-3.5 rounded-xl border', classes.container)}>
       <Icon size={20} />
-      <div style={styles.alertContent}>
-        <strong style={styles.alertTitle}>{title}</strong>
-        {message && <span style={styles.alertMessage}>{message}</span>}
+      <div class="flex flex-col gap-0.5">
+        <strong class="text-sm font-semibold">{title}</strong>
+        {message && <span class="text-[13px] opacity-90">{message}</span>}
       </div>
     </div>
   );
 }
-
-const styles: Record<string, Record<string, string>> = {
-  alertContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-  },
-  alertTitle: {
-    fontSize: '14px',
-    fontWeight: '600',
-  },
-  alertMessage: {
-    fontSize: '13px',
-    opacity: '0.9',
-  },
-};

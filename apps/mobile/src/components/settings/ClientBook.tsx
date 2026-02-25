@@ -29,6 +29,7 @@ import { useToastStore } from '@/stores/toastStore';
 import { listClients, deleteClient, createClient } from '@/lib/api/clients';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { GlassBackground } from '@/components/layout/GlassBackground';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface ClientEntry {
   id: string;
@@ -140,7 +141,8 @@ export function ClientBook() {
   const renderItem = useCallback(({ item }: { item: ClientEntry }) => (
     <Pressable
       onPress={() => router.push(`/(tabs)/settings/clients/${item.id}` as any)}
-      className="bg-white rounded-2xl p-4 shadow-sm mb-2.5 active:opacity-90"
+      className="rounded-2xl p-4 mb-2.5 active:opacity-90"
+      style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)' }}
     >
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-2.5 flex-1 mr-2">
@@ -202,7 +204,7 @@ export function ClientBook() {
         className="flex-1"
       >
         <View className="flex-1 px-5">
-          <View className="flex-row items-center gap-2.5 bg-white rounded-button px-3.5 py-2.5 mb-4 shadow-sm">
+          <View className="flex-row items-center gap-2.5 rounded-button px-3.5 py-2.5 mb-4" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)' }}>
             <Search size={16} color="#94A3B8" />
             <TextInput
               value={search}
@@ -214,7 +216,7 @@ export function ClientBook() {
           </View>
 
           {showCreate && (
-            <View className="bg-white rounded-2xl p-4 shadow-sm mb-3 border-2 border-blu-primary">
+            <View className="rounded-2xl p-4 mb-3 border-2 border-blu-primary" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
               <View className="flex-row items-center justify-between mb-3">
                 <Text className="text-sm font-bold text-blu-primary">
                   {t('clients.newClient')}

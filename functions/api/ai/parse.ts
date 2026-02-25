@@ -291,17 +291,21 @@ export const onRequestPost: PagesFunction<Env, string, AuthenticatedData> = asyn
       { headers: { 'Content-Type': 'application/json' } },
     );
   } catch (err) {
-    console.error('AI parse error:', err);
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error('AI parse error:', errMsg);
 
     // Check for rate limit
-    if (err instanceof Error && (err.message.includes('429') || err.message.includes('quota'))) {
+    if (errMsg.includes('429') || errMsg.includes('quota')) {
       return new Response(
         JSON.stringify({ error: 'AI service rate limited. Please try again shortly.' }),
         { status: 429, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
-    return new Response(JSON.stringify(buildFallbackResponse(sanitized)), {
+    const fallback = buildFallbackResponse(sanitized);
+    fallback.error = `Parse failed: ${errMsg}`;
+    fallback.data.summary = `Parse error: ${errMsg}`;
+    return new Response(JSON.stringify(fallback), {
       headers: { 'Content-Type': 'application/json' },
     });
   }

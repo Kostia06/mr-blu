@@ -1,28 +1,28 @@
+import { cn } from '@/lib/utils';
+
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'white';
 }
 
-const SIZE_MAP = {
-  sm: 20,
-  md: 28,
-  lg: 36,
-};
+const SIZE_CLASSES = {
+  sm: 'text-[20px]',
+  md: 'text-[28px]',
+  lg: 'text-[36px]',
+} as const;
 
-const COLOR_MAP = {
-  default: 'var(--blu-primary, #0066ff)',
-  white: '#ffffff',
-};
+const COLOR_CLASSES = {
+  default: 'text-[var(--blu-primary,#0066ff)]',
+  white: 'text-white',
+} as const;
 
 export function Logo({ size = 'md', variant = 'default' }: LogoProps) {
   return (
-    <span style={{
-      fontSize: SIZE_MAP[size],
-      fontWeight: 800,
-      color: COLOR_MAP[variant],
-      letterSpacing: -0.5,
-      lineHeight: 1,
-    }}>
+    <span class={cn(
+      'font-extrabold tracking-[-0.5px] leading-none',
+      SIZE_CLASSES[size],
+      COLOR_CLASSES[variant],
+    )}>
       mrblu
     </span>
   );

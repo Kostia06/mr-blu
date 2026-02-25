@@ -1,4 +1,5 @@
-import { View, Text, Modal, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Trash2, AlertTriangle, X } from 'lucide-react-native';
 import { useI18nStore } from '@/lib/i18n';
 import { Button } from '@/components/ui/Button';
@@ -35,12 +36,13 @@ export function DeleteConfirmModal({
     >
       {/* Backdrop */}
       <Pressable
-        className="flex-1 bg-black/50 items-center justify-center px-6"
+        className="flex-1 items-center justify-center px-6"
+        style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
         onPress={loading ? undefined : onClose}
       >
         {/* Modal content - stop propagation */}
         <Pressable className="w-full max-w-sm" onPress={() => {}}>
-          <View className="bg-white rounded-3xl px-6 pt-8 pb-6 items-center">
+          <View className="rounded-3xl px-6 pt-8 pb-6 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.92)' }}>
             {/* Close button */}
             <Pressable
               className="absolute top-3 right-3 w-9 h-9 rounded-full bg-gray-100 items-center justify-center"

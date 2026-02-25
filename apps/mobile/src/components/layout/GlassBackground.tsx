@@ -6,15 +6,35 @@ interface GlassBackgroundProps {
 
 export function GlassBackground({ children }: GlassBackgroundProps) {
   return (
-    <View className="flex-1 bg-blu-bg">
-      <View className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-20"
-        style={{ backgroundColor: '#0066FF', transform: [{ translateX: 80 }, { translateY: -80 }] }}
+    <View className="flex-1" style={{ backgroundColor: '#dbe8f4' }}>
+      <View
+        className="absolute w-[300px] h-[300px] rounded-full"
+        style={{
+          backgroundColor: '#0066FF',
+          opacity: 0.12,
+          top: -100,
+          right: -60,
+          transform: [{ scale: 1.5 }],
+        }}
       />
-      <View className="absolute top-1/3 left-0 w-60 h-60 rounded-full opacity-15"
-        style={{ backgroundColor: '#3B82F6', transform: [{ translateX: -100 }] }}
+      <View
+        className="absolute w-[250px] h-[250px] rounded-full"
+        style={{
+          backgroundColor: '#3B82F6',
+          opacity: 0.10,
+          bottom: -60,
+          left: -80,
+          transform: [{ scale: 1.4 }],
+        }}
       />
-      <View className="absolute bottom-20 right-0 w-52 h-52 rounded-full opacity-10"
-        style={{ backgroundColor: '#0EA5E9', transform: [{ translateX: 60 }] }}
+      <View
+        className="absolute w-[200px] h-[200px] rounded-full"
+        style={{
+          backgroundColor: '#0EA5E9',
+          opacity: 0.08,
+          top: '40%',
+          left: '30%',
+        }}
       />
       {children}
     </View>

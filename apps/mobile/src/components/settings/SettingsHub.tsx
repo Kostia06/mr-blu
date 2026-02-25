@@ -19,6 +19,7 @@ import { useI18nStore } from '@/lib/i18n';
 import { useAuthStore } from '@/stores/authStore';
 import { logout } from '@/lib/api/auth';
 import { GlassBackground } from '@/components/layout/GlassBackground';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 
 interface SectionItem {
@@ -39,9 +40,9 @@ function SettingsSection({ title, children }: { title: string; children: React.R
       <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
         {title}
       </Text>
-      <View className="bg-white rounded-card overflow-hidden shadow-sm">
+      <GlassCard padding={0} className="overflow-hidden">
         {children}
-      </View>
+      </GlassCard>
     </View>
   );
 }

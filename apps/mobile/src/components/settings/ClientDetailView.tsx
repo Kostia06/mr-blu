@@ -18,6 +18,7 @@ import { listClients, updateClient, deleteClient, fetchClientDocuments } from '@
 import { FormInput } from '@/components/forms/FormInput';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { GlassBackground } from '@/components/layout/GlassBackground';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 
 interface ClientDetailViewProps {
@@ -162,7 +163,7 @@ export function ClientDetailView({ id }: ClientDetailViewProps) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="bg-white rounded-card p-4 shadow-sm mb-6">
+          <GlassCard className="mb-6">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               Contact Info
             </Text>
@@ -201,10 +202,10 @@ export function ClientDetailView({ id }: ClientDetailViewProps) {
               multiline
               numberOfLines={3}
             />
-          </View>
+          </GlassCard>
 
           {documents.length > 0 && (
-            <View className="bg-white rounded-card p-4 shadow-sm mb-6">
+            <GlassCard className="mb-6">
               <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 Documents ({documents.length})
               </Text>
@@ -233,10 +234,10 @@ export function ClientDetailView({ id }: ClientDetailViewProps) {
                   +{documents.length - 5} more
                 </Text>
               )}
-            </View>
+            </GlassCard>
           )}
 
-          <View className="bg-white rounded-card p-4 shadow-sm mb-6">
+          <GlassCard className="mb-6">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               Danger Zone
             </Text>
@@ -249,7 +250,7 @@ export function ClientDetailView({ id }: ClientDetailViewProps) {
             >
               Delete Client
             </Button>
-          </View>
+          </GlassCard>
         </ScrollView>
       </KeyboardAvoidingView>
     </GlassBackground>

@@ -64,6 +64,12 @@ function formatQueryAmount(amount: number): string {
   }).format(amount);
 }
 
+function getDocIconStyle(type: string): { background: string; color: string } | undefined {
+  if (type === 'invoice') return { background: 'rgba(14, 165, 233, 0.15)', color: '#38bdf8' };
+  if (type === 'estimate') return { background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' };
+  return undefined;
+}
+
 export function SendDocumentFlow({
   sendData,
   sendDocument,
@@ -162,873 +168,440 @@ export function SendDocumentFlow({
   }
 
   return (
-    <>
-      <style>{keyframes}</style>
-      <div style={styles.content}>
-        {/* Summary Card */}
-        <div style={styles.summaryCard}>
-          <div style={styles.summaryHeader}>
-            <Mail size={16} style={{ flexShrink: '0' }} />
-            <span>{t('review.sendingDocument')}</span>
-          </div>
-          <p style={styles.summaryText}>{sendData?.summary || 'Finding document to send...'}</p>
+    <div class="flex-1 px-[var(--page-padding-x)] max-w-[var(--page-max-width)] mx-auto w-full flex flex-col gap-[var(--section-gap)]">
+      {/* Summary Card */}
+      <div class="bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.3)] rounded-[var(--radius-card)] p-[var(--space-5)]">
+        <div class="flex items-center gap-[var(--space-2)] mb-[var(--space-2-5)] text-[#a78bfa] text-[length:var(--text-sm)] font-[var(--font-medium)]">
+          <Mail size={16} class="shrink-0" />
+          <span>{t('review.sendingDocument')}</span>
         </div>
+        <p class="text-[length:var(--text-base)] leading-normal text-[var(--gray-700)] m-0">
+          {sendData?.summary || 'Finding document to send...'}
+        </p>
+      </div>
 
-        {/* Loading State */}
-        {isSendingDocument && !sendDocument && (
-          <ReviewLoadingState
-            message={`Searching for ${sendData?.clientName}'s ${sendData?.documentType || 'document'}...`}
-          />
-        )}
+      {/* Loading State */}
+      {isSendingDocument && !sendDocument && (
+        <ReviewLoadingState
+          message={`Searching for ${sendData?.clientName}'s ${sendData?.documentType || 'document'}...`}
+        />
+      )}
 
-        {/* Error State */}
-        {sendError && (
-          <div style={styles.sendErrorCard}>
-            <AlertCircle size={24} style={{ color: '#f87171' }} />
-            <p style={{ color: 'var(--gray-600)', fontSize: '14px', margin: '0' }}>{sendError}</p>
-            <div style={styles.sendErrorActions}>
-              <button
-                style={{ ...styles.btn, ...styles.btnSecondary }}
-                onClick={() => navigateTo('/dashboard')}
-              >
-                Back to Dashboard
-              </button>
-              <button
-                style={{ ...styles.btn, ...styles.btnSecondary }}
-                onClick={() => navigateTo('/dashboard/documents')}
-              >
-                Browse Documents
-              </button>
-            </div>
+      {/* Error State */}
+      {sendError && (
+        <div class="flex flex-col items-center gap-3 py-10 px-6 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] rounded-2xl text-center">
+          <AlertCircle size={24} class="text-red-400" />
+          <p class="text-[var(--gray-600)] text-sm m-0">{sendError}</p>
+          <div class="flex gap-3 mt-2">
+            <button
+              class="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-600)]"
+              onClick={() => navigateTo('/dashboard')}
+            >
+              Back to Dashboard
+            </button>
+            <button
+              class="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-600)]"
+              onClick={() => navigateTo('/dashboard/documents')}
+            >
+              Browse Documents
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Success State */}
-        {sendSuccess && (
-          <div style={styles.sendSuccessCard}>
-            <div style={styles.sendSuccessIcon}>
-              <Check size={48} strokeWidth={2} />
-            </div>
-            <h2 style={{ fontSize: '24px', fontWeight: '600', color: 'var(--gray-900)', margin: '0' }}>
-              {t('review.sent')}
-            </h2>
-            <p style={{ color: 'var(--gray-500)', fontSize: '14px', margin: '0' }}>
-              {sendDocument?.title} has been sent via {sendData?.deliveryMethod}
-              {sendData?.deliveryMethod === 'email'
-                ? ` to ${editableSendEmail || sendClientInfo?.email}`
-                : ` to ${editableSendPhone || sendClientInfo?.phone}`}
-            </p>
-            <div style={styles.sendSuccessActions}>
-              <button
-                style={{ ...styles.btn, ...styles.btnPrimary }}
-                onClick={() => navigateTo('/dashboard/documents')}
-              >
-                {t('review.viewDocuments')}
-              </button>
-              <button
-                style={{ ...styles.btn, ...styles.btnSecondary }}
-                onClick={() => navigateTo('/dashboard/record')}
-              >
-                {t('review.newRecording')}
-              </button>
-            </div>
+      {/* Success State */}
+      {sendSuccess && (
+        <div class="flex flex-col items-center gap-4 py-12 px-6 text-center">
+          <div class="flex items-center justify-center w-20 h-20 bg-[rgba(34,197,94,0.15)] rounded-full text-green-500">
+            <Check size={48} strokeWidth={2} />
           </div>
-        )}
+          <h2 class="text-2xl font-semibold text-[var(--gray-900)] m-0">
+            {t('review.sent')}
+          </h2>
+          <p class="text-[var(--gray-500)] text-sm m-0">
+            {sendDocument?.title} has been sent via {sendData?.deliveryMethod}
+            {sendData?.deliveryMethod === 'email'
+              ? ` to ${editableSendEmail || sendClientInfo?.email}`
+              : ` to ${editableSendPhone || sendClientInfo?.phone}`}
+          </p>
+          <div class="flex gap-3 mt-2">
+            <button
+              class="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border-none bg-gradient-to-br from-[#0066ff] to-[#0052cc] text-white shadow-[0_4px_12px_rgba(0,102,255,0.25)]"
+              onClick={() => navigateTo('/dashboard/documents')}
+            >
+              {t('review.viewDocuments')}
+            </button>
+            <button
+              class="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-600)]"
+              onClick={() => navigateTo('/dashboard/record')}
+            >
+              {t('review.newRecording')}
+            </button>
+          </div>
+        </div>
+      )}
 
-        {/* Document Found - Ready to Send */}
-        {!sendError && !sendSuccess && sendDocument && (
-          <div style={styles.sendPreview}>
-            {isEditingSendDocument ? (
-              /* Editing Mode */
-              <>
-                <h3 style={styles.sendPreviewTitle}>{t('review.editDocument')}</h3>
+      {/* Document Found - Ready to Send */}
+      {!sendError && !sendSuccess && sendDocument && (
+        <div class="py-5">
+          {isEditingSendDocument ? (
+            /* Editing Mode */
+            <>
+              <h3 class="text-sm font-medium text-[var(--gray-500)] mb-4 mt-0">{t('review.editDocument')}</h3>
 
-                <div style={styles.sendEditCard}>
-                  <div style={styles.sendDocHeader}>
-                    <div
-                      style={{
-                        ...styles.sendDocIcon,
-                        ...(sendDocument.type === 'invoice'
-                          ? { background: 'rgba(14, 165, 233, 0.15)', color: '#38bdf8' }
-                          : sendDocument.type === 'estimate'
-                            ? { background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }
-                            : {}),
-                      }}
-                    >
-                      {sendDocument.type === 'invoice' ? <Receipt size={24} /> : <FileText size={24} />}
-                    </div>
-                    <div style={styles.sendDocInfo}>
-                      <span style={styles.sendDocTitle}>{sendDocument.title}</span>
-                      <span style={styles.sendDocClient}>{sendDocument.client}</span>
-                    </div>
-                  </div>
-
-                  {/* Line Items */}
-                  <div style={styles.sendLineItems}>
-                    <div style={styles.sendItemsHeader}>
-                      <span>
-                        {sendDocumentItems.length !== 1
-                          ? t('review.lineItemsCount').replace('{n}', String(sendDocumentItems.length))
-                          : t('review.lineItemCount').replace('{n}', String(sendDocumentItems.length))}
-                      </span>
-                    </div>
-
-                    {sendDocumentItems.length > 0 && (
-                      <div style={styles.sendItemsList}>
-                        {sendDocumentItems.map((item, index) => {
-                          const isExpanded = expandedSendItemId === item.id;
-                          return (
-                            <div
-                              key={item.id}
-                              style={{
-                                ...styles.sendItemCard,
-                                ...(isExpanded ? styles.sendItemCardExpanded : {}),
-                              }}
-                            >
-                              <button
-                                style={styles.sendItemHeader}
-                                onClick={() => setExpandedSendItemId(isExpanded ? null : item.id)}
-                              >
-                                <span
-                                  style={{
-                                    ...styles.sendItemNum,
-                                    ...(isExpanded
-                                      ? { background: '#0066ff', color: 'white' }
-                                      : {}),
-                                  }}
-                                >
-                                  {index + 1}
-                                </span>
-                                <div style={styles.sendItemSummary}>
-                                  <span style={styles.sendItemDesc}>
-                                    {item.description || 'Untitled item'}
-                                  </span>
-                                  <span style={styles.sendItemMeta}>
-                                    {item.quantity} {item.unit} x {formatCurrency(item.rate)}
-                                  </span>
-                                </div>
-                                <span style={styles.sendItemTotal}>{formatCurrency(item.total)}</span>
-                                {isExpanded ? (
-                                  <ChevronUp size={16} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
-                                ) : (
-                                  <ChevronDown size={16} style={{ color: 'var(--gray-400)', flexShrink: '0' }} />
-                                )}
-                              </button>
-
-                              {isExpanded && (
-                                <div style={styles.sendItemEdit}>
-                                  <div style={styles.editFieldFull}>
-                                    <label
-                                      for={`send-item-desc-${item.id}`}
-                                      style={styles.editLabel}
-                                    >
-                                      {t('review.description')}
-                                    </label>
-                                    <input
-                                      id={`send-item-desc-${item.id}`}
-                                      type="text"
-                                      value={item.description}
-                                      onInput={(e) =>
-                                        updateSendItemField(item.id, 'description', (e.currentTarget as HTMLInputElement).value)
-                                      }
-                                      placeholder={t('placeholder.description')}
-                                      style={styles.editInput}
-                                    />
-                                  </div>
-                                  <div style={styles.editRow}>
-                                    <div style={styles.editField}>
-                                      <label
-                                        for={`send-item-qty-${item.id}`}
-                                        style={styles.editLabel}
-                                      >
-                                        {t('review.quantity')}
-                                      </label>
-                                      <input
-                                        id={`send-item-qty-${item.id}`}
-                                        type="number"
-                                        value={item.quantity}
-                                        onInput={(e) =>
-                                          updateSendItemField(item.id, 'quantity', parseFloat((e.currentTarget as HTMLInputElement).value) || 0)
-                                        }
-                                        min="0"
-                                        step="0.01"
-                                        style={styles.editInput}
-                                      />
-                                    </div>
-                                    <div style={styles.editField}>
-                                      <label
-                                        for={`send-item-unit-${item.id}`}
-                                        style={styles.editLabel}
-                                      >
-                                        {t('review.unit')}
-                                      </label>
-                                      <input
-                                        id={`send-item-unit-${item.id}`}
-                                        type="text"
-                                        value={item.unit}
-                                        onInput={(e) =>
-                                          updateSendItemField(item.id, 'unit', (e.currentTarget as HTMLInputElement).value)
-                                        }
-                                        placeholder={t('placeholder.unit')}
-                                        style={styles.editInput}
-                                      />
-                                    </div>
-                                    <div style={styles.editField}>
-                                      <label
-                                        for={`send-item-rate-${item.id}`}
-                                        style={styles.editLabel}
-                                      >
-                                        {t('review.rate')}
-                                      </label>
-                                      <input
-                                        id={`send-item-rate-${item.id}`}
-                                        type="number"
-                                        value={item.rate}
-                                        onInput={(e) =>
-                                          updateSendItemField(item.id, 'rate', parseFloat((e.currentTarget as HTMLInputElement).value) || 0)
-                                        }
-                                        min="0"
-                                        step="0.01"
-                                        style={styles.editInput}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div style={styles.editActions}>
-                                    <button
-                                      style={styles.deleteItemBtn}
-                                      onClick={() => removeSendItem(item.id)}
-                                    >
-                                      <Trash2 size={14} />
-                                      Delete
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <button style={styles.addItemBtn} onClick={addSendItem}>
-                      <Plus size={16} />
-                      {t('review.addLineItem')}
-                    </button>
-                  </div>
-
-                  {/* Totals */}
-                  <div style={styles.sendTotals}>
-                    <div style={styles.sendTotalRow}>
-                      <span>{t('review.subtotal')}</span>
-                      <span>{formatCurrency(sendDocumentSubtotal)}</span>
-                    </div>
-                    <div style={{ ...styles.sendTotalRow, gap: '12px' }}>
-                      <span style={{ flex: '1' }}>{t('review.tax')}</span>
-                      <div style={styles.taxInputWrapper}>
-                        <input
-                          type="number"
-                          style={styles.taxInput}
-                          value={sendDocumentTaxRate}
-                          onInput={(e) =>
-                            setSendDocumentTaxRate(parseFloat((e.currentTarget as HTMLInputElement).value) || 0)
-                          }
-                          min="0"
-                          max="100"
-                          step="0.1"
-                        />
-                        <span style={{ fontSize: '14px', color: 'var(--gray-500)' }}>%</span>
-                      </div>
-                      <span>{formatCurrency(sendDocumentTaxAmount)}</span>
-                    </div>
-                    <div style={styles.sendTotalRowGrand}>
-                      <span>{t('review.total')}</span>
-                      <span>{formatCurrency(sendDocumentTotal)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={styles.sendEditActions}>
-                  <button
-                    style={{
-                      ...styles.btn,
-                      ...styles.btnPrimary,
-                      flex: '1',
-                      ...(isSavingSendDocument ? { opacity: '0.7' } : {}),
-                    }}
-                    disabled={isSavingSendDocument}
-                    onClick={saveSendDocumentChanges}
-                  >
-                    {isSavingSendDocument ? (
-                      <>
-                        <Loader2 size={18} class="sdf-spinning" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Check size={18} />
-                        Save Changes
-                      </>
-                    )}
-                  </button>
-                  <button
-                    style={{ ...styles.btn, ...styles.btnSecondary, flex: '1' }}
-                    onClick={cancelSendDocumentEditing}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              /* Preview Mode */
-              <>
-                <h3 style={styles.sendPreviewTitle}>{t('review.readyToSend')}</h3>
-
-                <div style={styles.sendDocCard}>
+              <div class="bg-[var(--white)] border border-[var(--gray-200)] rounded-2xl overflow-hidden mb-5">
+                <div class="flex items-center gap-4 p-5 bg-transparent border-b border-[var(--gray-200)]">
                   <div
-                    style={{
-                      ...styles.sendDocIcon,
-                      ...(sendDocument.type === 'invoice'
-                        ? { background: 'rgba(14, 165, 233, 0.15)', color: '#38bdf8' }
-                        : sendDocument.type === 'estimate'
-                          ? { background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }
-                          : {}),
-                    }}
+                    class="flex items-center justify-center w-[52px] h-[52px] rounded-xl bg-[rgba(139,92,246,0.15)] text-[#a78bfa] shrink-0"
+                    style={getDocIconStyle(sendDocument.type)}
                   >
                     {sendDocument.type === 'invoice' ? <Receipt size={24} /> : <FileText size={24} />}
                   </div>
-                  <div style={styles.sendDocInfo}>
-                    <span style={styles.sendDocTitle}>{sendDocument.title}</span>
-                    <span style={styles.sendDocClient}>{sendDocument.client}</span>
-                    <span style={styles.sendDocMeta}>
-                      {formatQueryDate(sendDocument.date)} &bull; {formatQueryAmount(sendDocument.amount)}
+                  <div class="flex flex-col gap-1 flex-1 min-w-0">
+                    <span class="text-base font-semibold text-[var(--gray-900)]">{sendDocument.title}</span>
+                    <span class="text-sm text-[var(--gray-600)]">{sendDocument.client}</span>
+                  </div>
+                </div>
+
+                {/* Line Items */}
+                <div class="p-4">
+                  <div class="flex items-center justify-between mb-3 text-[13px] font-medium text-[var(--gray-500)]">
+                    <span>
+                      {sendDocumentItems.length !== 1
+                        ? t('review.lineItemsCount').replace('{n}', String(sendDocumentItems.length))
+                        : t('review.lineItemCount').replace('{n}', String(sendDocumentItems.length))}
                     </span>
                   </div>
+
+                  {sendDocumentItems.length > 0 && (
+                    <div class="flex flex-col gap-2 mb-3">
+                      {sendDocumentItems.map((item, index) => {
+                        const isExpanded = expandedSendItemId === item.id;
+                        return (
+                          <div
+                            key={item.id}
+                            class={`bg-transparent border rounded-xl overflow-hidden transition-all duration-200 ${
+                              isExpanded
+                                ? 'border-[#0066ff] shadow-[0_0_0_3px_rgba(0,102,255,0.1)]'
+                                : 'border-[var(--gray-200)]'
+                            }`}
+                          >
+                            <button
+                              class="flex items-center gap-3 w-full py-3.5 px-4 bg-transparent border-none cursor-pointer text-left"
+                              onClick={() => setExpandedSendItemId(isExpanded ? null : item.id)}
+                            >
+                              <span
+                                class={`flex items-center justify-center w-6 h-6 rounded-md text-xs font-semibold shrink-0 ${
+                                  isExpanded
+                                    ? 'bg-[#0066ff] text-white'
+                                    : 'bg-[var(--gray-200)] text-[var(--gray-500)]'
+                                }`}
+                              >
+                                {index + 1}
+                              </span>
+                              <div class="flex-1 flex flex-col gap-0.5 min-w-0">
+                                <span class="text-sm font-medium text-[var(--gray-900)] whitespace-nowrap overflow-hidden text-ellipsis">
+                                  {item.description || 'Untitled item'}
+                                </span>
+                                <span class="text-xs text-[var(--gray-500)]">
+                                  {item.quantity} {item.unit} x {formatCurrency(item.rate)}
+                                </span>
+                              </div>
+                              <span class="text-sm font-semibold text-[var(--gray-900)]">{formatCurrency(item.total)}</span>
+                              {isExpanded ? (
+                                <ChevronUp size={16} class="text-[var(--gray-400)] shrink-0" />
+                              ) : (
+                                <ChevronDown size={16} class="text-[var(--gray-400)] shrink-0" />
+                              )}
+                            </button>
+
+                            {isExpanded && (
+                              <div class="p-4 bg-[var(--white)] border-t border-[var(--gray-200)]">
+                                <div class="flex flex-col gap-1.5 mb-3">
+                                  <label
+                                    for={`send-item-desc-${item.id}`}
+                                    class="text-xs font-medium text-[var(--gray-500)]"
+                                  >
+                                    {t('review.description')}
+                                  </label>
+                                  <input
+                                    id={`send-item-desc-${item.id}`}
+                                    type="text"
+                                    value={item.description}
+                                    onInput={(e) =>
+                                      updateSendItemField(item.id, 'description', (e.currentTarget as HTMLInputElement).value)
+                                    }
+                                    placeholder={t('placeholder.description')}
+                                    class="w-full py-2.5 px-3 bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-lg text-sm text-[var(--gray-900)] box-border"
+                                  />
+                                </div>
+                                <div class="grid grid-cols-3 gap-2.5 mb-3">
+                                  <div class="flex flex-col gap-1.5">
+                                    <label
+                                      for={`send-item-qty-${item.id}`}
+                                      class="text-xs font-medium text-[var(--gray-500)]"
+                                    >
+                                      {t('review.quantity')}
+                                    </label>
+                                    <input
+                                      id={`send-item-qty-${item.id}`}
+                                      type="number"
+                                      value={item.quantity}
+                                      onInput={(e) =>
+                                        updateSendItemField(item.id, 'quantity', parseFloat((e.currentTarget as HTMLInputElement).value) || 0)
+                                      }
+                                      min="0"
+                                      step="0.01"
+                                      class="w-full py-2.5 px-3 bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-lg text-sm text-[var(--gray-900)] box-border"
+                                    />
+                                  </div>
+                                  <div class="flex flex-col gap-1.5">
+                                    <label
+                                      for={`send-item-unit-${item.id}`}
+                                      class="text-xs font-medium text-[var(--gray-500)]"
+                                    >
+                                      {t('review.unit')}
+                                    </label>
+                                    <input
+                                      id={`send-item-unit-${item.id}`}
+                                      type="text"
+                                      value={item.unit}
+                                      onInput={(e) =>
+                                        updateSendItemField(item.id, 'unit', (e.currentTarget as HTMLInputElement).value)
+                                      }
+                                      placeholder={t('placeholder.unit')}
+                                      class="w-full py-2.5 px-3 bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-lg text-sm text-[var(--gray-900)] box-border"
+                                    />
+                                  </div>
+                                  <div class="flex flex-col gap-1.5">
+                                    <label
+                                      for={`send-item-rate-${item.id}`}
+                                      class="text-xs font-medium text-[var(--gray-500)]"
+                                    >
+                                      {t('review.rate')}
+                                    </label>
+                                    <input
+                                      id={`send-item-rate-${item.id}`}
+                                      type="number"
+                                      value={item.rate}
+                                      onInput={(e) =>
+                                        updateSendItemField(item.id, 'rate', parseFloat((e.currentTarget as HTMLInputElement).value) || 0)
+                                      }
+                                      min="0"
+                                      step="0.01"
+                                      class="w-full py-2.5 px-3 bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-lg text-sm text-[var(--gray-900)] box-border"
+                                    />
+                                  </div>
+                                </div>
+                                <div class="flex justify-end">
+                                  <button
+                                    class="flex items-center gap-1.5 py-2 px-3 bg-transparent border border-[rgba(239,68,68,0.2)] rounded-lg text-red-400 text-[13px] cursor-pointer transition-all duration-200"
+                                    onClick={() => removeSendItem(item.id)}
+                                  >
+                                    <Trash2 size={14} />
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   <button
-                    style={styles.sendEditBtn}
-                    onClick={loadSendDocumentForEditing}
-                    title="Edit document values"
+                    class="flex items-center justify-center gap-2 w-full p-3 bg-transparent border border-dashed border-[var(--gray-300)] rounded-[10px] text-[var(--gray-500)] text-sm cursor-pointer transition-all duration-200"
+                    onClick={addSendItem}
                   >
-                    <Pencil size={16} />
+                    <Plus size={16} />
+                    {t('review.addLineItem')}
                   </button>
                 </div>
 
-                {/* Editable Contact Info */}
-                <div style={styles.sendContactForm}>
-                  <div style={styles.sendMethodLabel}>
-                    {sendData?.deliveryMethod === 'email' ? (
-                      <>
-                        <Mail size={18} />
-                        <span>{t('review.sendViaEmailTo')}</span>
-                      </>
-                    ) : sendData?.deliveryMethod === 'sms' ? (
-                      <>
-                        <MessageSquare size={18} />
-                        <span>{t('review.sendViaSmsTo')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <MessageSquare size={18} />
-                        <span>{t('review.sendViaWhatsappTo')}</span>
-                      </>
-                    )}
+                {/* Totals */}
+                <div class="p-4 border-t border-[var(--gray-200)] bg-[var(--gray-50)]">
+                  <div class="flex items-center justify-between py-2 text-sm text-[var(--gray-500)]">
+                    <span>{t('review.subtotal')}</span>
+                    <span>{formatCurrency(sendDocumentSubtotal)}</span>
                   </div>
-
-                  {sendData?.deliveryMethod === 'email' ? (
-                    <>
+                  <div class="flex items-center justify-between py-2 text-sm text-[var(--gray-500)] gap-3">
+                    <span class="flex-1">{t('review.tax')}</span>
+                    <div class="flex items-center gap-1">
                       <input
-                        type="email"
-                        style={styles.sendContactInput}
-                        placeholder={t('placeholder.email')}
-                        value={editableSendEmail}
-                        onInput={(e) => setEditableSendEmail((e.currentTarget as HTMLInputElement).value)}
+                        type="number"
+                        class="w-[60px] py-1.5 px-2 bg-[var(--white)] border border-[var(--gray-200)] rounded-md text-sm text-[var(--gray-900)] text-right"
+                        value={sendDocumentTaxRate}
+                        onInput={(e) =>
+                          setSendDocumentTaxRate(parseFloat((e.currentTarget as HTMLInputElement).value) || 0)
+                        }
+                        min="0"
+                        max="100"
+                        step="0.1"
                       />
-                      {!editableSendEmail && !sendClientInfo?.email && (
-                        <p style={styles.sendContactHint}>
-                          {t('review.noEmailOnFile', { name: sendDocument.client })}
-                        </p>
-                      )}
+                      <span class="text-sm text-[var(--gray-500)]">%</span>
+                    </div>
+                    <span>{formatCurrency(sendDocumentTaxAmount)}</span>
+                  </div>
+                  <div class="flex items-center justify-between pt-3 mt-2 border-t border-[var(--gray-200)] text-base font-semibold text-[var(--gray-900)]">
+                    <span>{t('review.total')}</span>
+                    <span>{formatCurrency(sendDocumentTotal)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-3">
+                <button
+                  class={`flex-1 flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border-none bg-gradient-to-br from-[#0066ff] to-[#0052cc] text-white shadow-[0_4px_12px_rgba(0,102,255,0.25)] ${isSavingSendDocument ? 'opacity-70' : ''}`}
+                  disabled={isSavingSendDocument}
+                  onClick={saveSendDocumentChanges}
+                >
+                  {isSavingSendDocument ? (
+                    <>
+                      <Loader2 size={18} class="animate-spin" />
+                      Saving...
                     </>
                   ) : (
                     <>
-                      <input
-                        type="tel"
-                        style={styles.sendContactInput}
-                        placeholder={t('placeholder.phone')}
-                        value={editableSendPhone}
-                        onInput={(e) => setEditableSendPhone((e.currentTarget as HTMLInputElement).value)}
-                      />
-                      {!editableSendPhone && !sendClientInfo?.phone && (
-                        <p style={styles.sendContactHint}>
-                          {t('review.noPhoneOnFile', { name: sendDocument.client })}
-                        </p>
-                      )}
+                      <Check size={18} />
+                      Save Changes
                     </>
                   )}
+                </button>
+                <button
+                  class="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-600)]"
+                  onClick={cancelSendDocumentEditing}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            /* Preview Mode */
+            <>
+              <h3 class="text-sm font-medium text-[var(--gray-500)] mb-4 mt-0">{t('review.readyToSend')}</h3>
 
-                  {sendDocument.clientId &&
-                    ((editableSendEmail && editableSendEmail !== sendClientInfo?.email) ||
-                      (editableSendPhone && editableSendPhone !== sendClientInfo?.phone)) && (
-                      <p style={styles.sendContactSaveNote}>
-                        <Check size={14} />
-                        {t('review.savedToProfile')}
+              <div class="flex items-center gap-4 p-5 bg-transparent border border-[var(--gray-200)] rounded-2xl mb-5">
+                <div
+                  class="flex items-center justify-center w-[52px] h-[52px] rounded-xl bg-[rgba(139,92,246,0.15)] text-[#a78bfa] shrink-0"
+                  style={getDocIconStyle(sendDocument.type)}
+                >
+                  {sendDocument.type === 'invoice' ? <Receipt size={24} /> : <FileText size={24} />}
+                </div>
+                <div class="flex flex-col gap-1 flex-1 min-w-0">
+                  <span class="text-base font-semibold text-[var(--gray-900)]">{sendDocument.title}</span>
+                  <span class="text-sm text-[var(--gray-600)]">{sendDocument.client}</span>
+                  <span class="text-[13px] text-[var(--gray-500)]">
+                    {formatQueryDate(sendDocument.date)} &bull; {formatQueryAmount(sendDocument.amount)}
+                  </span>
+                </div>
+                <button
+                  class="flex items-center justify-center w-10 h-10 bg-[rgba(0,102,255,0.1)] border-none rounded-[10px] text-[#0066ff] cursor-pointer transition-all duration-200 shrink-0"
+                  onClick={loadSendDocumentForEditing}
+                  title="Edit document values"
+                >
+                  <Pencil size={16} />
+                </button>
+              </div>
+
+              {/* Editable Contact Info */}
+              <div class="mb-6">
+                <div class="flex items-center gap-2 text-[#a78bfa] font-medium text-sm mb-2.5">
+                  {sendData?.deliveryMethod === 'email' ? (
+                    <>
+                      <Mail size={18} />
+                      <span>{t('review.sendViaEmailTo')}</span>
+                    </>
+                  ) : sendData?.deliveryMethod === 'sms' ? (
+                    <>
+                      <MessageSquare size={18} />
+                      <span>{t('review.sendViaSmsTo')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare size={18} />
+                      <span>{t('review.sendViaWhatsappTo')}</span>
+                    </>
+                  )}
+                </div>
+
+                {sendData?.deliveryMethod === 'email' ? (
+                  <>
+                    <input
+                      type="email"
+                      class="w-full py-3.5 px-4 bg-transparent border border-[var(--gray-200)] rounded-xl text-[var(--gray-900)] text-[15px] outline-none transition-all duration-200 box-border"
+                      placeholder={t('placeholder.email')}
+                      value={editableSendEmail}
+                      onInput={(e) => setEditableSendEmail((e.currentTarget as HTMLInputElement).value)}
+                    />
+                    {!editableSendEmail && !sendClientInfo?.email && (
+                      <p class="mt-2 text-[13px] text-[var(--gray-500)]">
+                        {t('review.noEmailOnFile', { name: sendDocument.client })}
                       </p>
                     )}
-                </div>
-
-                <div style={styles.sendActions}>
-                  <button
-                    style={{
-                      ...styles.btn,
-                      ...styles.btnPrimary,
-                      flex: '1',
-                      ...(isSendingDocument || isUpdatingClientInfo ? { opacity: '0.7' } : {}),
-                    }}
-                    disabled={isSendingDocument || isUpdatingClientInfo}
-                    onClick={handleSend}
-                  >
-                    {isSendingDocument || isUpdatingClientInfo ? (
-                      <>
-                        <Loader2 size={18} class="sdf-spinning" />
-                        {isUpdatingClientInfo ? t('review.updating') : t('review.sending')}
-                      </>
-                    ) : (
-                      <>
-                        <Mail size={18} />
-                        {t('review.sendNow')}
-                      </>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="tel"
+                      class="w-full py-3.5 px-4 bg-transparent border border-[var(--gray-200)] rounded-xl text-[var(--gray-900)] text-[15px] outline-none transition-all duration-200 box-border"
+                      placeholder={t('placeholder.phone')}
+                      value={editableSendPhone}
+                      onInput={(e) => setEditableSendPhone((e.currentTarget as HTMLInputElement).value)}
+                    />
+                    {!editableSendPhone && !sendClientInfo?.phone && (
+                      <p class="mt-2 text-[13px] text-[var(--gray-500)]">
+                        {t('review.noPhoneOnFile', { name: sendDocument.client })}
+                      </p>
                     )}
-                  </button>
-                  <button
-                    style={{ ...styles.btn, ...styles.btnSecondary, flex: '1' }}
-                    onClick={() => navigateTo(`/dashboard/documents/${sendDocument?.id}?from=review`)}
-                  >
-                    {t('review.viewDocument')}
-                  </button>
-                  <button
-                    style={{ ...styles.btn, ...styles.btnSecondary, flex: '1' }}
-                    onClick={() => navigateTo('/dashboard')}
-                  >
-                    {t('common.cancel')}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </>
+                  </>
+                )}
+
+                {sendDocument.clientId &&
+                  ((editableSendEmail && editableSendEmail !== sendClientInfo?.email) ||
+                    (editableSendPhone && editableSendPhone !== sendClientInfo?.phone)) && (
+                    <p class="flex items-center gap-1.5 mt-2.5 text-xs text-green-500">
+                      <Check size={14} />
+                      {t('review.savedToProfile')}
+                    </p>
+                  )}
+              </div>
+
+              <div class="flex gap-3">
+                <button
+                  class={`flex-1 flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border-none bg-gradient-to-br from-[#0066ff] to-[#0052cc] text-white shadow-[0_4px_12px_rgba(0,102,255,0.25)] ${isSendingDocument || isUpdatingClientInfo ? 'opacity-70' : ''}`}
+                  disabled={isSendingDocument || isUpdatingClientInfo}
+                  onClick={handleSend}
+                >
+                  {isSendingDocument || isUpdatingClientInfo ? (
+                    <>
+                      <Loader2 size={18} class="animate-spin" />
+                      {isUpdatingClientInfo ? t('review.updating') : t('review.sending')}
+                    </>
+                  ) : (
+                    <>
+                      <Mail size={18} />
+                      {t('review.sendNow')}
+                    </>
+                  )}
+                </button>
+                <button
+                  class="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-600)]"
+                  onClick={() => navigateTo(`/dashboard/documents/${sendDocument?.id}?from=review`)}
+                >
+                  {t('review.viewDocument')}
+                </button>
+                <button
+                  class="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-600)]"
+                  onClick={() => navigateTo('/dashboard')}
+                >
+                  {t('common.cancel')}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
-
-const keyframes = `
-@keyframes sdfSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.sdf-spinning { animation: sdfSpin 1s linear infinite; }
-`;
-
-const styles: Record<string, Record<string, string>> = {
-  content: {
-    flex: '1',
-    padding: 'var(--page-padding-x)',
-    maxWidth: 'var(--page-max-width)',
-    margin: '0 auto',
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--section-gap)',
-  },
-  summaryCard: {
-    background: 'rgba(139, 92, 246, 0.08)',
-    border: '1px solid rgba(139, 92, 246, 0.3)',
-    borderRadius: 'var(--radius-card)',
-    padding: 'var(--space-5)',
-  },
-  summaryHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-2)',
-    marginBottom: 'var(--space-2-5)',
-    color: '#a78bfa',
-    fontSize: 'var(--text-sm)',
-    fontWeight: 'var(--font-medium)',
-  },
-  summaryText: {
-    fontSize: 'var(--text-base)',
-    lineHeight: '1.5',
-    color: 'var(--gray-700)',
-    margin: '0',
-  },
-  sendErrorCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '40px 24px',
-    background: 'rgba(239, 68, 68, 0.08)',
-    border: '1px solid rgba(239, 68, 68, 0.2)',
-    borderRadius: '16px',
-    textAlign: 'center',
-  },
-  sendErrorActions: {
-    display: 'flex',
-    gap: '12px',
-    marginTop: '8px',
-  },
-  sendSuccessCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '16px',
-    padding: '48px 24px',
-    textAlign: 'center',
-  },
-  sendSuccessIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '80px',
-    height: '80px',
-    background: 'rgba(34, 197, 94, 0.15)',
-    borderRadius: '50%',
-    color: '#22c55e',
-  },
-  sendSuccessActions: {
-    display: 'flex',
-    gap: '12px',
-    marginTop: '8px',
-  },
-  sendPreview: {
-    padding: '20px 0',
-  },
-  sendPreviewTitle: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: 'var(--gray-500)',
-    margin: '0 0 16px',
-  },
-  sendDocCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    padding: '20px',
-    background: 'transparent',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '16px',
-    marginBottom: '20px',
-  },
-  sendDocIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '52px',
-    height: '52px',
-    borderRadius: '12px',
-    background: 'rgba(139, 92, 246, 0.15)',
-    color: '#a78bfa',
-    flexShrink: '0',
-  },
-  sendDocInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    flex: '1',
-    minWidth: '0',
-  },
-  sendDocTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: 'var(--gray-900)',
-  },
-  sendDocClient: {
-    fontSize: '14px',
-    color: 'var(--gray-600)',
-  },
-  sendDocMeta: {
-    fontSize: '13px',
-    color: 'var(--gray-500)',
-  },
-  sendContactForm: {
-    marginBottom: '24px',
-  },
-  sendMethodLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    color: '#a78bfa',
-    fontWeight: '500',
-    fontSize: '14px',
-    marginBottom: '10px',
-  },
-  sendContactInput: {
-    width: '100%',
-    padding: '14px 16px',
-    background: 'transparent',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '12px',
-    color: 'var(--gray-900)',
-    fontSize: '15px',
-    outline: 'none',
-    transition: 'all 0.2s ease',
-    boxSizing: 'border-box',
-  },
-  sendContactHint: {
-    marginTop: '8px',
-    fontSize: '13px',
-    color: 'var(--gray-500)',
-  },
-  sendContactSaveNote: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    marginTop: '10px',
-    fontSize: '12px',
-    color: '#22c55e',
-  },
-  sendEditBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '40px',
-    height: '40px',
-    background: 'rgba(0, 102, 255, 0.1)',
-    border: 'none',
-    borderRadius: '10px',
-    color: '#0066ff',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    flexShrink: '0',
-  },
-  sendEditCard: {
-    background: 'var(--white)',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '16px',
-    overflow: 'hidden',
-    marginBottom: '20px',
-  },
-  sendDocHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    padding: '20px',
-    background: 'transparent',
-    borderBottom: '1px solid var(--gray-200)',
-  },
-  sendLineItems: {
-    padding: '16px',
-  },
-  sendItemsHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '12px',
-    fontSize: '13px',
-    fontWeight: '500',
-    color: 'var(--gray-500)',
-  },
-  sendItemsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    marginBottom: '12px',
-  },
-  sendItemCard: {
-    background: 'transparent',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    transition: 'all 0.2s ease',
-  },
-  sendItemCardExpanded: {
-    borderColor: '#0066ff',
-    boxShadow: '0 0 0 3px rgba(0, 102, 255, 0.1)',
-  },
-  sendItemHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    width: '100%',
-    padding: '14px 16px',
-    background: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    textAlign: 'left',
-  },
-  sendItemNum: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '24px',
-    height: '24px',
-    background: 'var(--gray-200)',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '600',
-    color: 'var(--gray-500)',
-    flexShrink: '0',
-  },
-  sendItemSummary: {
-    flex: '1',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-    minWidth: '0',
-  },
-  sendItemDesc: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: 'var(--gray-900)',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  sendItemMeta: {
-    fontSize: '12px',
-    color: 'var(--gray-500)',
-  },
-  sendItemTotal: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: 'var(--gray-900)',
-  },
-  sendItemEdit: {
-    padding: '16px',
-    background: 'var(--white)',
-    borderTop: '1px solid var(--gray-200)',
-  },
-  editField: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  editFieldFull: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    marginBottom: '12px',
-  },
-  editLabel: {
-    fontSize: '12px',
-    fontWeight: '500',
-    color: 'var(--gray-500)',
-  },
-  editInput: {
-    width: '100%',
-    padding: '10px 12px',
-    background: 'var(--gray-50)',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '8px',
-    fontSize: '14px',
-    color: 'var(--gray-900)',
-    boxSizing: 'border-box',
-  },
-  editRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr',
-    gap: '10px',
-    marginBottom: '12px',
-  },
-  editActions: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-  },
-  deleteItemBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '8px 12px',
-    background: 'transparent',
-    border: '1px solid rgba(239, 68, 68, 0.2)',
-    borderRadius: '8px',
-    color: '#f87171',
-    fontSize: '13px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  addItemBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    width: '100%',
-    padding: '12px',
-    background: 'transparent',
-    border: '1px dashed var(--gray-300)',
-    borderRadius: '10px',
-    color: 'var(--gray-500)',
-    fontSize: '14px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  sendTotals: {
-    padding: '16px',
-    borderTop: '1px solid var(--gray-200)',
-    background: 'var(--gray-50)',
-  },
-  sendTotalRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '8px 0',
-    fontSize: '14px',
-    color: 'var(--gray-500)',
-  },
-  sendTotalRowGrand: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: '12px',
-    marginTop: '8px',
-    borderTop: '1px solid var(--gray-200)',
-    fontSize: '16px',
-    fontWeight: '600',
-    color: 'var(--gray-900)',
-  },
-  taxInputWrapper: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-  },
-  taxInput: {
-    width: '60px',
-    padding: '6px 8px',
-    background: 'var(--white)',
-    border: '1px solid var(--gray-200)',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: 'var(--gray-900)',
-    textAlign: 'right',
-  },
-  sendEditActions: {
-    display: 'flex',
-    gap: '12px',
-  },
-  sendActions: {
-    display: 'flex',
-    gap: '12px',
-  },
-  btn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    padding: '14px 20px',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    border: 'none',
-  },
-  btnPrimary: {
-    background: 'linear-gradient(135deg, #0066ff, #0052cc)',
-    color: 'white',
-    boxShadow: '0 4px 12px rgba(0, 102, 255, 0.25)',
-  },
-  btnSecondary: {
-    background: 'var(--gray-100)',
-    color: 'var(--gray-600)',
-    border: '1px solid var(--gray-200)',
-  },
-};

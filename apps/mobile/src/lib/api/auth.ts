@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import * as Linking from 'expo-linking';
+import Constants from 'expo-constants';
 
 interface LoginResult {
   message: string;
@@ -10,7 +10,8 @@ interface DevLoginResult {
 }
 
 export async function loginWithOtp(email: string): Promise<LoginResult> {
-  const redirectUrl = Linking.createURL('auth/callback');
+  const scheme = Constants.expoConfig?.scheme ?? 'mrblu';
+  const redirectUrl = `${scheme}://auth/callback`;
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
@@ -30,6 +31,20 @@ export async function devLogin(email: string, password: string): Promise<DevLogi
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
+  });
+
+  if (error) {
+    throw new AuthError(error.message);
+  }
+
+  return { session: data.session };
+}
+
+export async function verifyOtp(email: string, token: string): Promise<DevLoginResult> {
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email',
   });
 
   if (error) {

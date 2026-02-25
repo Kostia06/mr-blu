@@ -119,7 +119,8 @@ export function ReviewActions({
         return (
           <View
             key={action.id}
-            className="bg-white border border-gray-100 rounded-xl p-4"
+            className="border border-gray-100 rounded-xl p-4"
+            style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}
           >
             <View className="flex-row items-center">
               <View className="w-7 h-7 rounded-full bg-blue-50 items-center justify-center mr-3">

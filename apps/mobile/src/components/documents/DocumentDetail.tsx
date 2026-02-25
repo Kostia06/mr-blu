@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, Alert, Platform, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { Trash2, Send, Share2 } from 'lucide-react-native';
-import { fetchDocument, deleteDocument, shareDocument } from '@/lib/api/documents';
+import { BlurView } from 'expo-blur';
+import { Trash2, Send, Share2, Copy } from 'lucide-react-native';
+import { fetchDocument, deleteDocument, shareDocument, sendDocument } from '@/lib/api/documents';
 import { useI18nStore } from '@/lib/i18n';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
+import { GlassBackground } from '@/components/layout/GlassBackground';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -25,6 +27,8 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const queryClient = useQueryClient();
   const [doc, setDoc] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     loadDocument();
@@ -66,6 +70,48 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
     );
   }
 
+  const handleSend = useCallback(async () => {
+    if (!doc) return;
+    const clientData = doc.clients as Record<string, any> | null;
+    const email = clientData?.email;
+    if (!email) {
+      toast.error('No client email');
+      return;
+    }
+    setSending(true);
+    try {
+      await sendDocument(
+        documentId,
+        doc.document_type || 'invoice',
+        'email',
+        { email },
+      );
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      toast.success('Document sent');
+      loadDocument();
+    } catch {
+      toast.error('Failed to send');
+    } finally {
+      setSending(false);
+    }
+  }, [documentId, doc, queryClient, toast]);
+
+  const handleShare = useCallback(async () => {
+    if (!doc) return;
+    setSharing(true);
+    try {
+      const result = await shareDocument(documentId, doc.document_type || 'invoice');
+      const url = result?.shareUrl;
+      if (url) {
+        await Share.share({ url, message: `View ${doc.document_type}: ${url}` });
+      }
+    } catch {
+      toast.error('Failed to share');
+    } finally {
+      setSharing(false);
+    }
+  }, [documentId, doc, toast]);
+
   if (loading) return <Spinner fullScreen />;
   if (!doc) return null;
 
@@ -73,15 +119,10 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const client = doc.clients as Record<string, any> | null;
 
   return (
-    <View className="flex-1 bg-blu-bg">
+    <GlassBackground>
       <ScreenHeader
         title={doc.document_number || 'Document'}
         showBack
-        rightAction={
-          <Button onPress={handleDelete} variant="ghost" size="sm">
-            <Trash2 size={20} color="#EF4444" />
-          </Button>
-        }
       />
 
       <ScrollView
@@ -90,15 +131,15 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
       >
         {/* Status & Type */}
         <View className="flex-row items-center gap-2 mb-4">
-          <Badge variant={doc.status === 'paid' ? 'success' : doc.status === 'sent' ? 'warning' : 'default'}>
+          <Badge status={(doc.status || 'draft') as any} dot>
             {doc.status || 'draft'}
           </Badge>
-          <Badge>{doc.document_type || 'invoice'}</Badge>
+          <Badge variant="info">{doc.document_type || 'invoice'}</Badge>
         </View>
 
         {/* Client */}
         {client && (
-          <Card className="mb-4">
+          <Card variant="glass" className="mb-4">
             <Text className="text-xs text-gray-500 mb-1">Client</Text>
             <Text className="text-base font-semibold text-gray-900">{client.name}</Text>
             {client.email && <Text className="text-sm text-gray-500">{client.email}</Text>}
@@ -107,7 +148,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
         )}
 
         {/* Line Items */}
-        <Card className="mb-4">
+        <Card variant="glass" className="mb-4">
           <Text className="text-xs text-gray-500 mb-3">Items</Text>
           {lineItems.map((item, i) => (
             <View key={i} className="flex-row justify-between py-2 border-b border-gray-50">
@@ -146,7 +187,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
         </Card>
 
         {/* Dates */}
-        <Card className="mb-4">
+        <Card variant="glass" className="mb-4">
           <View className="flex-row justify-between">
             <View>
               <Text className="text-xs text-gray-500">Created</Text>
@@ -161,6 +202,49 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
           </View>
         </Card>
       </ScrollView>
-    </View>
+
+      {/* Bottom Action Bar */}
+      {Platform.OS === 'ios' ? (
+        <BlurView
+          intensity={60}
+          tint="light"
+          className="flex-row items-center gap-2 px-5 pt-3 pb-2 border-t border-white/30"
+          style={{ paddingBottom: Math.max(insets.bottom, 8) }}
+        >
+          <View className="flex-1">
+            <Button onPress={handleSend} loading={sending} fullWidth icon={<Send size={16} color="#fff" />}>
+              Send
+            </Button>
+          </View>
+          <View className="flex-1">
+            <Button onPress={handleShare} variant="secondary" loading={sharing} fullWidth icon={<Share2 size={16} color="#374151" />}>
+              Share
+            </Button>
+          </View>
+          <Button onPress={handleDelete} variant="ghost" size="sm">
+            <Trash2 size={20} color="#EF4444" />
+          </Button>
+        </BlurView>
+      ) : (
+        <View
+          className="flex-row items-center gap-2 px-5 pt-3 pb-2"
+          style={{ paddingBottom: Math.max(insets.bottom, 8), backgroundColor: 'rgba(255,255,255,0.85)' }}
+        >
+          <View className="flex-1">
+            <Button onPress={handleSend} loading={sending} fullWidth icon={<Send size={16} color="#fff" />}>
+              Send
+            </Button>
+          </View>
+          <View className="flex-1">
+            <Button onPress={handleShare} variant="secondary" loading={sharing} fullWidth icon={<Share2 size={16} color="#374151" />}>
+              Share
+            </Button>
+          </View>
+          <Button onPress={handleDelete} variant="ghost" size="sm">
+            <Trash2 size={20} color="#EF4444" />
+          </Button>
+        </View>
+      )}
+    </GlassBackground>
   );
 }

@@ -4,6 +4,7 @@ import { Check, Globe, Info } from 'lucide-react-native';
 import { useI18nStore } from '@/lib/i18n';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { GlassBackground } from '@/components/layout/GlassBackground';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 const LANGUAGES = [
   { code: 'en', name: 'English', native: 'English', flag: '\u{1F1FA}\u{1F1F8}' },
@@ -36,7 +37,7 @@ export function LanguageSettings() {
           </Text>
         </View>
 
-        <View className="bg-white rounded-card overflow-hidden shadow-sm mb-6">
+        <GlassCard padding={0} className="overflow-hidden mb-6">
           <View className="px-4 pt-4 pb-2">
             <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {t('settings.selectLanguage')}
@@ -71,14 +72,14 @@ export function LanguageSettings() {
               </Pressable>
             );
           })}
-        </View>
+        </GlassCard>
 
-        <View className="flex-row bg-gray-100 rounded-button p-4 gap-3">
+        <GlassCard className="flex-row gap-3">
           <Info size={18} color="#64748B" />
           <Text className="flex-1 text-[13px] text-gray-500 leading-5">
             {t('settings.languageHint')}
           </Text>
-        </View>
+        </GlassCard>
       </ScrollView>
     </GlassBackground>
   );

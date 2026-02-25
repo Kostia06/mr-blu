@@ -113,9 +113,12 @@ export function PriceBook() {
 		setEditRate('');
 	}
 
+	const [savingEdit, setSavingEdit] = useState(false);
+
 	async function saveEdit(id: string) {
 		const rate = parseFloat(editRate);
-		if (isNaN(rate) || rate <= 0) return;
+		if (isNaN(rate) || rate <= 0 || savingEdit) return;
+		setSavingEdit(true);
 
 		try {
 			await updatePricing(id, { rate_per_unit: rate });
@@ -125,6 +128,7 @@ export function PriceBook() {
 		} catch {
 			// silently fail
 		} finally {
+			setSavingEdit(false);
 			setEditingId(null);
 			setEditRate('');
 		}
@@ -288,8 +292,8 @@ export function PriceBook() {
 									<div className="flex items-center gap-1 shrink-0">
 										{editingId === entry.id ? (
 											<>
-												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={() => saveEdit(entry.id)} aria-label="Save">
-													<Check size={16} className="text-[#10b981]" />
+												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={() => saveEdit(entry.id)} disabled={savingEdit} aria-label="Save">
+													{savingEdit ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} className="text-[#10b981]" />}
 												</button>
 												<button className="flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer p-0" onClick={cancelEdit} aria-label="Cancel">
 													<X size={16} className="text-[#94a3b8]" />

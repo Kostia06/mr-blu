@@ -61,12 +61,13 @@ export function ShareLinkModal({
     >
       {/* Backdrop */}
       <Pressable
-        className="flex-1 bg-black/50 items-center justify-center px-6"
+        className="flex-1 items-center justify-center px-6"
+        style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
         onPress={onClose}
       >
         {/* Modal content */}
         <Pressable className="w-full max-w-sm" onPress={() => {}}>
-          <View className="bg-white rounded-2xl p-6">
+          <View className="rounded-2xl p-6" style={{ backgroundColor: 'rgba(255,255,255,0.92)' }}>
             {/* Close button */}
             <Pressable
               className="absolute top-4 right-4 p-1 z-10"

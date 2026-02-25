@@ -116,7 +116,8 @@ export function ReviewLineItems({
         return (
           <View
             key={item.id}
-            className="bg-white border border-gray-100 rounded-xl mb-2 overflow-hidden"
+            className="border border-gray-100 rounded-xl mb-2 overflow-hidden"
+            style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}
           >
             <Pressable
               onPress={() => toggleExpand(item.id)}
@@ -154,7 +155,7 @@ export function ReviewLineItems({
         );
       })}
 
-      <View className="mt-4 bg-white border border-gray-100 rounded-xl p-4">
+      <View className="mt-4 border border-gray-100 rounded-xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}>
         <TotalRow label="Subtotal" value={subtotal} />
 
         <Pressable

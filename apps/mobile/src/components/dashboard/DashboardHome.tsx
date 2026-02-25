@@ -54,14 +54,9 @@ export function DashboardHome() {
     }
   }
 
-  const statusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'paid': return 'success' as const;
-      case 'sent':
-      case 'pending': return 'warning' as const;
-      case 'overdue': return 'error' as const;
-      default: return 'default' as const;
-    }
+  const statusToBadgeStatus = (status: string) => {
+    const validStatuses = ['draft', 'sent', 'pending', 'paid', 'overdue', 'signed'];
+    return validStatuses.includes(status) ? status as 'draft' | 'sent' | 'pending' | 'paid' | 'overdue' | 'signed' : undefined;
   };
 
   return (
@@ -137,13 +132,13 @@ export function DashboardHome() {
           {/* Stats */}
           {data?.stats && (
             <View className="flex-row gap-3 mb-6">
-              <Card className="flex-1">
+              <Card variant="glass" className="flex-1">
                 <Text className="text-xs text-gray-500">{t('dashboard.invoices')}</Text>
                 <Text className="text-lg font-bold text-gray-900">
                   {formatCurrency(data.stats.totalInvoiced)}
                 </Text>
               </Card>
-              <Card className="flex-1">
+              <Card variant="glass" className="flex-1">
                 <Text className="text-xs text-gray-500">Pending</Text>
                 <Text className="text-lg font-bold text-data-amber">
                   {data.stats.pendingCount}
@@ -167,6 +162,7 @@ export function DashboardHome() {
               {data.recentDocuments.map((doc) => (
                 <Card
                   key={doc.id}
+                  variant="glass"
                   onPress={() => router.push(`/(tabs)/documents/${doc.id}`)}
                   className="mb-2"
                 >
@@ -181,11 +177,11 @@ export function DashboardHome() {
                       </Text>
                     </View>
                     {doc.amount > 0 && (
-                      <Text className="text-sm font-semibold text-gray-900">
+                      <Text className="text-sm font-semibold text-gray-900 mr-2">
                         {formatCurrency(doc.amount)}
                       </Text>
                     )}
-                    <Badge variant={statusBadgeVariant(doc.status)}>
+                    <Badge status={statusToBadgeStatus(doc.status)} dot>
                       {doc.status}
                     </Badge>
                   </View>
