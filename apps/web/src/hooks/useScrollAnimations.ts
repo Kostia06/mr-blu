@@ -116,7 +116,11 @@ export function useParallax<T extends HTMLElement>(options: ParallaxOptions = {}
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
-    function handleScroll() {
+    let rafId = 0;
+    let ticking = false;
+
+    function update() {
+      ticking = false;
       const el = ref.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
@@ -127,9 +131,19 @@ export function useParallax<T extends HTMLElement>(options: ParallaxOptions = {}
       setOffset(direction === 'up' ? -value : value);
     }
 
+    function handleScroll() {
+      if (!ticking) {
+        ticking = true;
+        rafId = requestAnimationFrame(update);
+      }
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    update();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(rafId);
+    };
   }, [speed, direction]);
 
   return { ref, offset };

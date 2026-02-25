@@ -11,7 +11,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Background decoration */}
       <div
         aria-hidden="true"
-        class="fixed inset-0 z-0 pointer-events-none overflow-hidden"
+        class="fixed inset-0 z-0 pointer-events-none overflow-hidden [contain:strict] [will-change:auto]"
       >
         <div class="bg-blob bg-blob-1" />
         <div class="bg-blob bg-blob-2" />

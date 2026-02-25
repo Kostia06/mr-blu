@@ -29,7 +29,7 @@ export function BottomNav() {
   return (
     <nav
       ref={navRef}
-      class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[240px] flex items-center bg-white/65 backdrop-blur-[20px] backdrop-saturate-150 rounded-full shadow-[0_4px_24px_rgba(0,40,100,0.12),0_1px_4px_rgba(0,0,0,0.06)] p-1.5 z-[var(--z-fixed)] mb-[env(safe-area-inset-bottom,0px)]"
+      class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[240px] flex items-center bg-white/75 backdrop-blur-[12px] rounded-full shadow-[0_4px_24px_rgba(0,40,100,0.12),0_1px_4px_rgba(0,0,0,0.06)] p-1.5 z-[var(--z-fixed)] mb-[env(safe-area-inset-bottom,0px)]"
     >
       <div
         class="absolute inset-1.5 pointer-events-none"

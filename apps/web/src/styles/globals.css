@@ -148,6 +148,8 @@
   --radius-input: 12px;
   --radius-chip: 100px;
   --touch-target-min: 48px;
+  --tap-scale: 0.97;
+  --tap-duration: 100ms;
 
   --header-height: 56px;
   --bottom-nav-height: 64px;
@@ -192,13 +194,42 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Mobile touch behavior */
+button,
+a,
+[role="button"],
+[role="link"],
+[tabindex]:not([tabindex="-1"]) {
+  touch-action: manipulation;
+}
+
+/* Prevent iOS zoom on input focus — 16px minimum */
+input, select, textarea {
+  font-size: 16px;
+}
+
+/* Prevent text selection on UI chrome */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection in content areas */
+p, span, h1, h2, h3, h4, h5, h6,
+article, pre, code, td, th,
+.selectable,
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 html {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scrollbar-gutter: stable;
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
@@ -229,7 +260,9 @@ img, video, canvas, svg {
 .bg-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
+  filter: blur(60px);
+  will-change: transform;
+  contain: strict;
 }
 
 .bg-blob-1 {

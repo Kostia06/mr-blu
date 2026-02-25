@@ -149,7 +149,6 @@ export function RecordButtonMobile({
           );
           opacity: 0.7;
           pointer-events: none;
-          filter: blur(12px);
           animation: glowPulse 3s ease-in-out infinite;
         }
 
@@ -180,11 +179,8 @@ export function RecordButtonMobile({
           );
           box-shadow:
             0 8px 40px rgba(14, 165, 233, 0.35),
-            0 0 60px rgba(56, 189, 248, 0.2),
             inset 0 0 40px rgba(186, 230, 253, 0.3);
-          animation:
-            orbFloat 6s ease-in-out infinite,
-            orbBreathe 4s ease-in-out infinite;
+          animation: orbFloat 6s ease-in-out infinite;
           -webkit-mask-image: -webkit-radial-gradient(white, white);
         }
 
@@ -197,7 +193,6 @@ export function RecordButtonMobile({
           inset: 0;
           border-radius: 50%;
           pointer-events: none;
-          mix-blend-mode: soft-light;
         }
 
         .cloud-layer.layer-1 {
@@ -304,32 +299,15 @@ export function RecordButtonMobile({
           }
         }
 
-        @keyframes orbBreathe {
-          0%, 100% {
-            box-shadow:
-              0 8px 40px rgba(14, 165, 233, 0.35),
-              0 0 60px rgba(56, 189, 248, 0.2),
-              inset 0 0 40px rgba(186, 230, 253, 0.3);
-          }
-          50% {
-            box-shadow:
-              0 10px 50px rgba(14, 165, 233, 0.4),
-              0 0 70px rgba(56, 189, 248, 0.25),
-              inset 0 0 50px rgba(186, 230, 253, 0.35);
-          }
-        }
-
         @keyframes softBreathe {
           0%, 100% {
             box-shadow:
               0 8px 32px rgba(0, 102, 255, 0.3),
-              0 0 40px rgba(0, 102, 255, 0.1),
               inset 0 0 40px rgba(186, 230, 253, 0.3);
           }
           50% {
             box-shadow:
               0 8px 32px rgba(0, 102, 255, 0.4),
-              0 0 60px rgba(0, 102, 255, 0.2),
               inset 0 0 50px rgba(186, 230, 253, 0.35);
           }
         }
