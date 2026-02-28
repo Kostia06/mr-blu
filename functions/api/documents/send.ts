@@ -146,6 +146,7 @@ export const onRequestPost: PagesFunction<Env, string, AuthenticatedData> = asyn
     total: (doc.total as number) || 0,
     dueDate: (doc.due_date as string) ? formatDate(doc.due_date as string) : '',
     shareUrl,
+    customMessage: body.customMessage,
     sender,
   });
 
@@ -232,6 +233,14 @@ export const onRequestPost: PagesFunction<Env, string, AuthenticatedData> = asyn
 // Email Templates
 // =============================================
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -244,6 +253,7 @@ interface DocumentEmailData {
   total: number;
   dueDate: string;
   shareUrl: string;
+  customMessage?: string;
   sender: {
     businessName: string | null;
     email: string | null;
@@ -255,11 +265,18 @@ interface DocumentEmailData {
 
 function buildDocumentEmail(data: DocumentEmailData): string {
   const typeLabel = capitalize(data.docType);
-  const greeting = data.clientName ? `Hi ${data.clientName},` : 'Hi,';
+  const greeting = data.clientName ? `Hi ${escapeHtml(data.clientName)},` : 'Hi,';
   const article = data.docType === 'estimate' ? 'an' : 'a';
-  const totalLine = `<p style="font-size:16px;margin:8px 0"><strong>Total: ${formatCurrency(data.total)}</strong></p>`;
+
+  const messageLine = data.customMessage
+    ? `
+      <div class="info-box">
+        <p style="white-space:pre-wrap">${escapeHtml(data.customMessage)}</p>
+      </div>`
+    : '';
+
   const dueLine = data.dueDate
-    ? `<p style="margin:4px 0;color:#666">Due: ${data.dueDate}</p>`
+    ? `<p style="margin:4px 0 16px;color:#94a3b8;text-align:center;font-size:14px">Due: ${data.dueDate}</p>`
     : '';
 
   const footerParts = [
@@ -270,32 +287,139 @@ function buildDocumentEmail(data: DocumentEmailData): string {
     data.sender.website,
   ]
     .filter(Boolean)
-    .join(' | ');
+    .join(' &middot; ');
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px">
-<tr><td align="center">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)">
-<tr><td style="background:#0066ff;padding:24px 32px;text-align:center">
-<h1 style="margin:0;color:#fff;font-size:20px;font-weight:600">${typeLabel} ${data.docNumber}</h1>
-</td></tr>
-<tr><td style="padding:32px">
-<p style="margin:0 0 16px">${greeting}</p>
-<p style="margin:0 0 16px">${data.senderName} has sent you ${article} ${data.docType}.</p>
-${totalLine}
-${dueLine}
-<div style="text-align:center;margin:28px 0">
-<a href="${data.shareUrl}" style="display:inline-block;padding:14px 32px;background:#0066ff;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px">View ${typeLabel}</a>
-</div>
-<p style="font-size:13px;color:#888;margin:24px 0 0">If the button doesn't work, copy this link:<br><a href="${data.shareUrl}" style="color:#0066ff;word-break:break-all">${data.shareUrl}</a></p>
-</td></tr>
-${footerParts ? `<tr><td style="padding:16px 32px;border-top:1px solid #eee;font-size:12px;color:#999;text-align:center">${footerParts}</td></tr>` : ''}
-</table>
-</td></tr>
-</table>
-</body></html>`;
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${typeLabel} ${escapeHtml(data.docNumber)} - mrblu</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #1a1a2e;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .card {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0066FF;
+      letter-spacing: -0.5px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 12px;
+      color: #0f172a;
+    }
+    p {
+      margin: 0 0 16px;
+      color: #64748b;
+      text-align: center;
+      font-size: 15px;
+    }
+    .total {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      text-align: center;
+      margin: 0 0 4px;
+    }
+    .button-container {
+      text-align: center;
+      margin: 24px 0;
+    }
+    .button {
+      display: inline-block;
+      background: #0066FF;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .info-box {
+      margin: 16px 0;
+      padding: 14px;
+      background: #f0f9ff;
+      border-radius: 10px;
+      border-left: 3px solid #0066FF;
+    }
+    .info-box p {
+      margin: 0;
+      font-size: 14px;
+      color: #334155;
+      text-align: left;
+    }
+    .link-fallback {
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+      word-break: break-all;
+      margin-top: 24px;
+    }
+    .link-fallback a {
+      color: #0066FF;
+    }
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .footer p {
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">
+        <span class="logo-text">mrblu</span>
+      </div>
+
+      <h1>${typeLabel} ${escapeHtml(data.docNumber)}</h1>
+      <p>${greeting} <strong>${escapeHtml(data.senderName)}</strong> has sent you ${article} ${data.docType}.</p>
+      ${messageLine}
+      <p class="total">${formatCurrency(data.total)}</p>
+      ${dueLine}
+
+      <div class="button-container">
+        <a href="${data.shareUrl}" class="button">View ${typeLabel}</a>
+      </div>
+
+      <div class="link-fallback">
+        <p>Or copy this link: <a href="${data.shareUrl}">${data.shareUrl}</a></p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>${footerParts || 'Sent via Mr.Blu'}</p>
+    </div>
+  </div>
+</body>
+</html>`;
 }
 
 interface NotificationEmailData {
@@ -309,24 +433,100 @@ interface NotificationEmailData {
 
 function buildNotificationEmail(data: NotificationEmailData): string {
   const typeLabel = capitalize(data.docType);
-  const recipient = data.recipientName || data.recipientEmail;
-  const totalLine = ` for ${formatCurrency(data.total)}`;
+  const recipient = escapeHtml(data.recipientName || data.recipientEmail);
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px">
-<tr><td align="center">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)">
-<tr><td style="background:#10b981;padding:20px 32px;text-align:center">
-<h1 style="margin:0;color:#fff;font-size:18px;font-weight:600">Sent Successfully</h1>
-</td></tr>
-<tr><td style="padding:32px">
-<p style="margin:0 0 12px">Your ${typeLabel} <strong>${data.docNumber}</strong>${totalLine} was sent to <strong>${recipient}</strong>.</p>
-<p style="font-size:13px;color:#888;margin:16px 0 0"><a href="${data.shareUrl}" style="color:#0066ff">View document</a></p>
-</td></tr>
-</table>
-</td></tr>
-</table>
-</body></html>`;
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sent Successfully - mrblu</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #1a1a2e;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .card {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0066FF;
+      letter-spacing: -0.5px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 12px;
+      color: #0f172a;
+    }
+    p {
+      margin: 0 0 16px;
+      color: #64748b;
+      text-align: center;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin: 24px 0;
+    }
+    .button {
+      display: inline-block;
+      background: #0066FF;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .footer p {
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">
+        <span class="logo-text">mrblu</span>
+      </div>
+
+      <h1>Sent Successfully</h1>
+      <p>Your ${typeLabel} <strong>${escapeHtml(data.docNumber)}</strong> for ${formatCurrency(data.total)} was sent to <strong>${recipient}</strong>.</p>
+
+      <div class="button-container">
+        <a href="${data.shareUrl}" class="button">View Document</a>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Sent via Mr.Blu</p>
+    </div>
+  </div>
+</body>
+</html>`;
 }
