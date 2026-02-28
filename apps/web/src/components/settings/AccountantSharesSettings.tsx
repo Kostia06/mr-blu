@@ -11,8 +11,10 @@ import {
   AlertCircle,
   Loader2,
   Trash2,
+  Pencil,
 } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
+import { useToastStore } from '@/stores/toastStore';
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader';
 import { ShareWithAccountantModal } from '@/components/modals/ShareWithAccountantModal';
 import {
@@ -49,6 +51,7 @@ function formatRelativeTime(dateString: string | null): string {
 
 export function AccountantSharesSettings({ user }: AccountantSharesSettingsProps) {
   const { t, locale } = useI18nStore();
+  const toast = useToastStore();
 
   const [shares, setShares] = useState<AccountantShare[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +60,7 @@ export function AccountantSharesSettings({ user }: AccountantSharesSettingsProps
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editingShare, setEditingShare] = useState<AccountantShare | null>(null);
 
   const loadShares = useCallback(async () => {
     try {
@@ -86,24 +90,24 @@ export function AccountantSharesSettings({ user }: AccountantSharesSettingsProps
             : s
         )
       );
-    } catch {
-      // Error handled silently
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setRevokingId(null);
     }
-  }, []);
+  }, [toast, t]);
 
   const handleDelete = useCallback(async (shareId: string) => {
     setDeletingId(shareId);
     try {
       await deleteAccountantShare(shareId);
       setShares((prev) => prev.filter((s) => s.id !== shareId));
-    } catch {
-      // Error handled silently
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setDeletingId(null);
     }
-  }, []);
+  }, [toast, t]);
 
   const handleCopyLink = useCallback(async (share: AccountantShare) => {
     const url = `${window.location.origin}/shared/accountant/${share.accessToken}`;
@@ -182,6 +186,7 @@ export function AccountantSharesSettings({ user }: AccountantSharesSettingsProps
                       isCopied={copiedId === share.id}
                       onRevoke={() => handleRevoke(share.id)}
                       onCopy={() => handleCopyLink(share)}
+                      onEdit={() => setEditingShare(share)}
                       onDelete={() => {}}
                     />
                   ))}
@@ -218,12 +223,14 @@ export function AccountantSharesSettings({ user }: AccountantSharesSettingsProps
       </div>
 
       <ShareWithAccountantModal
-        open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        open={showCreateModal || !!editingShare}
+        onClose={() => { setShowCreateModal(false); setEditingShare(null); }}
         onSuccess={() => {
           setShowCreateModal(false);
+          setEditingShare(null);
           loadShares();
         }}
+        editingShare={editingShare}
       />
     </main>
   );
@@ -240,6 +247,7 @@ function ShareCard({
   isCopied,
   onRevoke,
   onCopy,
+  onEdit,
   onDelete,
 }: {
   share: AccountantShare;
@@ -250,6 +258,7 @@ function ShareCard({
   isCopied: boolean;
   onRevoke: () => void;
   onCopy: () => void;
+  onEdit?: () => void;
   onDelete: () => void;
 }) {
   const isActive = share.status === 'active';
@@ -321,6 +330,15 @@ function ShareCard({
             {isCopied ? <Check size={14} /> : <Copy size={14} />}
             {isCopied ? t('accountant.copied') : t('accountant.copyLink')}
           </button>
+          {onEdit && (
+            <button
+              class="flex items-center justify-center gap-2 py-2.5 px-4 border-none rounded-xl text-[13px] font-semibold cursor-pointer bg-[var(--gray-100,#f1f5f9)] text-[var(--gray-600,#475569)]"
+              onClick={onEdit}
+            >
+              <Pencil size={14} />
+              {t('common.edit')}
+            </button>
+          )}
           <button
             class="flex items-center justify-center gap-2 py-2.5 px-4 border-none rounded-xl text-[13px] font-semibold cursor-pointer bg-red-500/10 text-red-500"
             onClick={onRevoke}

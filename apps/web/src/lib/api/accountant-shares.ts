@@ -158,16 +158,20 @@ export async function getAccountantShares(): Promise<AccountantShare[]> {
 // =============================================
 
 export async function revokeAccountantShare(shareId: string): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('accountant_shares')
     .update({
       status: 'revoked',
       revoked_at: new Date().toISOString(),
     })
-    .eq('id', shareId);
+    .eq('id', shareId)
+    .select('id');
 
   if (error) {
     throw new AccountantShareError(`Failed to revoke share: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new AccountantShareError('Share not found or access denied');
   }
 }
 
@@ -176,13 +180,60 @@ export async function revokeAccountantShare(shareId: string): Promise<void> {
 // =============================================
 
 export async function deleteAccountantShare(shareId: string): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('accountant_shares')
     .delete()
-    .eq('id', shareId);
+    .eq('id', shareId)
+    .select('id');
 
   if (error) {
     throw new AccountantShareError(`Failed to delete share: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new AccountantShareError('Share not found or access denied');
+  }
+}
+
+// =============================================
+// UPDATE SHARE
+// =============================================
+
+export interface UpdateShareOptions {
+  accountantEmail?: string;
+  accountantName?: string | null;
+  shareType?: ShareType;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  expiresAt?: string | null;
+  notifyOnShare?: boolean;
+  notifyOnNewInvoice?: boolean;
+}
+
+export async function updateAccountantShare(
+  shareId: string,
+  opts: UpdateShareOptions
+): Promise<void> {
+  const updates: Record<string, unknown> = {};
+  if (opts.accountantEmail !== undefined) updates.accountant_email = opts.accountantEmail;
+  if (opts.accountantName !== undefined) updates.accountant_name = opts.accountantName;
+  if (opts.shareType !== undefined) updates.share_type = opts.shareType;
+  if (opts.dateFrom !== undefined) updates.date_from = opts.dateFrom;
+  if (opts.dateTo !== undefined) updates.date_to = opts.dateTo;
+  if (opts.expiresAt !== undefined) updates.expires_at = opts.expiresAt;
+  if (opts.notifyOnShare !== undefined) updates.notify_on_share = opts.notifyOnShare;
+  if (opts.notifyOnNewInvoice !== undefined) updates.notify_on_new_invoice = opts.notifyOnNewInvoice;
+
+  const { data, error } = await supabase
+    .from('accountant_shares')
+    .update(updates)
+    .eq('id', shareId)
+    .select('id');
+
+  if (error) {
+    throw new AccountantShareError(`Failed to update share: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new AccountantShareError('Share not found or access denied');
   }
 }
 

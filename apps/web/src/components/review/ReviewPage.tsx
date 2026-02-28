@@ -65,7 +65,7 @@ import {
 // ---------------------------------------------------------------------------
 
 interface ReviewPageProps {
-  entryMode: 'new' | 'resume' | 'legacy_resume' | 'sessionStorage';
+  entryMode: 'new' | 'resume' | 'legacy_resume' | 'sessionStorage' | 'manual';
   transcript?: string;
   reviewSession?: any;
 }
@@ -725,6 +725,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
                 unit?: string;
                 rate?: number;
                 total?: number;
+                notes?: string | null;
               },
               index: number
             ) => ({
@@ -734,6 +735,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
               unit: item.unit || 'unit',
               rate: item.rate || 0,
               total: item.total || 0,
+              notes: item.notes || null,
             })
           );
         }
@@ -934,6 +936,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
           total: ensureNumber(item.total),
           measurementType: item.measurementType || undefined,
           dimensions: dims,
+          notes: item.notes || null,
         };
       }),
       subtotal: ensureNumber(calculatedSubtotal),
@@ -942,6 +945,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
       total: ensureNumber(calculatedTotal),
       date: new Date().toISOString().split('T')[0],
       dueDate: data.dueDate || null,
+      notes: (data as any).notes || null,
     };
   }
 
@@ -975,6 +979,7 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
           total: item.total,
           measurementType: item.measurementType,
           dimensions: item.dimensions,
+          notes: item.notes || null,
         })),
         subtotal: tpl.subtotal,
         taxRate: tpl.gstRate * 100,
@@ -1539,6 +1544,13 @@ export function ReviewPage({ entryMode, transcript, reviewSession: reviewSession
           setIsParsing(false);
           setParseError('Session expired. Please try again.');
         }
+      } else if (entryMode === 'manual') {
+        setData({
+          ...DEFAULT_PARSED_DATA,
+          actions: [{ id: crypto.randomUUID(), type: 'create_document', order: 1, status: 'pending', details: {} }],
+        });
+        setIsParsing(false);
+        generateDocNumber();
       } else if (entryMode === 'new' && transcript) {
         await parseWithAI(decodeURIComponent(transcript));
       } else if (entryMode === 'sessionStorage' || !entryMode) {

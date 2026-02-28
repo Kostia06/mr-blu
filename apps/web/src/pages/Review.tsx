@@ -6,7 +6,7 @@ import { ReviewPage as ReviewPageComponent } from '@/components/review/ReviewPag
 import { Spinner } from '@/components/ui/Spinner'
 import { navigateTo } from '@/lib/navigation'
 
-type EntryMode = 'new' | 'resume' | 'legacy_resume' | 'sessionStorage'
+type EntryMode = 'new' | 'resume' | 'legacy_resume' | 'sessionStorage' | 'manual'
 
 export function ReviewPage() {
   const userId = useAuthStore((s) => s.user?.id)
@@ -14,6 +14,7 @@ export function ReviewPage() {
   const transcript = params.get('transcript')
   const sessionId = params.get('session')
   const resumeId = params.get('resume')
+  const mode = params.get('mode')
 
   const [entryMode, setEntryMode] = useState<EntryMode>('sessionStorage')
   const [ready, setReady] = useState(false)
@@ -39,7 +40,10 @@ export function ReviewPage() {
   })
 
   useEffect(() => {
-    if (transcript) {
+    if (mode === 'manual') {
+      setEntryMode('manual')
+      setReady(true)
+    } else if (transcript) {
       setEntryMode('new')
       setReady(true)
     } else if (sessionId) {
@@ -53,7 +57,7 @@ export function ReviewPage() {
     } else {
       setReady(true)
     }
-  }, [transcript, sessionId, resumeId, reviewSession])
+  }, [mode, transcript, sessionId, resumeId, reviewSession])
 
   if (!ready) {
     return (

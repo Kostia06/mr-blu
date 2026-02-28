@@ -7,10 +7,12 @@ import {
   Calculator,
   X,
   Mic,
+  Plus,
   Trash2,
   Pencil,
   ChevronDown,
   Send,
+  Share2,
   Check as CheckIcon,
 } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
@@ -20,6 +22,7 @@ import { groupDocumentsByMonth, formatSmartTime } from '@/lib/utils/format';
 import { DocumentListSkeleton } from '@/components/documents/DocumentListSkeleton';
 import { DeleteConfirmModal } from '@/components/modals/DeleteConfirmModal';
 import { QuickSendModal } from '@/components/modals/QuickSendModal';
+import { ShareWithAccountantModal } from '@/components/modals/ShareWithAccountantModal';
 import { SwipeableCard } from '@/components/gestures/SwipeableCard';
 import { navigateTo } from '@/lib/navigation';
 import { deleteDocument, sendDocument } from '@/lib/api/documents';
@@ -211,6 +214,7 @@ export function DocumentList({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBatchDeleteConfirm, setShowBatchDeleteConfirm] = useState(false);
   const [showBatchSendConfirm, setShowBatchSendConfirm] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
 
   useEffect(() => {
@@ -479,13 +483,20 @@ export function DocumentList({
               <ChevronLeft size={22} strokeWidth={2} />
             </button>
             <h1 class="font-[var(--font-display,system-ui)] text-lg font-bold text-[var(--gray-900,#0f172a)] m-0 tracking-[-0.02em]">{t('documents.title')}</h1>
-            {filteredDocs.length > 0 ? (
-              <button class="w-11 h-11 flex items-center justify-center bg-transparent border-none text-sm font-semibold text-[var(--blu-primary,#0066ff)] cursor-pointer" onClick={enterSelectMode}>
-                {t('common.select')}
+            <div class="flex items-center gap-1">
+              <button
+                class="w-11 h-11 flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[12px] border-none rounded-[var(--radius-button,14px)] text-[var(--blu-primary,#0066ff)] cursor-pointer"
+                onClick={() => navigateTo('/dashboard/review?mode=manual')}
+                aria-label={t('documents.createDocument')}
+              >
+                <Plus size={22} strokeWidth={2} />
               </button>
-            ) : (
-              <div class="w-11" />
-            )}
+              {filteredDocs.length > 0 && (
+                <button class="w-11 h-11 flex items-center justify-center bg-transparent border-none text-sm font-semibold text-[var(--blu-primary,#0066ff)] cursor-pointer" onClick={enterSelectMode}>
+                  {t('common.select')}
+                </button>
+              )}
+            </div>
           </>
         )}
       </header>
@@ -694,6 +705,16 @@ export function DocumentList({
         onSuccess={handleSendSuccess}
       />
 
+      <ShareWithAccountantModal
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        onSuccess={() => {
+          setShowShareModal(false);
+          exitSelectMode();
+        }}
+        selectedDocumentIds={[...selectedIds]}
+      />
+
       {/* Batch action bar */}
       {selectMode && selectedCount > 0 && (
         <div class="fixed bottom-0 left-0 right-0 px-[var(--page-padding-x,20px)] pt-3 pb-[calc(12px+var(--safe-area-bottom,0px))] bg-white/[0.92] backdrop-blur-[20px] border-t border-black/[0.06] z-[100]">
@@ -704,6 +725,13 @@ export function DocumentList({
             >
               <Trash2 size={18} />
               {t('common.delete')} ({selectedCount})
+            </button>
+            <button
+              class="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 border-none rounded-[var(--radius-button,14px)] text-[15px] font-semibold cursor-pointer bg-[rgba(0,102,255,0.06)] text-[var(--blu-primary,#0066ff)]"
+              onClick={() => setShowShareModal(true)}
+            >
+              <Share2 size={18} />
+              {t('accountant.share')} ({selectedCount})
             </button>
             {sendableSelected.length > 0 && (
               <button
