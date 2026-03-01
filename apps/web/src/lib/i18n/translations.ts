@@ -159,6 +159,11 @@ export const translations: Translations = {
 		'auth.newPassword': 'New password',
 		'auth.updatePasswordButton': 'Update Password',
 		'auth.passwordUpdated': 'Password updated! Redirecting...',
+		'auth.confirmEmailGateTitle': 'Verify your email',
+		'auth.confirmEmailGateDesc': 'We sent a confirmation link to {email}. Check your inbox and click the link to continue.',
+		'auth.resendConfirmation': 'Resend confirmation email',
+		'auth.resendSuccess': 'Confirmation email resent!',
+		'auth.signOutInstead': 'Sign out',
 
 		// Recording
 		'recording.title': 'Recording',
@@ -1319,6 +1324,11 @@ export const translations: Translations = {
 		'auth.newPassword': 'Nueva contrase\u00f1a',
 		'auth.updatePasswordButton': 'Actualizar Contrase\u00f1a',
 		'auth.passwordUpdated': '\u00a1Contrase\u00f1a actualizada! Redirigiendo...',
+		'auth.confirmEmailGateTitle': 'Verifica tu email',
+		'auth.confirmEmailGateDesc': 'Enviamos un enlace de confirmaci\u00f3n a {email}. Revisa tu bandeja y haz clic en el enlace para continuar.',
+		'auth.resendConfirmation': 'Reenviar email de confirmaci\u00f3n',
+		'auth.resendSuccess': '\u00a1Email de confirmaci\u00f3n reenviado!',
+		'auth.signOutInstead': 'Cerrar sesi\u00f3n',
 
 		// Recording
 		'recording.title': 'Grabando',
