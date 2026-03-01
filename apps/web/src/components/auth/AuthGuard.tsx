@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Spinner } from '@/components/ui/Spinner'
 
 const POLL_INTERVAL = 5000
+const WHITELIST_CHECK_INTERVAL = 30000
 
 interface AuthGuardProps {
   children: preact.ComponentChildren
@@ -65,6 +66,31 @@ export function AuthGuard({ children }: AuthGuardProps) {
       navigate('/login')
     }
   }, [initialized, user, navigate])
+
+  // Periodically verify the user is still on the whitelist
+  useEffect(() => {
+    if (!user?.email) return
+
+    let cancelled = false
+
+    async function checkWhitelist() {
+      const { data } = await supabase.rpc('is_email_allowed', { check_email: user!.email })
+      if (cancelled) return
+      if (!data) {
+        await supabase.auth.signOut()
+        setSession(null)
+        setUser(null)
+      }
+    }
+
+    checkWhitelist()
+    const interval = setInterval(checkWhitelist, WHITELIST_CHECK_INTERVAL)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [user?.email, setSession, setUser])
 
   if (!initialized || !user) {
     return (
