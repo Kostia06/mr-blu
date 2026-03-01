@@ -3,6 +3,7 @@ import { createPortal } from 'preact/compat';
 import type { ComponentChildren } from 'preact';
 import { cn } from '@/lib/utils';
 import { haptic } from '@/lib/haptics';
+import { useModalState } from '@/stores/appStateStore';
 
 interface BottomSheetProps {
   open: boolean;
@@ -13,6 +14,7 @@ interface BottomSheetProps {
 }
 
 export function BottomSheet({ open, onClose, children, title, className }: BottomSheetProps) {
+  useModalState(open);
   const sheetRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const currentTranslate = useRef(0);

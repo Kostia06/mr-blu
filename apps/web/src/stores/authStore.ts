@@ -5,15 +5,18 @@ interface AuthState {
   session: Session | null;
   user: User | null;
   isAuthenticated: boolean;
+  initialized: boolean;
   setSession: (session: Session | null) => void;
   setUser: (user: User | null) => void;
+  setInitialized: (initialized: boolean) => void;
   userProfile: { id: string; email: string | undefined; name: string } | null;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   user: null,
   isAuthenticated: false,
+  initialized: false,
   userProfile: null,
   setSession: (session) => set({ session, isAuthenticated: !!session }),
   setUser: (user) =>
@@ -27,4 +30,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         : null,
     }),
+  setInitialized: (initialized) => set({ initialized }),
 }));

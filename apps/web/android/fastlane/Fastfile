@@ -1,0 +1,88 @@
+default_platform(:android)
+
+platform :android do
+
+  before_all do
+    setup_circle_ci if ENV['CI']
+  end
+
+  desc "Build debug APK"
+  lane :build_debug do
+    gradle(task: "assemble", build_type: "Debug")
+  end
+
+  desc "Build release APK"
+  lane :build_release do
+    gradle(task: "assemble", build_type: "Release")
+  end
+
+  desc "Build release AAB (for Play Store)"
+  lane :build_aab do
+    gradle(task: "bundle", build_type: "Release")
+  end
+
+  private_lane :play_store_key_path do
+    local_key = File.expand_path("../../../.keys/google-play-key.json", __dir__)
+    env_key = ENV['GOOGLE_PLAY_JSON_KEY_PATH']
+    ci_key = File.expand_path("../play-store-key.json", __dir__)
+
+    if File.exist?(local_key)
+      local_key
+    elsif env_key && File.exist?(env_key)
+      env_key
+    elsif File.exist?(ci_key)
+      ci_key
+    else
+      UI.user_error!("No Google Play JSON key found. Run the setup script first.")
+    end
+  end
+
+  desc "Deploy to Play Store Internal Testing"
+  lane :internal do
+    build_aab
+
+    upload_to_play_store(
+      track: "internal",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      json_key: play_store_key_path,
+      package_name: "com.mrblu.app",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Deploy to Play Store Beta"
+  lane :beta do
+    build_aab
+
+    upload_to_play_store(
+      track: "beta",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      json_key: play_store_key_path,
+      package_name: "com.mrblu.app"
+    )
+  end
+
+  desc "Deploy to Play Store Production"
+  lane :release do
+    build_aab
+
+    upload_to_play_store(
+      track: "production",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      json_key: play_store_key_path,
+      package_name: "com.mrblu.app",
+      rollout: "0.1"
+    )
+  end
+
+  error do |lane, exception|
+    slack(
+      message: "Android build failed: #{exception.message}",
+      slack_url: ENV['SLACK_WEBHOOK_URL'],
+      success: false
+    ) if ENV['SLACK_WEBHOOK_URL']
+  end
+
+end

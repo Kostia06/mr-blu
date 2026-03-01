@@ -1,6 +1,7 @@
-import { Route, Switch } from 'wouter'
+import { Route, Switch, Redirect } from 'wouter'
 import { lazy, Suspense } from 'preact/compat'
 import { useEffect, useRef } from 'preact/hooks'
+import { isNative } from '@/lib/native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { AuthGuard } from '@/components/auth/AuthGuard'
@@ -24,12 +25,19 @@ import { SecurityPage } from '@/pages/settings/Security'
 import { FeedbackPage } from '@/pages/settings/Feedback'
 import { ClientsPage } from '@/pages/settings/Clients'
 import { ClientDetailPage } from '@/pages/settings/ClientDetail'
+import { AccountantSharesPage } from '@/pages/settings/AccountantShares'
+import { BetaManagementPage } from '@/pages/settings/BetaManagement'
+import { AdminFeedbackPage } from '@/pages/settings/AdminFeedback'
+import { AdminErrorsPage } from '@/pages/settings/AdminErrors'
 import { AuthCallbackPage } from '@/pages/AuthCallback'
+import { ForgotPasswordPage } from '@/pages/ForgotPassword'
+import { ResetPasswordPage } from '@/pages/ResetPassword'
 import { LandingPage } from '@/pages/Landing'
 import { PrivacyPage } from '@/pages/Privacy'
 import { TermsPage } from '@/pages/Terms'
 import { OfflinePage } from '@/components/OfflinePage'
 import { NotFoundPage } from '@/pages/NotFound'
+import { SharedAccountantViewPage } from '@/pages/SharedAccountantView'
 
 const LazyDocumentViewPage = lazy(() =>
   import('@/pages/DocumentView').then((m) => ({ default: m.DocumentViewPage }))
@@ -60,7 +68,11 @@ function DashboardRoutes() {
           <Route path="/dashboard/settings/language" component={LanguagePage} />
           <Route path="/dashboard/settings/price-book" component={PriceBookPage} />
           <Route path="/dashboard/settings/notifications" component={NotificationsPage} />
+          <Route path="/dashboard/settings/accountant-shares" component={AccountantSharesPage} />
           <Route path="/dashboard/settings/security" component={SecurityPage} />
+          <Route path="/dashboard/settings/beta" component={BetaManagementPage} />
+          <Route path="/dashboard/settings/admin-feedback" component={AdminFeedbackPage} />
+          <Route path="/dashboard/settings/admin-errors" component={AdminErrorsPage} />
           <Route path="/dashboard/settings/feedback" component={FeedbackPage} />
           <Route path="/dashboard/settings/clients/:id" component={ClientDetailPage} />
           <Route path="/dashboard/settings/clients" component={ClientsPage} />
@@ -91,27 +103,32 @@ function useLifecycle() {
 
   useEffect(() => {
     function handleVisibilityChange() {
-      if (document.visibilityState !== 'visible') return
+      if (document.visibilityState === 'visible') {
+        const elapsed = Date.now() - lastVisibleRef.current
+        lastVisibleRef.current = Date.now()
 
-      const elapsed = Date.now() - lastVisibleRef.current
-      lastVisibleRef.current = Date.now()
-
-      // Refresh auth if tab was hidden for more than 30 seconds
-      if (elapsed > 30_000) {
-        supabase.auth.getSession()
-        queryClient.invalidateQueries()
+        if (elapsed > 10_000) {
+          supabase.auth.startAutoRefresh()
+          supabase.auth.getSession()
+          queryClient.invalidateQueries()
+        }
+      } else {
+        lastVisibleRef.current = Date.now()
+        supabase.auth.stopAutoRefresh()
       }
     }
 
     function handlePageShow(e: PageTransitionEvent) {
       if (e.persisted) {
+        supabase.auth.startAutoRefresh()
         supabase.auth.getSession()
         queryClient.invalidateQueries()
       }
     }
 
     function handleOnline() {
-      supabase.auth.getSession()
+      supabase.auth.startAutoRefresh()
+      supabase.auth.refreshSession()
       queryClient.invalidateQueries()
     }
 
@@ -135,12 +152,15 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <NavigationProgress />
       <Switch>
-        <Route path="/" component={LandingPage} />
+        <Route path="/">{isNative ? <Redirect to="/dashboard" /> : <LandingPage />}</Route>
         <Route path="/privacy" component={PrivacyPage} />
         <Route path="/terms" component={TermsPage} />
         <Route path="/offline" component={OfflinePage} />
         <Route path="/login" component={LoginPage} />
+        <Route path="/forgot-password" component={ForgotPasswordPage} />
+        <Route path="/reset-password" component={ResetPasswordPage} />
         <Route path="/auth/callback" component={AuthCallbackPage} />
+        <Route path="/shared/accountant/:token" component={SharedAccountantViewPage} />
         <Route path="/view/:type/:id">
           <Suspense fallback={null}>
             <LazyDocumentViewPage />

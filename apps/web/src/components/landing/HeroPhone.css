@@ -1,0 +1,140 @@
+.hero-phone-container {
+  position: relative;
+  width: 240px;
+  margin: 0 auto;
+}
+
+@media (min-width: 480px) {
+  .hero-phone-container { width: 270px; }
+}
+
+@media (min-width: 768px) {
+  .hero-phone-container { width: 300px; }
+}
+
+.phone-wrapper {
+  position: relative;
+}
+
+/* iPhone Frame — titanium finish */
+.iphone-frame {
+  position: relative;
+  background: linear-gradient(145deg, #2a2a2e 0%, #1c1c1e 50%, #242428 100%);
+  border-radius: 44px;
+  padding: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 0 0 0.5px rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 12px 24px -8px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 480px) {
+  .iphone-frame { border-radius: 48px; padding: 4px; }
+}
+
+@media (min-width: 768px) {
+  .iphone-frame { border-radius: 52px; padding: 5px; }
+}
+
+/* Side buttons */
+.side-button {
+  position: absolute;
+  background: linear-gradient(180deg, #3a3a3e 0%, #2a2a2e 100%);
+  border-radius: 2px;
+  z-index: 10;
+}
+
+.silent-switch { left: -2px; top: 18%; width: 3px; height: 5%; }
+.volume-up    { left: -2px; top: 26%; width: 3px; height: 8%; }
+.volume-down  { left: -2px; top: 36%; width: 3px; height: 8%; }
+.power-button { right: -2px; top: 28%; width: 3px; height: 12%; }
+
+/* Screen bezel */
+.screen-bezel {
+  position: relative;
+  border-radius: 40px;
+  overflow: hidden;
+  aspect-ratio: 9 / 19.5;
+  background: #000;
+}
+
+@media (min-width: 480px) {
+  .screen-bezel { border-radius: 44px; }
+}
+
+@media (min-width: 768px) {
+  .screen-bezel { border-radius: 47px; }
+}
+
+/* Dynamic Island */
+.dynamic-island {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 84px;
+  height: 22px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 5;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 480px) {
+  .dynamic-island { width: 92px; height: 24px; top: 11px; }
+}
+
+@media (min-width: 768px) {
+  .dynamic-island { width: 100px; height: 26px; top: 12px; }
+}
+
+/* Screenshot image */
+.screen-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Screen glare — diagonal shine */
+.screen-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.03) 42%,
+    rgba(255, 255, 255, 0.06) 44%,
+    rgba(255, 255, 255, 0.03) 46%,
+    transparent 48%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Phone shadow — soft and elevated */
+.phone-shadow {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 40px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.12) 0%, transparent 70%);
+  z-index: -1;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .phone-wrapper { animation: none; }
+}

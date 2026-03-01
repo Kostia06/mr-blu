@@ -30,6 +30,7 @@ export interface LineItem {
   suggestedPrice?: number | null;
   pricingConfidence?: number;
   hasPricingSuggestion?: boolean;
+  notes?: string | null;
 }
 
 export interface ParsedData {

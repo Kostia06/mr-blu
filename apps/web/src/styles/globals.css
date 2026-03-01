@@ -231,8 +231,12 @@ html {
   scrollbar-width: none;
   scroll-behavior: auto;
   scrollbar-gutter: stable;
-  overflow-x: hidden;
+  overflow: hidden;
+  overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -253,67 +257,18 @@ img, video, canvas, svg {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 80px 24px;
+  padding: 48px 24px;
 }
 
-/* Background gradient blobs */
-.bg-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  will-change: transform;
-  contain: strict;
-}
-
-.bg-blob-1 {
-  width: 600px;
-  height: 600px;
-  background: linear-gradient(135deg, #0066ff 0%, #0ea5e9 100%);
-  top: -200px;
-  right: -150px;
-  opacity: 0.35;
-}
-
-.bg-blob-2 {
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-  top: 35%;
-  left: -200px;
-  opacity: 0.25;
-}
-
-.bg-blob-3 {
-  width: 450px;
-  height: 450px;
-  background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
-  bottom: 10%;
-  right: -100px;
-  opacity: 0.2;
-}
-
-.bg-blob-4 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #0066ff 0%, #3b82f6 100%);
-  bottom: -150px;
-  left: 15%;
-  opacity: 0.25;
-}
-
-@media (max-width: 768px) {
-  .bg-blob-1 { width: 220px; height: 220px; top: -80px; right: -60px; }
-  .bg-blob-2 { width: 180px; height: 180px; left: -80px; }
-  .bg-blob-3 { width: 160px; height: 160px; right: -40px; }
-  .bg-blob-4 { width: 140px; height: 140px; bottom: -60px; }
-}
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   transition: color 0.3s ease;
-  min-height: 100vh;
-  min-height: 100dvh;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   overscroll-behavior: none;
 }
 
@@ -422,4 +377,19 @@ input, select, textarea {
   ::view-transition-new(*) {
     animation: none !important;
   }
+}
+
+/* Landing page — unlock scroll (must be last to override fixed body) */
+html.landing {
+  position: static !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  height: auto !important;
+}
+
+body.landing {
+  position: static !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  height: auto !important;
 }

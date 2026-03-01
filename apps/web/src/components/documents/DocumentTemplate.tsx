@@ -27,6 +27,7 @@ interface DocumentData {
     total: number;
     measurementType?: string;
     dimensions?: string;
+    notes?: string;
   }>;
   subtotal: number;
   taxRate: number;
@@ -71,6 +72,7 @@ function toSourceData(document: DocumentData): DocumentSourceData {
       total: item.total,
       measurementType: item.measurementType as DocumentSourceData['lineItems'][number]['measurementType'],
       dimensions: item.dimensions,
+      notes: item.notes,
     })),
     subtotal: document.subtotal,
     taxRate: document.taxRate,

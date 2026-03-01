@@ -63,6 +63,7 @@ export interface LineItem {
 	needsReview: boolean;
 	measurementType?: MeasurementType;
 	dimensions?: string; // e.g., "24 × 90 ft"
+	notes?: string | null;
 }
 
 export interface ActionIntent {
@@ -115,6 +116,7 @@ export interface TemplateData {
 		total: number;
 		measurementType?: MeasurementType;
 		dimensions?: string; // e.g., "24 × 90 ft"
+		notes?: string | null;
 	}>;
 
 	// Summary

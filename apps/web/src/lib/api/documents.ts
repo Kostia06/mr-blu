@@ -445,6 +445,7 @@ export async function saveDocument(
     total: item.total || 0,
     measurementType: item.measurementType || undefined,
     dimensions: item.dimensions || undefined,
+    notes: item.notes || null,
   }));
 
   const { data: savedDoc, error: saveError } = await supabase
@@ -609,6 +610,7 @@ export async function generatePDF(
       total: (item.total as number) || 0,
       measurementType: item.measurementType as MeasurementType | undefined,
       dimensions: item.dimensions as string | undefined,
+      notes: (item.notes as string) || '',
     })),
     subtotal: (documentData.subtotal as number) || 0,
     taxRate: (documentData.taxRate as number) || 0,

@@ -6,8 +6,6 @@ export type RecordingState = 'idle' | 'recording' | 'paused' | 'processing';
 const KEEPALIVE_INTERVAL_MS = 8000;
 const MAX_RECONNECT_ATTEMPTS = 3;
 const MAX_AUDIO_BUFFER_SIZE = 50;
-const NOISE_THRESHOLD = 0.35;
-const NOISE_SUGGESTION_THRESHOLD = 5;
 
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator?.userAgent ?? '');
 const IS_NATIVE = Capacitor.isNativePlatform();
@@ -22,10 +20,6 @@ export function useVoiceRecording() {
   const [interimTranscript, setInterimTranscript] = useState('');
   const [audioLevel, setAudioLevel] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [isNoisyEnvironment, setIsNoisyEnvironment] = useState(false);
-  const [showNoisySuggestion, setShowNoisySuggestion] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
@@ -33,15 +27,10 @@ export function useVoiceRecording() {
   const reconnectAttemptsRef = useRef(0);
   const keepaliveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioBufferRef = useRef<Blob[]>([]);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const recorderMimeTypeRef = useRef<string>('');
   const isSocketReadyRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const noiseCheckCountRef = useRef(0);
-  const highNoiseCountRef = useRef(0);
-
   // Refs for latest state values (accessible inside rAF/WebSocket callbacks)
   const currentStateRef = useRef(currentState);
   currentStateRef.current = currentState;
@@ -51,8 +40,6 @@ export function useVoiceRecording() {
   interimTranscriptRef.current = interimTranscript;
   const audioLevelRef = useRef(audioLevel);
   audioLevelRef.current = audioLevel;
-  const showNoisySuggestionRef = useRef(showNoisySuggestion);
-  showNoisySuggestionRef.current = showNoisySuggestion;
 
   const displayTranscript = useMemo(
     () => transcript + (interimTranscript ? ' ' + interimTranscript : ''),
@@ -146,23 +133,6 @@ export function useVoiceRecording() {
     const smoothed = audioLevelRef.current * 0.7 + targetLevel * 0.3;
     setAudioLevel(smoothed);
     audioLevelRef.current = smoothed;
-
-    noiseCheckCountRef.current++;
-    if (noiseCheckCountRef.current >= 10) {
-      noiseCheckCountRef.current = 0;
-      if (smoothed > NOISE_THRESHOLD && !transcriptRef.current.trim()) {
-        highNoiseCountRef.current++;
-        if (
-          highNoiseCountRef.current >= NOISE_SUGGESTION_THRESHOLD &&
-          !showNoisySuggestionRef.current
-        ) {
-          setIsNoisyEnvironment(true);
-          setShowNoisySuggestion(true);
-        }
-      } else if (smoothed < NOISE_THRESHOLD * 0.5) {
-        highNoiseCountRef.current = Math.max(0, highNoiseCountRef.current - 1);
-      }
-    }
 
     animationFrameRef.current = requestAnimationFrame(animateAudioLevelLoop);
   }, []);
@@ -271,31 +241,6 @@ export function useVoiceRecording() {
     return false;
   }, []);
 
-  /** Send buffered audio chunks to REST API for transcription (native fallback) */
-  const transcribeBufferedAudio = useCallback(async () => {
-    const chunks = audioChunksRef.current;
-    console.log('[voice] transcribeBufferedAudio called, chunks:', chunks.length);
-    if (chunks.length === 0) return;
-
-    setIsTranscribing(true);
-    try {
-      const mimeType = recorderMimeTypeRef.current || 'audio/mp4';
-      const audioBlob = new Blob(chunks, { type: mimeType });
-      console.log('[voice] sending blob:', audioBlob.size, 'bytes, type:', mimeType);
-      const { transcribeAudio } = await import('@/lib/api/external');
-      const result = await transcribeAudio(audioBlob);
-      console.log('[voice] transcription result:', result);
-      if (result) {
-        setTranscript((prev) => (prev ? prev + ' ' + result : result));
-      }
-    } catch (err) {
-      console.error('[voice] REST transcription failed:', err);
-    } finally {
-      setIsTranscribing(false);
-      audioChunksRef.current = [];
-    }
-  }, []);
-
   const startRecording = useCallback(
     async (translateFn: (key: string) => string) => {
       try {
@@ -305,7 +250,6 @@ export function useVoiceRecording() {
         setError('');
         reconnectAttemptsRef.current = 0;
         audioBufferRef.current = [];
-        audioChunksRef.current = [];
         isSocketReadyRef.current = false;
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -360,7 +304,6 @@ export function useVoiceRecording() {
             }
             const options = mimeType ? { mimeType } : undefined;
             mediaRecorderRef.current = new MediaRecorder(stream, options);
-            recorderMimeTypeRef.current = mediaRecorderRef.current.mimeType;
             recorderCreated = true;
           } catch {
             // Try next MIME type
@@ -370,18 +313,12 @@ export function useVoiceRecording() {
         if (mediaRecorderRef.current) {
           mediaRecorderRef.current.ondataavailable = (e) => {
             if (e.data.size > 0) {
-              // Always accumulate for REST API fallback
-              audioChunksRef.current.push(e.data);
-              if (IS_NATIVE && audioChunksRef.current.length % 10 === 1) {
-                console.log('[voice] chunk', audioChunksRef.current.length, 'size:', e.data.size);
-              }
-
               if (
                 socketRef.current?.readyState === WebSocket.OPEN &&
                 isSocketReadyRef.current
               ) {
                 socketRef.current.send(e.data);
-              } else if (!IS_NATIVE && deepgramApiKeyRef.current) {
+              } else if (deepgramApiKeyRef.current) {
                 audioBufferRef.current.push(e.data);
                 if (audioBufferRef.current.length > MAX_AUDIO_BUFFER_SIZE) {
                   audioBufferRef.current.shift();
@@ -389,26 +326,13 @@ export function useVoiceRecording() {
               }
             }
           };
-          mediaRecorderRef.current.start(250);
+          mediaRecorderRef.current.start(100);
         }
 
-        if (IS_NATIVE) {
-          // On native iOS, skip WebSocket — use REST API on pause
-          console.log('[voice] Native mode, skipping WebSocket');
-          if (!deepgramApiKeyRef.current) {
-            const keyOk = await fetchDeepgramKey();
-            console.log('[voice] Deepgram key fetched:', keyOk);
-          }
-        } else if (deepgramApiKeyRef.current) {
+        if (deepgramApiKeyRef.current) {
           connectDeepgram(translateFn);
         } else {
-          // Try to fetch key first
-          await fetchDeepgramKey();
-          if (deepgramApiKeyRef.current) {
-            connectDeepgram(translateFn);
-          } else {
-            handleSpeechToTextError(translateFn);
-          }
+          handleSpeechToTextError(translateFn);
         }
 
         animateAudioLevelLoop();
@@ -425,7 +349,7 @@ export function useVoiceRecording() {
         setCurrentState('idle');
       }
     },
-    [connectDeepgram, handleSpeechToTextError, animateAudioLevelLoop, fetchDeepgramKey],
+    [connectDeepgram, handleSpeechToTextError, animateAudioLevelLoop],
   );
 
   const pauseRecording = useCallback(() => {
@@ -437,13 +361,7 @@ export function useVoiceRecording() {
     setAudioLevel(0);
     flushInterimTranscript();
     setCurrentState('paused');
-
-    // On native, transcribe via REST API when pausing
-    console.log('[voice] pause: IS_NATIVE:', IS_NATIVE, 'chunks:', audioChunksRef.current.length);
-    if (IS_NATIVE && audioChunksRef.current.length > 0) {
-      transcribeBufferedAudio();
-    }
-  }, [clearKeepalive, cancelAnimation, flushInterimTranscript, transcribeBufferedAudio]);
+  }, [clearKeepalive, cancelAnimation, flushInterimTranscript]);
 
   const resumeRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
@@ -464,23 +382,7 @@ export function useVoiceRecording() {
     stopMediaResources();
     setCurrentState('idle');
     setTranscript('');
-    audioChunksRef.current = [];
-    setIsNoisyEnvironment(false);
-    setShowNoisySuggestion(false);
-    noiseCheckCountRef.current = 0;
-    highNoiseCountRef.current = 0;
   }, [stopMediaResources]);
-
-  const dismissNoisySuggestion = useCallback(() => {
-    setShowNoisySuggestion(false);
-  }, []);
-
-  const resetNoiseState = useCallback(() => {
-    setIsNoisyEnvironment(false);
-    setShowNoisySuggestion(false);
-    highNoiseCountRef.current = 0;
-    noiseCheckCountRef.current = 0;
-  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -516,11 +418,7 @@ export function useVoiceRecording() {
     audioLevel,
     error,
     isRecordingActive,
-    isNoisyEnvironment,
-    showNoisySuggestion,
     hasMediaRecorder,
-    isTranscribing,
-
     fetchDeepgramKey,
     startRecording,
     pauseRecording,
@@ -530,7 +428,5 @@ export function useVoiceRecording() {
     setTranscript,
     setCurrentState,
     setError,
-    dismissNoisySuggestion,
-    resetNoiseState,
   };
 }

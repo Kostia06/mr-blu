@@ -13,7 +13,6 @@ import {
   Pencil,
   Check,
   AlertTriangle,
-  Search,
   Loader2,
 } from 'lucide-react';
 import { ReviewModal } from '@/components/review/ReviewModal';
@@ -372,7 +371,6 @@ export function ReviewPreviewCard({
                 clientSuggestions.length > 0 && (
                   <div class="client-suggestions-inline">
                     <div class="suggestions-header-inline">
-                      <Search size={14} />
                       <span>{t('review.didYouMean')}</span>
                     </div>
                     <div class="suggestions-chips">
@@ -476,7 +474,6 @@ export function ReviewPreviewCard({
                 onFocus={handleClientNameFocus}
                 placeholder={t('review.selectDifferentClient')}
               />
-              <Search size={14} class="search-icon-inside" />
             </div>
 
             {showClientDropdown &&

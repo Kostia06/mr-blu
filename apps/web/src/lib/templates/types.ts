@@ -34,6 +34,7 @@ export interface DocumentSourceData {
 		total: number;
 		measurementType?: MeasurementType;
 		dimensions?: string;
+		notes?: string | null;
 	}>;
 	subtotal: number;
 	taxRate: number;
@@ -55,6 +56,8 @@ export interface TemplateLineItem {
 	detailsDisplay: string; // Pre-formatted: "24 × 90 ft = 2,160 sqft" or em-dash for service
 	totalFormatted: string; // Pre-formatted: "$756.00"
 	detailsSubtext: string; // Mobile-only: "156 sqft" (empty for service/simple items)
+	notes: string; // Optional line item note
+	hasNotes: boolean;
 }
 
 /**

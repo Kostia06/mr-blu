@@ -1,0 +1,4 @@
+app_identifier("com.mrblu.app")
+apple_id("ilnkostia-dev@proton.me")
+team_id(ENV['APPLE_TEAM_ID'])
+itc_team_id(ENV['ITC_TEAM_ID'])

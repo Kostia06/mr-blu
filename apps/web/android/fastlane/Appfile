@@ -1,0 +1,2 @@
+json_key_file(ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || "../../../.keys/google-play-key.json")
+package_name("com.mrblu.app")

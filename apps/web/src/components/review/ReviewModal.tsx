@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { X } from 'lucide-react';
 import type { ComponentChildren } from 'preact';
+import { useModalState } from '@/stores/appStateStore';
 
 interface ReviewModalProps {
   open: boolean;
@@ -10,6 +11,7 @@ interface ReviewModalProps {
 }
 
 export function ReviewModal({ open, title, onClose, children }: ReviewModalProps) {
+  useModalState(open);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

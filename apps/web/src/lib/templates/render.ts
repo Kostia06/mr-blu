@@ -69,11 +69,14 @@ export function prepareTemplateData(
 		const isServiceJob = mt === 'service' || mt === 'job';
 		const detailsSubtext = !isSimple && !isServiceJob ? detailsDisplay : '';
 
+		const notes = item.notes || '';
 		return {
 			description: item.description,
 			detailsDisplay,
 			totalFormatted: formatCurrency(item.total),
-			detailsSubtext
+			detailsSubtext,
+			notes,
+			hasNotes: Boolean(notes),
 		};
 	});
 
@@ -154,10 +157,16 @@ export function renderTemplate(template: string, data: RenderedTemplateData): st
 					/\{\{#detailsSubtext\}\}([\s\S]*?)\{\{\/detailsSubtext\}\}/g,
 					(_: string, inner: string) => (item.detailsSubtext ? inner : '')
 				);
+				// Handle hasNotes conditional section
+				itemHtml = itemHtml.replace(
+					/\{\{#hasNotes\}\}([\s\S]*?)\{\{\/hasNotes\}\}/g,
+					(_: string, inner: string) => (item.hasNotes ? inner : '')
+				);
 				// Replace item-level variables
 				itemHtml = itemHtml.replace(/\{\{description\}\}/g, escapeHtml(item.description));
 				itemHtml = itemHtml.replace(/\{\{totalFormatted\}\}/g, escapeHtml(item.totalFormatted));
 				itemHtml = itemHtml.replace(/\{\{detailsSubtext\}\}/g, escapeHtml(item.detailsSubtext));
+				itemHtml = itemHtml.replace(/\{\{notes\}\}/g, escapeHtml(item.notes));
 				return itemHtml;
 			})
 			.join('');

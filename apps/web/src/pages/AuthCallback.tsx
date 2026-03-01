@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'preact/hooks'
+import { Capacitor } from '@capacitor/core'
 import { supabase } from '@/lib/supabase/client'
 import { navigateTo } from '@/lib/navigation'
 import { Spinner } from '@/components/ui/Spinner'
 import { ExternalLink, Copy, Check } from 'lucide-react'
 
 function isInAppBrowser(): boolean {
+  if (Capacitor.isNativePlatform()) return false
   const ua = navigator.userAgent || ''
   return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|GSA|CriOS.*wv|wv\)/.test(ua)
     || /\bwv\b/.test(ua)
@@ -72,6 +74,11 @@ export function AuthCallbackPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         window.history.replaceState(null, '', '/auth/callback')
+        const hashType = hashParams.get('type')
+        if (hashType === 'recovery') {
+          navigateTo('/reset-password')
+          return
+        }
         navigateTo(next)
         return
       }

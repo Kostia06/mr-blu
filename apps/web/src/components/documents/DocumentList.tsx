@@ -7,7 +7,6 @@ import {
   Calculator,
   X,
   Mic,
-  Plus,
   Trash2,
   Pencil,
   ChevronDown,
@@ -483,20 +482,11 @@ export function DocumentList({
               <ChevronLeft size={22} strokeWidth={2} />
             </button>
             <h1 class="font-[var(--font-display,system-ui)] text-lg font-bold text-[var(--gray-900,#0f172a)] m-0 tracking-[-0.02em]">{t('documents.title')}</h1>
-            <div class="flex items-center gap-1">
-              <button
-                class="w-11 h-11 flex items-center justify-center bg-[var(--glass-white-50,rgba(255,255,255,0.5))] backdrop-blur-[12px] border-none rounded-[var(--radius-button,14px)] text-[var(--blu-primary,#0066ff)] cursor-pointer"
-                onClick={() => navigateTo('/dashboard/review?mode=manual')}
-                aria-label={t('documents.createDocument')}
-              >
-                <Plus size={22} strokeWidth={2} />
+            {filteredDocs.length > 0 && (
+              <button class="w-11 h-11 flex items-center justify-center bg-transparent border-none text-sm font-semibold text-[var(--blu-primary,#0066ff)] cursor-pointer" onClick={enterSelectMode}>
+                {t('common.select')}
               </button>
-              {filteredDocs.length > 0 && (
-                <button class="w-11 h-11 flex items-center justify-center bg-transparent border-none text-sm font-semibold text-[var(--blu-primary,#0066ff)] cursor-pointer" onClick={enterSelectMode}>
-                  {t('common.select')}
-                </button>
-              )}
-            </div>
+            )}
           </>
         )}
       </header>

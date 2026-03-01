@@ -49,8 +49,6 @@ export function DashboardHome({ firstName, pendingReview }: DashboardHomeProps) 
   const audioLevel = voice.audioLevel;
   const error = voice.error;
   const isRecordingActive = voice.isRecordingActive;
-  const showNoisySuggestion = voice.showNoisySuggestion;
-
   const isPaused = currentState === 'paused';
   const isProcessing = currentState === 'processing';
   const isRecordingMode = currentState !== 'idle';
@@ -103,6 +101,7 @@ export function DashboardHome({ firstName, pendingReview }: DashboardHomeProps) 
 
   const handleButtonAction = useCallback(() => {
     if (currentState === 'idle') {
+      setRecordingMode(true);
       voice.startRecording(t);
     } else if (currentState === 'recording') {
       voice.pauseRecording();
@@ -113,7 +112,7 @@ export function DashboardHome({ firstName, pendingReview }: DashboardHomeProps) 
         voice.resumeRecording();
       }
     }
-  }, [currentState, t, voice]);
+  }, [currentState, t, voice, setRecordingMode]);
 
   const handleGenerate = useCallback(async () => {
     if (!transcript.trim()) return;
@@ -243,19 +242,6 @@ export function DashboardHome({ firstName, pendingReview }: DashboardHomeProps) 
             </Link>
             <button class="name-banner-close" onClick={dismissNameBanner}>
               <X size={16} />
-            </button>
-          </div>
-        )}
-
-        {/* Noise suggestion hint */}
-        {showNoisySuggestion && (
-          <div class="noise-hint">
-            <span>{t('dashboard.noisySuggestion')}</span>
-            <button
-              class="noise-hint-dismiss"
-              onClick={() => voice.dismissNoisySuggestion()}
-            >
-              <X size={14} />
             </button>
           </div>
         )}
@@ -484,46 +470,6 @@ const componentStyles = `
 
   .name-banner-close:hover {
     background: rgba(245, 158, 11, 0.2);
-  }
-
-  /* Noise suggestion hint */
-  .noise-hint {
-    position: absolute;
-    top: calc(var(--space-3, 12px) + var(--safe-area-top, 0px));
-    left: var(--page-padding-x, 20px);
-    right: var(--page-padding-x, 20px);
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: var(--space-2, 8px);
-    padding: var(--space-3, 12px) var(--space-4, 16px);
-    background: rgba(234, 179, 8, 0.1);
-    border: 1px solid rgba(234, 179, 8, 0.3);
-    border-radius: var(--radius-lg, 16px);
-    font-size: var(--text-sm, 14px);
-    color: #a16207;
-  }
-
-  .noise-hint span {
-    flex: 1;
-  }
-
-  .noise-hint-dismiss {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-md, 12px);
-    color: #a16207;
-    cursor: pointer;
-  }
-
-  .noise-hint-dismiss:hover {
-    background: rgba(234, 179, 8, 0.2);
   }
 
   /* Pending Review Card — matches .type-option sizing */

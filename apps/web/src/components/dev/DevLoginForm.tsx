@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'preact/hooks';
 import { Terminal, Loader2, LogIn, UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
-import { devLogin, AuthError } from '@/lib/api/auth';
+import { loginWithPassword, AuthError } from '@/lib/api/auth';
 
 type Mode = 'login' | 'signup';
 
@@ -19,7 +19,7 @@ export function DevLoginForm() {
     setSuccess(null);
 
     try {
-      await devLogin(email, password);
+      await loginWithPassword(email, password);
       setSuccess('Signed in successfully! Redirecting...');
       setTimeout(() => {
         window.location.href = '/dashboard';

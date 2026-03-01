@@ -56,7 +56,7 @@ FOR document_action:
   "intentType": "document_action",
   "documentType": "invoice" or "estimate",
   "client": {"name": "string or null", "firstName": "string or null", "lastName": "string or null", "email": "string or null", "phone": "string or null", "address": "string or null"},
-  "items": [{"description": "string", "quantity": number, "unit": "string", "rate": number, "total": number, "material": "string or null", "measurementType": "sqft/linear_ft/unit/hour/job or null", "dimensions": {"width": number, "length": number, "unit": "ft"} or null}],
+  "items": [{"description": "string", "quantity": number, "unit": "string", "rate": number, "total": number, "material": "string or null", "measurementType": "sqft/linear_ft/unit/hour/job or null", "dimensions": {"width": number, "length": number, "unit": "ft"} or null, "notes": "string or null"}],
   "total": number,
   "taxRate": number or null,
   "taxes": [{"type": "GST/PST/HST/QST/CUSTOM", "name": "string", "rate": number}] or null,
@@ -116,6 +116,13 @@ KEY EXAMPLES:
 - "Turn Jackson's estimate into invoice" -> document_transform
 - "plus GST" -> taxes with GST 5%
 - "Ontario tax" -> taxes with HST 13%
+
+ITEM NOTES RULES:
+- Extract any extra context, conditions, or clarifications as "notes" on the item
+- Examples: "labor, this is a rough estimate" -> notes: "Rough estimate", "drywall includes disposal" -> notes: "Includes disposal"
+- Phrases like "note that", "keep in mind", "includes", "excludes", "approximately", "per site visit" indicate notes
+- If no extra context, set notes to null
+- Notes should be concise (1 short sentence max)
 
 MEASUREMENT TYPE RULES for items:
 - For flat-rate services (labor, consultation, cleanup), use measurementType: "service" with quantity: 1

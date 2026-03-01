@@ -154,9 +154,33 @@ export const microphone = {
 
 // Deep link handler
 function handleDeepLink(url: string) {
-  const parsed = new URL(url);
-  if (parsed.pathname.includes('/auth/callback')) {
-    window.location.href = url;
+  if (!url) return;
+
+  try {
+    // For custom schemes like mrblu://auth/callback?next=/dashboard#access_token=...
+    // new URL() parses 'auth' as the host and '/callback' as pathname
+    const parsed = new URL(url);
+    const isAuthCallback =
+      parsed.host === 'auth' ||
+      url.includes('/auth/callback') ||
+      (parsed.pathname || '').includes('/auth/callback');
+
+    if (isAuthCallback) {
+      const search = parsed.search || '';
+      const hash = parsed.hash || '';
+      window.location.href = `/auth/callback${search}${hash}`;
+    }
+  } catch {
+    // Fallback: try string matching if URL parsing fails
+    if (url.includes('auth/callback')) {
+      const questionIdx = url.indexOf('?');
+      const hashIdx = url.indexOf('#');
+      const search = questionIdx >= 0
+        ? url.slice(questionIdx, hashIdx >= 0 ? hashIdx : undefined)
+        : '';
+      const hash = hashIdx >= 0 ? url.slice(hashIdx) : '';
+      window.location.href = `/auth/callback${search}${hash}`;
+    }
   }
 }
 
@@ -167,7 +191,18 @@ export async function initializeNative() {
   await splashScreen.hide();
   statusBar.setLight();
 
+  // Handle deep links when app is already running
   appLifecycle.onUrlOpen(({ url }) => handleDeepLink(url));
+
+  // Handle deep link that launched the app (cold start)
+  try {
+    const launchUrl = await App.getLaunchUrl();
+    if (launchUrl?.url) {
+      handleDeepLink(launchUrl.url);
+    }
+  } catch {
+    // getLaunchUrl not available or failed
+  }
 
   if (isAndroid) {
     appLifecycle.onBackButton(() => window.history.back());

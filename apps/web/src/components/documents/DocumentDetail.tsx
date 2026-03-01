@@ -24,6 +24,8 @@ import { DocumentTemplate } from './DocumentTemplate';
 import type { DocumentData } from './DocumentTemplate';
 import { navigateTo } from '@/lib/navigation';
 import { updateDocument, deleteDocument, sendDocument, generatePDF } from '@/lib/api/documents';
+import { DeleteConfirmModal } from '@/components/modals/DeleteConfirmModal';
+import { QuickSendModal } from '@/components/modals/QuickSendModal';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -70,6 +72,7 @@ interface EditableLineItem {
   unit: string;
   rate: number;
   total: number;
+  notes: string;
 }
 
 interface EditData {
@@ -106,10 +109,6 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
 function buildEditData(doc: DocumentRecord): EditData {
   return {
     type: doc.type || 'invoice',
@@ -127,6 +126,7 @@ function buildEditData(doc: DocumentRecord): EditData {
       unit: item.unit || 'ea',
       rate: item.rate || 0,
       total: item.total || 0,
+      notes: item.notes || '',
     })),
     tax_rate: normalizeTaxRate(doc.tax_rate),
     due_date: doc.due_date || '',
@@ -171,6 +171,7 @@ function buildTemplateDocument(
         total: item.total || 0,
         measurementType: item.measurementType,
         dimensions: dims,
+        notes: item.notes || undefined,
       };
     }),
     subtotal: doc.subtotal || doc.total || 0,
@@ -241,10 +242,9 @@ export function DocumentDetail({ document: doc, profile, userMetadata }: Documen
     [calculatedSubtotal, calculatedTaxAmount]
   );
 
-  // Email modal
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
-  const [sendError, setSendError] = useState('');
+  // Modals
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Auto-start editing if ?edit=true
   useEffect(() => {
@@ -286,7 +286,7 @@ export function DocumentDetail({ document: doc, profile, userMetadata }: Documen
 
     try {
       await updateDocument(doc.id, {
-        type: editData.type,
+        document_type: editData.type,
         document_number: editData.document_number,
         client_id: doc.client_id,
         client_details: {
@@ -301,6 +301,7 @@ export function DocumentDetail({ document: doc, profile, userMetadata }: Documen
           unit: item.unit,
           rate: item.rate,
           total: item.total,
+          notes: item.notes || null,
         })),
         subtotal: calculatedSubtotal,
         tax_rate: editData.tax_rate,
@@ -356,7 +357,7 @@ export function DocumentDetail({ document: doc, profile, userMetadata }: Documen
       ...prev,
       line_items: [
         ...prev.line_items,
-        { id: `item-${Date.now()}`, description: '', quantity: 1, unit: 'ea', rate: 0, total: 0 },
+        { id: `item-${Date.now()}`, description: '', quantity: 1, unit: 'ea', rate: 0, total: 0, notes: '' },
       ],
     }));
   }, []);
@@ -393,68 +394,19 @@ export function DocumentDetail({ document: doc, profile, userMetadata }: Documen
     }
   }, [isGenerating, templateDocument, doc, toast, t]);
 
-  const handleDelete = useCallback(async () => {
-    if (!confirm(t('docDetail.confirmDelete'))) return;
+  const handleDelete = useCallback(() => {
+    setShowDeleteModal(true);
+    setShowMenu(false);
+  }, []);
 
-    setIsDeleting(true);
-    try {
-      await deleteDocument(doc.id, doc.type);
-      navigateTo('/dashboard/documents');
-    } catch (error) {
-      console.error('Delete error:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [doc.id, doc.type, t]);
+  const confirmDelete = useCallback(async (documentId: string) => {
+    await deleteDocument(documentId, doc.type);
+    navigateTo('/dashboard/documents');
+  }, [doc.type]);
 
   const handleSendEmail = useCallback(() => {
-    const clientEmail = doc.clientDetails?.email;
-    if (!clientEmail) {
-      setEmailInput('');
-      setShowEmailModal(true);
-      setShowMenu(false);
-      return;
-    }
-    sendEmail(clientEmail);
-  }, [doc.clientDetails]);
-
-  const sendEmail = useCallback(
-    async (recipientEmail: string) => {
-      if (isSending) return;
-      setIsSending(true);
-      setSendError('');
-
-      try {
-        await sendDocument(doc.id, doc.type || 'invoice', 'email', {
-          email: recipientEmail,
-          name: doc.client || '',
-        });
-        setShowEmailModal(false);
-        toast.success(t('docDetail.emailSuccess'));
-      } catch (err) {
-        const message = err instanceof Error ? err.message : t('docDetail.networkError');
-        setSendError(message);
-      } finally {
-        setIsSending(false);
-      }
-    },
-    [isSending, doc.id, doc.type, doc.client, toast, t]
-  );
-
-  const handleEmailSubmit = useCallback(
-    (e: Event) => {
-      e.preventDefault();
-      if (emailInput && isValidEmail(emailInput)) {
-        sendEmail(emailInput);
-      }
-    },
-    [emailInput, sendEmail]
-  );
-
-  const closeEmailModal = useCallback(() => {
-    setShowEmailModal(false);
-    setEmailInput('');
-    setSendError('');
+    setShowSendModal(true);
+    setShowMenu(false);
   }, []);
 
   /* ---------------------------------------------------------------- */
@@ -642,66 +594,34 @@ export function DocumentDetail({ document: doc, profile, userMetadata }: Documen
         )}
       </main>
 
-      {/* Email Modal */}
-      {showEmailModal && (
-        <div class="modal-backdrop" onClick={closeEmailModal} role="dialog" aria-modal="true">
-          <div
-            class="modal-content"
-            onClick={(e: MouseEvent) => e.stopPropagation()}
-          >
-            <div class="modal-header">
-              <h2>{t('docDetail.emailModalTitle')}</h2>
-              <button
-                class="modal-close"
-                onClick={closeEmailModal}
-                aria-label={t('common.close')}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleEmailSubmit}>
-              <div class="modal-body">
-                <p class="modal-description">{t('docDetail.emailModalDesc')}</p>
-                <label class="email-label">
-                  <span>{t('docDetail.emailAddress')}</span>
-                  <input
-                    type="email"
-                    value={emailInput}
-                    onInput={(e) => setEmailInput((e.target as HTMLInputElement).value)}
-                    placeholder={t('docDetail.emailPlaceholder')}
-                    required
-                    autoComplete="email"
-                    class="email-input"
-                  />
-                </label>
-                {sendError && <p class="error-message">{sendError}</p>}
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn-secondary" onClick={closeEmailModal}>
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  class="btn-primary"
-                  disabled={isSending || !emailInput || !isValidEmail(emailInput)}
-                >
-                  {isSending ? (
-                    <>
-                      <Loader2 size={16} class="spinning" />
-                      <span>{t('docDetail.sending')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mail size={16} />
-                      <span>{t('docDetail.sendEmail')}</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Send Modal */}
+      <QuickSendModal
+        open={showSendModal}
+        document={{
+          id: doc.id,
+          type: (doc.type || 'invoice') as 'invoice' | 'estimate' | 'contract',
+          title: `${doc.documentType || doc.type || 'Invoice'} ${doc.document_number || ''}`.trim(),
+          client: doc.client || '',
+          clientEmail: doc.clientDetails?.email,
+          amount: doc.total ?? undefined,
+        }}
+        onClose={() => setShowSendModal(false)}
+        onSuccess={() => toast.success(t('docDetail.emailSuccess'))}
+      />
+
+      {/* Delete Modal */}
+      <DeleteConfirmModal
+        open={showDeleteModal}
+        document={{
+          id: doc.id,
+          type: (doc.type || 'invoice') as 'invoice' | 'estimate' | 'contract',
+          title: `${doc.documentType || doc.type || 'Invoice'} ${doc.document_number || ''}`.trim(),
+          client: doc.client || '',
+          amount: doc.total ?? undefined,
+        }}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+      />
 
       <style>{STYLES}</style>
     </>
@@ -944,6 +864,19 @@ function EditLineItemsSection({
                   <div class="field-value">{fmt(item.total)}</div>
                 </div>
               </div>
+              <div class="field full">
+                <input
+                  id={`item-notes-${item.id}`}
+                  type="text"
+                  class="field-input"
+                  value={item.notes}
+                  onInput={(e) =>
+                    onUpdate(item.id, 'notes', (e.target as HTMLInputElement).value)
+                  }
+                  placeholder={t('placeholder.addNote')}
+                  style={{ fontSize: '13px', color: 'var(--gray-500, #64748b)' }}
+                />
+              </div>
             </div>
           </div>
         ))}
@@ -1079,6 +1012,7 @@ const STYLES = `
     padding: var(--page-padding-x, 20px);
     padding-top: calc(12px + var(--safe-area-top, 0px));
     padding-bottom: 100px;
+    background: transparent;
   }
 
   .page-header {

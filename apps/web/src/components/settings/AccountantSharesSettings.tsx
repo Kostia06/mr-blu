@@ -12,6 +12,7 @@ import {
   Loader2,
   Trash2,
   Pencil,
+  Send,
 } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
 import { useToastStore } from '@/stores/toastStore';
@@ -21,6 +22,7 @@ import {
   getAccountantShares,
   revokeAccountantShare,
   deleteAccountantShare,
+  resendAccountantShareEmail,
 } from '@/lib/api/accountant-shares';
 import type { AccountantShare } from '@/lib/api/accountant-shares';
 import { cn } from '@/lib/utils';
@@ -61,6 +63,7 @@ export function AccountantSharesSettings({ user }: AccountantSharesSettingsProps
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [editingShare, setEditingShare] = useState<AccountantShare | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const loadShares = useCallback(async () => {
     try {
@@ -125,6 +128,18 @@ export function AccountantSharesSettings({ user }: AccountantSharesSettingsProps
     setTimeout(() => setCopiedId(null), 2000);
   }, []);
 
+  const handleResend = useCallback(async (share: AccountantShare) => {
+    setResendingId(share.id);
+    try {
+      await resendAccountantShareEmail(share);
+      toast.success(t('accountant.resendSuccess'));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setResendingId(null);
+    }
+  }, [toast, t]);
+
   const activeShares = shares.filter((s) => s.status === 'active');
   const inactiveShares = shares.filter((s) => s.status !== 'active');
 
@@ -183,10 +198,12 @@ export function AccountantSharesSettings({ user }: AccountantSharesSettingsProps
                       t={t}
                       isRevoking={revokingId === share.id}
                       isDeleting={false}
+                      isResending={resendingId === share.id}
                       isCopied={copiedId === share.id}
                       onRevoke={() => handleRevoke(share.id)}
                       onCopy={() => handleCopyLink(share)}
                       onEdit={() => setEditingShare(share)}
+                      onResend={() => handleResend(share)}
                       onDelete={() => {}}
                     />
                   ))}
@@ -244,10 +261,12 @@ function ShareCard({
   t,
   isRevoking,
   isDeleting,
+  isResending,
   isCopied,
   onRevoke,
   onCopy,
   onEdit,
+  onResend,
   onDelete,
 }: {
   share: AccountantShare;
@@ -255,10 +274,12 @@ function ShareCard({
   t: (key: string) => string;
   isRevoking: boolean;
   isDeleting: boolean;
+  isResending?: boolean;
   isCopied: boolean;
   onRevoke: () => void;
   onCopy: () => void;
   onEdit?: () => void;
+  onResend?: () => void;
   onDelete: () => void;
 }) {
   const isActive = share.status === 'active';
@@ -330,6 +351,16 @@ function ShareCard({
             {isCopied ? <Check size={14} /> : <Copy size={14} />}
             {isCopied ? t('accountant.copied') : t('accountant.copyLink')}
           </button>
+          {onResend && (
+            <button
+              class="flex items-center justify-center gap-2 py-2.5 px-4 border-none rounded-xl text-[13px] font-semibold cursor-pointer bg-[rgba(0,102,255,0.08)] text-[var(--blu-primary,#0066ff)]"
+              onClick={onResend}
+              disabled={isResending}
+            >
+              {isResending ? <Loader2 size={14} class="animate-spin" /> : <Send size={14} />}
+              {t('accountant.resend')}
+            </button>
+          )}
           {onEdit && (
             <button
               class="flex items-center justify-center gap-2 py-2.5 px-4 border-none rounded-xl text-[13px] font-semibold cursor-pointer bg-[var(--gray-100,#f1f5f9)] text-[var(--gray-600,#475569)]"

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
 import { Share2, Check, X, AlertCircle, Loader2, Mail, User, Copy, Calendar, FileText } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
+import { useModalState } from '@/stores/appStateStore';
 import { supabase } from '@/lib/supabase/client';
 import { createAccountantShare, updateAccountantShare } from '@/lib/api/accountant-shares';
 import type { ShareType, AccountantShare } from '@/lib/api/accountant-shares';
@@ -33,6 +34,7 @@ export function ShareWithAccountantModal({
   selectedDocumentIds = [],
   editingShare = null,
 }: ShareWithAccountantModalProps) {
+  useModalState(open);
   const isEditing = !!editingShare;
   const { t } = useI18nStore();
 

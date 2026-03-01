@@ -1,7 +1,9 @@
 import { supabase } from '@/lib/supabase/client';
+import { isNative } from '@/lib/native';
 
 const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_RETRIES = 2;
+const API_BASE = isNative ? 'https://mrblu.com' : '';
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
@@ -56,7 +58,7 @@ async function fetchWithRetry(
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const headers = await getAuthHeaders();
-  const response = await fetchWithRetry(path, {
+  const response = await fetchWithRetry(`${API_BASE}${path}`, {
     method: 'POST',
     headers,
     body: JSON.stringify(body),
@@ -72,7 +74,7 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
 
 async function apiGet<T>(path: string): Promise<T> {
   const headers = await getAuthHeaders();
-  const response = await fetchWithRetry(path, { headers });
+  const response = await fetchWithRetry(`${API_BASE}${path}`, { headers });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Request failed' }));
@@ -124,7 +126,7 @@ export async function fetchSharedDocument(params: {
     token: params.token,
   });
 
-  const response = await fetch(`/api/documents/share?${query}`);
+  const response = await fetch(`${API_BASE}/api/documents/share?${query}`);
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Document not found' }));
     throw new Error((error as { error?: string }).error || 'Document not found');
@@ -134,4 +136,23 @@ export async function fetchSharedDocument(params: {
 
 export async function respondToFeedback(id: string, response: string): Promise<void> {
   await apiPost('/api/feedback/respond', { id, response });
+}
+
+export async function transcribeAudio(audioBlob: Blob): Promise<string> {
+  const headers = await getAuthHeaders();
+  // Use the blob's actual MIME type
+  headers['Content-Type'] = audioBlob.type || 'audio/webm';
+
+  const response = await fetchWithRetry(`${API_BASE}/api/voice/transcribe`, {
+    method: 'POST',
+    headers,
+    body: audioBlob,
+  });
+
+  if (!response.ok) {
+    throw new Error('Transcription failed');
+  }
+
+  const result = (await response.json()) as { transcript: string };
+  return result.transcript || '';
 }

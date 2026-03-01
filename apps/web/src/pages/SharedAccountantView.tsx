@@ -17,7 +17,7 @@ import {
 import { validateShareAccess, getSharedDocuments } from '@/lib/api/accountant-shares';
 import { DocumentTemplate } from '@/components/documents/DocumentTemplate';
 import { generatePDF } from '@/lib/api/documents';
-import { BackgroundBlobs } from '@/components/landing/BackgroundBlobs';
+
 import { supabase } from '@/lib/supabase/client';
 import type { AccountantShare, SharedDocumentRow, SharedLineItem } from '@/lib/api/accountant-shares';
 
@@ -38,113 +38,63 @@ function formatDate(dateString: string): string {
   });
 }
 
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+function escapeCsv(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
 }
 
-function cell(value: string, type: 'String' | 'Number' = 'String', styleId?: string): string {
-  const style = styleId ? ` ss:StyleID="${styleId}"` : '';
-  return `<Cell${style}><Data ss:Type="${type}">${escapeXml(value)}</Data></Cell>`;
-}
+function buildCsv(docs: SharedDocumentRow[]): string {
+  const headers = ['Invoice #', 'Client', 'Date', 'Due Date', 'Status', 'Description', 'Qty', 'Unit', 'Rate', 'Item Total', 'Subtotal', 'Tax Rate', 'Tax Amount', 'Total', 'Notes'];
 
-function numCell(value: number, styleId?: string): string {
-  const style = styleId ? ` ss:StyleID="${styleId}"` : '';
-  return `<Cell${style}><Data ss:Type="Number">${value}</Data></Cell>`;
-}
-
-function col(width: number): string {
-  return `<Column ss:AutoFitWidth="0" ss:Width="${width}"/>`;
-}
-
-function buildExcelXml(docs: SharedDocumentRow[]): string {
-  const invoiceRows = docs.map((doc) => {
+  const rows = docs.flatMap((doc) => {
+    const items = (doc.line_items || []) as SharedLineItem[];
     const client = doc.clients?.name || '';
     const date = doc.created_at ? formatDate(doc.created_at) : '';
     const dueDate = doc.due_date ? formatDate(doc.due_date) : '';
-    return [
-      '<Row>',
-      cell(doc.document_number || ''),
-      cell(client),
-      cell(date),
-      cell(dueDate),
-      cell(doc.status || ''),
-      numCell(doc.subtotal || 0, 'Currency'),
-      numCell((doc.tax_rate || 0) / 100, 'Pct'),
-      numCell(doc.tax_amount || 0, 'Currency'),
-      numCell(doc.total || 0, 'Currency'),
-      cell(doc.notes || ''),
-      '</Row>',
-    ].join('');
+
+    if (items.length === 0) {
+      return [[
+        escapeCsv(doc.document_number || ''),
+        escapeCsv(client),
+        escapeCsv(date),
+        escapeCsv(dueDate),
+        escapeCsv(doc.status || ''),
+        '', '', '', '', '',
+        String(doc.subtotal || 0),
+        String((doc.tax_rate || 0) / 100),
+        String(doc.tax_amount || 0),
+        String(doc.total || 0),
+        escapeCsv(doc.notes || ''),
+      ].join(',')];
+    }
+
+    return items.map((item, i) => [
+      escapeCsv(doc.document_number || ''),
+      escapeCsv(client),
+      i === 0 ? escapeCsv(date) : '',
+      i === 0 ? escapeCsv(dueDate) : '',
+      i === 0 ? escapeCsv(doc.status || '') : '',
+      escapeCsv(item.description || ''),
+      String(item.quantity || 0),
+      escapeCsv(item.unit || ''),
+      String(item.rate || 0),
+      String(item.total || 0),
+      i === 0 ? String(doc.subtotal || 0) : '',
+      i === 0 ? String((doc.tax_rate || 0) / 100) : '',
+      i === 0 ? String(doc.tax_amount || 0) : '',
+      i === 0 ? String(doc.total || 0) : '',
+      i === 0 ? escapeCsv(doc.notes || '') : '',
+    ].join(','));
   });
 
-  const lineItemRows = docs.flatMap((doc) => {
-    const items = (doc.line_items || []) as SharedLineItem[];
-    const client = doc.clients?.name || '';
-    return items.map((item) => [
-      '<Row>',
-      cell(doc.document_number || ''),
-      cell(client),
-      cell(item.description || ''),
-      numCell(item.quantity || 0),
-      cell(item.unit || ''),
-      numCell(item.rate || 0, 'Currency'),
-      numCell(item.total || 0, 'Currency'),
-      '</Row>',
-    ].join(''));
-  });
-
-  const hdr = (label: string) => cell(label, 'String', 'Header');
-
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<?mso-application progid="Excel.Sheet"?>',
-    '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"',
-    ' xmlns:o="urn:schemas-microsoft-com:office:office"',
-    ' xmlns:x="urn:schemas-microsoft-com:office:excel"',
-    ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">',
-    '<ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">',
-    '<ProtectStructure>False</ProtectStructure>',
-    '<ProtectWindows>False</ProtectWindows>',
-    '</ExcelWorkbook>',
-    '<Styles>',
-    '<Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Bottom"/><Font ss:FontName="Calibri" ss:Size="11"/></Style>',
-    '<Style ss:ID="Header"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><Interior ss:Color="#E2E8F0" ss:Pattern="Solid"/><Alignment ss:Vertical="Bottom"/></Style>',
-    '<Style ss:ID="Currency"><NumberFormat ss:Format="&quot;$&quot;#,##0.00"/></Style>',
-    '<Style ss:ID="Pct"><NumberFormat ss:Format="0.00%"/></Style>',
-    '<Style ss:ID="CurrencyHeader"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><Interior ss:Color="#E2E8F0" ss:Pattern="Solid"/><NumberFormat ss:Format="&quot;$&quot;#,##0.00"/></Style>',
-    '</Styles>',
-    // Sheet 1: Invoices
-    '<Worksheet ss:Name="Invoices">',
-    '<Table>',
-    col(90), col(140), col(90), col(90), col(70), col(90), col(75), col(90), col(90), col(180),
-    '<Row>',
-    hdr('Invoice #'), hdr('Client'), hdr('Date'), hdr('Due Date'), hdr('Status'),
-    hdr('Subtotal'), hdr('Tax Rate'), hdr('Tax Amount'), hdr('Total'), hdr('Notes'),
-    '</Row>',
-    ...invoiceRows,
-    '</Table>',
-    '</Worksheet>',
-    // Sheet 2: Line Items
-    '<Worksheet ss:Name="Line Items">',
-    '<Table>',
-    col(90), col(140), col(200), col(60), col(70), col(90), col(90),
-    '<Row>',
-    hdr('Invoice #'), hdr('Client'), hdr('Item Description'), hdr('Qty'), hdr('Unit'), hdr('Rate'), hdr('Total'),
-    '</Row>',
-    ...lineItemRows,
-    '</Table>',
-    '</Worksheet>',
-    '</Workbook>',
-  ].join('\n');
+  return [headers.join(','), ...rows].join('\n');
 }
 
-function downloadExcelXml(content: string, filename: string) {
+function downloadCsv(content: string, filename: string) {
   const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-  const blob = new Blob([bom, content], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  const blob = new Blob([bom, content], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -364,17 +314,17 @@ export function SharedAccountantViewPage() {
     }
   }, [share]);
 
-  const handleExportExcel = useCallback(() => {
+  const handleExportCsv = useCallback(() => {
     if (!documents.length) return;
 
     const today = new Date().toISOString().split('T')[0];
-    const xml = buildExcelXml(documents);
-    downloadExcelXml(xml, `invoices-export-${today}.xls`);
+    const csv = buildCsv(documents);
+    downloadCsv(csv, `invoices-export-${today}.csv`);
 
     if (share) {
       supabase
         .from('accountant_access_logs')
-        .insert({ share_id: share.id, action: 'export_excel' })
+        .insert({ share_id: share.id, action: 'export_csv' })
         .then(() => {});
     }
   }, [documents, share]);
@@ -454,7 +404,6 @@ export function SharedAccountantViewPage() {
 
   return (
     <div class="min-h-screen bg-[var(--gray-50,#f8fafc)]" style={{ position: 'relative' }}>
-      <BackgroundBlobs variant="full" intensity="subtle" />
       <style>{sharedViewStyles}</style>
 
       <header class="sv-main-header">
@@ -467,9 +416,9 @@ export function SharedAccountantViewPage() {
             <p class="sv-brand-subtitle">View Only</p>
           </div>
           {documents.length > 0 && (
-            <button class="sv-export-btn" onClick={handleExportExcel}>
+            <button class="sv-export-btn" onClick={handleExportCsv}>
               <FileSpreadsheet size={16} />
-              Export Excel
+              Export CSV
             </button>
           )}
         </div>

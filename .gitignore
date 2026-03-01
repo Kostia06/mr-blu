@@ -37,3 +37,25 @@ coverage
 # Cloudflare
 .wrangler
 .dev.vars
+
+# Capacitor / Native
+apps/web/ios/App/Pods
+apps/web/ios/App/build
+apps/web/android/.gradle
+apps/web/android/app/build
+apps/web/android/app/release.keystore
+apps/web/android/keystore.properties
+apps/web/android/play-store-key.json
+
+# Fastlane
+apps/web/ios/App/fastlane/report.xml
+apps/web/android/fastlane/report.xml
+
+# Store credentials (NEVER commit)
+apps/web/.keys/*
+!apps/web/.keys/.gitkeep
+!apps/web/.keys/*.example.*
+*.p8
+*.keystore
+*.jks
+google-play-key.json

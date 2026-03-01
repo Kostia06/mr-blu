@@ -1,15 +1,34 @@
 import type { Env, AuthenticatedData } from '../types';
 
-const PUBLIC_PATHS = ['/api/health', '/api/documents/share'];
+const PUBLIC_PATHS = ['/api/health', '/api/documents/share', '/api/beta/signup'];
+const ALLOWED_ORIGINS = [
+  'capacitor://localhost',
+  'https://localhost',
+  'http://localhost',
+  'https://mrblu.com',
+  'https://mr-blu.pages.dev',
+];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 }
 
-function jsonResponse(body: Record<string, unknown>, status = 200): Response {
+function getCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('Origin') || '';
+  const isAllowed = ALLOWED_ORIGINS.some((o) => origin.startsWith(o));
+  if (!isAllowed) return {};
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400',
+  };
+}
+
+function jsonResponse(body: Record<string, unknown>, status = 200, cors: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...cors },
   });
 }
 
@@ -39,14 +58,24 @@ async function verifyAuth(
 }
 
 export const onRequest: PagesFunction<Env, string, AuthenticatedData>[] = [
-  // Error handling
+  // CORS preflight + headers
   async (context) => {
+    const cors = getCorsHeaders(context.request);
+
+    if (context.request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: cors });
+    }
+
     try {
-      return await context.next();
+      const response = await context.next();
+      for (const [key, value] of Object.entries(cors)) {
+        response.headers.set(key, value);
+      }
+      return response;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Internal server error';
       console.error('Unhandled error:', message);
-      return jsonResponse({ error: message }, 500);
+      return jsonResponse({ error: message }, 500, cors);
     }
   },
 
@@ -60,7 +89,8 @@ export const onRequest: PagesFunction<Env, string, AuthenticatedData>[] = [
 
     const user = await verifyAuth(context.request, context.env);
     if (!user) {
-      return jsonResponse({ error: 'Unauthorized' }, 401);
+      const cors = getCorsHeaders(context.request);
+      return jsonResponse({ error: 'Unauthorized' }, 401, cors);
     }
 
     context.data.user = user;

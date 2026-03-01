@@ -275,6 +275,41 @@ export async function removeDocumentFromShare(
 }
 
 // =============================================
+// RESEND EMAIL
+// =============================================
+
+export async function resendAccountantShareEmail(
+  share: AccountantShare,
+): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new AccountantShareError('Not authenticated');
+
+  const shareUrl = `${window.location.origin}/shared/accountant/${share.accessToken}`;
+
+  const response = await fetch('/api/email/accountant-share', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({
+      shareId: share.id,
+      accountantEmail: share.accountantEmail,
+      accountantName: share.accountantName || undefined,
+      shareUrl,
+      expiresAt: share.expiresAt,
+    }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new AccountantShareError(
+      (data as { error?: string }).error || 'Failed to resend email',
+    );
+  }
+}
+
+// =============================================
 // VALIDATE & FETCH (public, no auth)
 // =============================================
 

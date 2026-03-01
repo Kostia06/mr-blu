@@ -5,11 +5,19 @@ import {
   X,
   Loader2,
   ChevronRight,
+  Lock,
+  Eye,
+  EyeOff,
+  Check,
+  Circle,
+  CheckCircle,
 } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
 import { FormSection } from '@/components/forms/FormSection';
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader';
 import { deleteAccount } from '@/lib/api/user';
+import { updatePassword, AuthError } from '@/lib/api/auth';
+import { validatePassword } from '@/lib/validation/password';
 import { cn } from '@/lib/utils';
 
 interface SecuritySettingsProps {
@@ -36,6 +44,13 @@ function formatLastSignIn(dateString: string | undefined, locale: string): strin
 export function SecuritySettings({ user }: SecuritySettingsProps) {
   const { t, locale } = useI18nStore();
 
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -51,6 +66,41 @@ export function SecuritySettings({ user }: SecuritySettingsProps) {
     () => formatLastSignIn(user?.last_sign_in_at, locale),
     [user?.last_sign_in_at, locale]
   );
+
+  const handleChangePassword = useCallback(async () => {
+    setPasswordError('');
+    setPasswordSuccess(false);
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError(t('auth.passwordsMismatch'));
+      return;
+    }
+
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      setPasswordError(t('auth.passwordRequirements'));
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      await updatePassword(newPassword);
+      setPasswordSuccess(true);
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    } catch (err) {
+      if (err instanceof AuthError) {
+        const translated = t(err.message);
+        setPasswordError(translated !== err.message ? translated : err.message);
+      } else {
+        setPasswordError(t('auth.genericError'));
+      }
+    } finally {
+      setChangingPassword(false);
+    }
+  }, [newPassword, confirmNewPassword, t]);
 
   const openDeleteModal = useCallback(() => {
     setShowDeleteModal(true);
@@ -103,6 +153,103 @@ export function SecuritySettings({ user }: SecuritySettingsProps) {
                 {lastSignIn}
               </span>
             </div>
+          </div>
+        </FormSection>
+
+        <FormSection title={t('security.changePassword')} variant="card">
+          <div class="p-4 flex flex-col gap-4">
+            <div>
+              <label for="settings-new-pw" class="block text-[13px] font-medium text-[var(--gray-700,#334155)] mb-2">
+                {t('security.newPassword')}
+              </label>
+              <div class="relative">
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  id="settings-new-pw"
+                  value={newPassword}
+                  onInput={(e) => setNewPassword((e.target as HTMLInputElement).value)}
+                  placeholder="••••••••"
+                  class="w-full py-3.5 px-4 bg-transparent border border-[var(--gray-200,#e2e8f0)] rounded-[var(--radius-input,12px)] text-[var(--gray-900,#0f172a)] text-[15px] transition-all duration-200 ease-linear box-border pr-12"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((p) => !p)}
+                  class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[var(--gray-400,#94a3b8)] hover:text-[var(--gray-600,#475569)] bg-transparent border-none cursor-pointer transition-colors duration-150"
+                  aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {newPassword.length > 0 && (
+                <div class="mt-2 flex flex-col gap-1">
+                  {([
+                    { key: 'hasMinLength', label: t('auth.req8Chars') },
+                    { key: 'hasUppercase', label: t('auth.reqUppercase') },
+                    { key: 'hasNumber', label: t('auth.reqNumber') },
+                  ] as const).map(({ key, label }) => {
+                    const met = validatePassword(newPassword)[key];
+                    return (
+                      <div key={key} class="flex items-center gap-2 text-xs">
+                        {met ? (
+                          <Check size={12} strokeWidth={2.5} class="text-emerald-500" />
+                        ) : (
+                          <Circle size={12} strokeWidth={2} class="text-[var(--gray-300,#d1d5db)]" />
+                        )}
+                        <span class={met ? 'text-emerald-600' : 'text-[var(--gray-400,#94a3b8)]'}>{label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label for="settings-confirm-pw" class="block text-[13px] font-medium text-[var(--gray-700,#334155)] mb-2">
+                {t('security.confirmNewPassword')}
+              </label>
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                id="settings-confirm-pw"
+                value={confirmNewPassword}
+                onInput={(e) => setConfirmNewPassword((e.target as HTMLInputElement).value)}
+                placeholder="••••••••"
+                class="w-full py-3.5 px-4 bg-transparent border border-[var(--gray-200,#e2e8f0)] rounded-[var(--radius-input,12px)] text-[var(--gray-900,#0f172a)] text-[15px] transition-all duration-200 ease-linear box-border"
+                autoComplete="new-password"
+              />
+            </div>
+
+            {passwordError && (
+              <p class="text-[var(--data-red,#ef4444)] text-[13px] font-medium m-0">{passwordError}</p>
+            )}
+
+            {passwordSuccess && (
+              <div class="flex items-center gap-2 text-emerald-600 text-[13px] font-medium">
+                <CheckCircle size={14} />
+                <span>{t('security.passwordUpdated')}</span>
+              </div>
+            )}
+
+            <button
+              class={cn(
+                'flex items-center justify-center gap-2 py-3.5 px-5 rounded-[var(--radius-button,14px)] text-[15px] font-semibold cursor-pointer transition-all duration-200 ease-linear bg-gradient-to-br from-[var(--blu-primary,#0066ff)] to-[#0ea5e9] text-white border-none shadow-[0_2px_8px_rgba(0,102,255,0.2)]',
+                (changingPassword || !newPassword || !confirmNewPassword) && 'opacity-50 cursor-not-allowed'
+              )}
+              onClick={handleChangePassword}
+              disabled={changingPassword || !newPassword || !confirmNewPassword}
+            >
+              {changingPassword ? (
+                <>
+                  <Loader2 size={16} class="animate-spin" />
+                  <span>{t('security.changePasswordButton')}</span>
+                </>
+              ) : (
+                <>
+                  <Lock size={16} strokeWidth={1.5} />
+                  <span>{t('security.changePasswordButton')}</span>
+                </>
+              )}
+            </button>
           </div>
         </FormSection>
 

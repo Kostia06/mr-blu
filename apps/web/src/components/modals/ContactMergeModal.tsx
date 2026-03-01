@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { Users, ArrowRight, Check, X } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
+import { useModalState } from '@/stores/appStateStore';
 
 interface ClientData {
   name: string;
@@ -44,6 +45,7 @@ export function ContactMergeModal({
   onDecision,
 }: ContactMergeModalProps) {
   const t = useI18nStore((s) => s.t);
+  useModalState(open);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {

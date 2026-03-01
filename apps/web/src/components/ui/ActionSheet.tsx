@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'preact/hooks';
 import { createPortal } from 'preact/compat';
 import { cn } from '@/lib/utils';
 import { haptic } from '@/lib/haptics';
+import { useModalState } from '@/stores/appStateStore';
 
 interface ActionSheetAction {
   label: string;
@@ -27,6 +28,7 @@ export function ActionSheet({
   message,
   cancelLabel = 'Cancel',
 }: ActionSheetProps) {
+  useModalState(open);
   const dismiss = useCallback(() => {
     haptic('light');
     onClose();

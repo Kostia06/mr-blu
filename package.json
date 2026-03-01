@@ -6,14 +6,14 @@
     "dev": "turbo dev",
     "dev:web": "pnpm --filter @mrblu/web dev",
     "dev:api": "pnpm --filter @mrblu/web dev:api",
-    "dev:mobile": "pnpm --filter @mrblu/mobile start",
     "build": "turbo build",
     "build:web": "pnpm --filter @mrblu/web build",
     "deploy": "pnpm build:web && pnpm --filter @mrblu/web deploy",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
+    "setup:mobile": "cd apps/web && bash setup-mobile.sh",
     "clean": "turbo clean && rm -rf node_modules",
-    "postinstall": "mkdir -p apps/web/node_modules/.bin && ln -sf ../../../node_modules/.bin/vite apps/web/node_modules/.bin/vite && ln -sf ../../../node_modules/.bin/tsc apps/web/node_modules/.bin/tsc"
+    "postinstall": "mkdir -p apps/web/node_modules/.bin apps/web/node_modules/@capacitor && ln -sf ../../../node_modules/.bin/vite apps/web/node_modules/.bin/vite && ln -sf ../../../node_modules/.bin/tsc apps/web/node_modules/.bin/tsc && ln -sf ../../../node_modules/.bin/cap apps/web/node_modules/.bin/cap && for pkg in core ios android app haptics keyboard status-bar splash-screen push-notifications camera filesystem share browser; do ln -sfn ../../../node_modules/@capacitor/$pkg apps/web/node_modules/@capacitor/$pkg 2>/dev/null; done"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

@@ -4,14 +4,31 @@ interface StorageAdapter {
   removeItem: (key: string) => void
 }
 
-function testStorage(store: Storage): boolean {
+interface StorageHealth {
+  localStorage: boolean
+  isPrivate: boolean
+}
+
+function testStoragePersistence(store: Storage): boolean {
   try {
-    const key = '__storage_test__'
-    store.setItem(key, key)
+    const key = '__storage_test_' + Date.now()
+    store.setItem(key, 'test')
+    const result = store.getItem(key)
     store.removeItem(key)
-    return true
+    return result === 'test'
   } catch {
     return false
+  }
+}
+
+function detectPrivateBrowsing(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    localStorage.setItem('__private_test__', '1')
+    localStorage.removeItem('__private_test__')
+    return false
+  } catch {
+    return true
   }
 }
 
@@ -26,33 +43,28 @@ const memoryAdapter: StorageAdapter = {
 function createStorageAdapter(): StorageAdapter {
   if (typeof window === 'undefined') return memoryAdapter
 
-  if (testStorage(localStorage)) {
+  const isPrivate = detectPrivateBrowsing()
+  const hasLocalStorage = !isPrivate && testStoragePersistence(localStorage)
+
+  if (hasLocalStorage) {
     return {
       getItem: (key) => {
-        try { return localStorage.getItem(key) }
-        catch { return memoryStore[key] ?? null }
-      },
-      setItem: (key, value) => {
         try {
-          localStorage.setItem(key, value)
-          memoryStore[key] = value
+          return localStorage.getItem(key) ?? memoryStore[key] ?? null
         } catch {
-          memoryStore[key] = value
+          return memoryStore[key] ?? null
         }
       },
+      setItem: (key, value) => {
+        memoryStore[key] = value
+        try { localStorage.setItem(key, value) }
+        catch { /* memoryStore already updated */ }
+      },
       removeItem: (key) => {
+        delete memoryStore[key]
         try { localStorage.removeItem(key) }
         catch { /* noop */ }
-        delete memoryStore[key]
       },
-    }
-  }
-
-  if (testStorage(sessionStorage)) {
-    return {
-      getItem: (key) => sessionStorage.getItem(key),
-      setItem: (key, value) => sessionStorage.setItem(key, value),
-      removeItem: (key) => sessionStorage.removeItem(key),
     }
   }
 
@@ -60,3 +72,11 @@ function createStorageAdapter(): StorageAdapter {
 }
 
 export const storage = createStorageAdapter()
+
+export function checkStorageHealth(): StorageHealth {
+  const isPrivate = detectPrivateBrowsing()
+  return {
+    localStorage: !isPrivate && testStoragePersistence(localStorage),
+    isPrivate,
+  }
+}

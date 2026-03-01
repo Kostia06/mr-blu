@@ -13,7 +13,7 @@ const CATEGORIES = [
 
 export function FeedbackButton() {
   const { t } = useI18nStore();
-  const { isRecordingMode, isModalOpen, setModalOpen } = useAppStateStore();
+  const { isRecordingMode, modalCount, openModal: storeOpenModal, closeModal: storeCloseModal } = useAppStateStore();
 
   const [open, setOpen] = useState(false);
   const [comment, setComment] = useState('');
@@ -21,7 +21,7 @@ export function FeedbackButton() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const shouldHide = isRecordingMode || isModalOpen;
+  const shouldHide = isRecordingMode || modalCount > 0;
   const canSubmit = comment.trim().length > 0 && !submitting;
 
   const reset = useCallback(() => {
@@ -33,14 +33,14 @@ export function FeedbackButton() {
 
   const close = useCallback(() => {
     setOpen(false);
-    setModalOpen(false);
+    storeCloseModal();
     reset();
-  }, [reset, setModalOpen]);
+  }, [reset, storeCloseModal]);
 
   const openModal = useCallback(() => {
     setOpen(true);
-    setModalOpen(true);
-  }, [setModalOpen]);
+    storeOpenModal();
+  }, [storeOpenModal]);
 
   const submit = useCallback(async () => {
     if (!canSubmit) return;

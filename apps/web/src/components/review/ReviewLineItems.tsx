@@ -30,6 +30,7 @@ interface LineItem {
   suggestedPrice?: number | null;
   pricingConfidence?: number;
   hasPricingSuggestion?: boolean;
+  notes?: string | null;
 }
 
 interface ReviewLineItemsProps {
@@ -572,6 +573,9 @@ export function ReviewLineItems({
                       <span class="line-item-desc">
                         {item.description || 'Untitled item'}
                       </span>
+                      {item.notes && (
+                        <span class="line-item-notes">{item.notes}</span>
+                      )}
                       <span class="line-item-meta">{formatCollapsedMeta(item)}</span>
                     </div>
                     <div class="line-item-total-wrapper">
@@ -667,6 +671,22 @@ export function ReviewLineItems({
                       })
                     }
                     placeholder={t('placeholder.description')}
+                  />
+                </div>
+
+                <div class="edit-field full">
+                  <label for={`item-notes-${editItem.id}`}>{t('review.notes')}</label>
+                  <input
+                    id={`item-notes-${editItem.id}`}
+                    type="text"
+                    value={editItem.notes || ''}
+                    onInput={(e) =>
+                      updateItem(editItem.id, {
+                        notes: (e.target as HTMLInputElement).value || null,
+                      })
+                    }
+                    placeholder={t('placeholder.addNote')}
+                    style={{ fontSize: '13px', color: 'var(--gray-500, #64748b)' }}
                   />
                 </div>
 
@@ -933,6 +953,15 @@ const componentStyles = `
     font-size: 14px;
     font-weight: 500;
     color: var(--gray-900);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .line-item-notes {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--gray-400, #94a3b8);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
-import { Send, Mail, Check, X, AlertCircle } from 'lucide-react';
+import { Send, Mail, Check, X, AlertCircle, Loader2, MessageSquare } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
+import { useModalState } from '@/stores/appStateStore';
 import { sendDocument } from '@/lib/api/documents';
-import { cn } from '@/lib/utils';
 
 interface DocumentInfo {
   id: string;
@@ -31,8 +31,14 @@ function formatAmount(amount: number): string {
   }).format(amount);
 }
 
+function getEmailClass(email: string, isValid: boolean): string {
+  if (email.length === 0) return 'sm-input';
+  return isValid ? 'sm-input valid' : 'sm-input invalid';
+}
+
 export function QuickSendModal({ open, document, onClose, onSuccess }: QuickSendModalProps) {
   const { t } = useI18nStore();
+  useModalState(open);
   const [email, setEmail] = useState('');
   const [customMessage, setCustomMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -41,20 +47,23 @@ export function QuickSendModal({ open, document, onClose, onSuccess }: QuickSend
 
   const isEmailValid = EMAIL_REGEX.test(email);
 
-  // Pre-fill email and reset state when modal opens
   useEffect(() => {
     if (open) {
       setCustomMessage('');
       setError(null);
       setSuccess(false);
       setIsSending(false);
-      if (document?.clientEmail) {
-        setEmail(document.clientEmail);
-      } else {
-        setEmail('');
-      }
+      setEmail(document?.clientEmail || '');
     }
   }, [open, document?.clientEmail]);
+
+  useEffect(() => {
+    if (!open) return;
+    window.document.body.style.overflow = 'hidden';
+    return () => {
+      window.document.body.style.overflow = '';
+    };
+  }, [open]);
 
   const handleClose = useCallback(() => {
     if (isSending) return;
@@ -106,142 +115,523 @@ export function QuickSendModal({ open, document, onClose, onSuccess }: QuickSend
 
   if (!open || !document) return null;
 
-  return (
-    <>
-      <style>{`
-        @keyframes sendModalSpin {
-          to { transform: rotate(360deg); }
-        }
-        @keyframes sendModalSuccessPop {
-          0% { transform: scale(0.5); opacity: 0; }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
-      {/* Backdrop */}
-      <button
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] border-none cursor-default"
-        onClick={handleClose}
-        aria-label={t('aria.closeModal')}
-      />
+  const typeLabel =
+    document.type === 'invoice'
+      ? t('review.invoice')
+      : document.type === 'estimate'
+        ? t('review.estimate')
+        : t('documents.contracts');
 
-      {/* Modal */}
+  return (
+    <div class="sm-overlay" onClick={handleClose} role="presentation">
+      <style>{smStyles}</style>
       <div
-        class="fixed inset-0 flex items-center justify-center z-[1001] p-4 pointer-events-none"
+        class="sm-content"
+        onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="send-modal-title"
+        tabIndex={-1}
       >
-        <div class="relative bg-white/[0.98] backdrop-blur-[20px] rounded-[var(--radius-lg,20px)] pt-8 px-6 pb-6 max-w-[400px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.2)] pointer-events-auto">
-
-          <button class="absolute top-3 right-3 w-9 h-9 flex items-center justify-center bg-[var(--gray-100,#f1f5f9)] border-none rounded-full text-[var(--gray-500,#64748b)] cursor-pointer" onClick={handleClose} aria-label={t('common.close')}>
-            <X size={20} />
-          </button>
-
-          {success ? (
-            <div class="flex flex-col items-center text-center">
-              <div class="w-[72px] h-[72px] flex items-center justify-center rounded-full mb-4 bg-emerald-500/15 text-emerald-500 animate-[sendModalSuccessPop_0.4s_ease-out]">
-                <Check size={36} />
-              </div>
-              <h2 class="font-[var(--font-display,system-ui)] text-[22px] font-bold text-emerald-500 m-0 mb-3">{t('review.sent')}</h2>
-              <p class="text-[15px] text-[var(--gray-600,#475569)] m-0">
-                {t('review.sentToRecipient', { recipient: email })}
-              </p>
+        <div class="sm-header">
+          <div class="sm-header-left">
+            <div class="sm-header-icon">
+              <Send size={18} />
             </div>
-          ) : (
-            <div class="flex flex-col items-center text-center">
-              <div class="w-[72px] h-[72px] flex items-center justify-center rounded-full mb-4 bg-[rgba(0,102,255,0.1)] text-[var(--blu-primary,#0066ff)]">
-                <Send size={28} />
-              </div>
-
-              <h2 id="send-modal-title" class="font-[var(--font-display,system-ui)] text-[22px] font-bold text-[var(--gray-900,#0f172a)] m-0 mb-3">
+            <div>
+              <h2 id="send-modal-title" class="sm-title">
                 {t('docDetail.sendToClient')}
               </h2>
+              <p class="sm-subtitle">
+                {typeLabel} &middot; {document.client}
+              </p>
+            </div>
+          </div>
+          <button class="sm-close" onClick={handleClose} aria-label={t('common.close')}>
+            <X size={18} />
+          </button>
+        </div>
 
-              {/* Document info */}
-              <div class="flex items-center gap-3 py-3 px-4 bg-[var(--gray-50,#f8fafc)] rounded-[10px] mb-5 w-full">
-                <span class="flex-1 text-sm font-medium text-[var(--gray-700,#334155)] text-left whitespace-nowrap overflow-hidden text-ellipsis">{document.title}</span>
-                {document.amount ? (
-                  <span class="text-[15px] font-semibold text-[var(--data-green,#10b981)]">{formatAmount(document.amount)}</span>
-                ) : null}
+        {success ? (
+          <div class="sm-success">
+            <div class="sm-success-icon">
+              <Check size={32} strokeWidth={1.5} />
+            </div>
+            <h2 class="sm-success-title">{t('review.sent')}</h2>
+            <p class="sm-success-text">
+              {t('review.sentToRecipient', { recipient: email })}
+            </p>
+          </div>
+        ) : (
+          <div class="sm-body">
+            <div class="sm-info">
+              <div class="sm-info-icon">
+                <Mail size={18} />
               </div>
-
-              {/* Email input */}
-              <div class="w-full mb-4">
-                <label for="recipient-email" class="flex items-center gap-1.5 text-[13px] font-medium text-[var(--gray-600,#475569)] mb-2 text-left">
-                  <Mail size={16} />
-                  {t('review.recipientEmail')}
-                </label>
-                <input
-                  id="recipient-email"
-                  type="email"
-                  class={cn(
-                    'w-full py-3.5 px-4 bg-[var(--gray-50,#f8fafc)] rounded-xl text-[15px] text-[var(--gray-900,#0f172a)] box-border outline-none border-2',
-                    email.length === 0
-                      ? 'border-[var(--gray-200,#e2e8f0)]'
-                      : isEmailValid
-                        ? 'border-emerald-500'
-                        : 'border-red-500'
-                  )}
-                  value={email}
-                  onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
-                  placeholder={t('docDetail.emailPlaceholder')}
-                  disabled={isSending}
-                />
-              </div>
-
-              {/* Optional message */}
-              <div class="w-full mb-4">
-                <label for="custom-message" class="flex items-center gap-1.5 text-[13px] font-medium text-[var(--gray-600,#475569)] mb-2 text-left">
-                  {t('review.customMessage')}
-                </label>
-                <textarea
-                  id="custom-message"
-                  class="w-full py-3.5 px-4 bg-[var(--gray-50,#f8fafc)] border-2 border-[var(--gray-200,#e2e8f0)] rounded-xl text-[15px] text-[var(--gray-900,#0f172a)] resize-none font-[inherit] box-border outline-none"
-                  value={customMessage}
-                  onInput={(e) => setCustomMessage((e.target as HTMLTextAreaElement).value)}
-                  placeholder={t('placeholder.addNote')}
-                  rows={2}
-                  disabled={isSending}
-                />
-              </div>
-
-              {error && (
-                <div class="flex items-center gap-1.5 py-2.5 px-3.5 bg-red-500/10 rounded-lg text-red-600 text-[13px] mb-4 w-full">
-                  <AlertCircle size={14} />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <div class="flex gap-3 w-full">
-                <button class="flex-1 py-3.5 px-5 border-none rounded-xl text-[15px] font-semibold cursor-pointer flex items-center justify-center gap-2 bg-[var(--gray-100,#f1f5f9)] text-[var(--gray-700,#334155)]" onClick={handleClose} disabled={isSending}>
-                  {t('common.cancel')}
-                </button>
-                <button
-                  class={cn(
-                    'flex-1 py-3.5 px-5 border-none rounded-xl text-[15px] font-semibold flex items-center justify-center gap-2 bg-[var(--blu-primary,#0066ff)] text-white',
-                    !isEmailValid || isSending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                  )}
-                  onClick={handleSend}
-                  disabled={!isEmailValid || isSending}
-                >
-                  {isSending ? (
-                    <>
-                      <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-[sendModalSpin_0.8s_linear_infinite] inline-block" />
-                      {t('docDetail.sending')}
-                    </>
-                  ) : (
-                    <>
-                      <Send size={18} />
-                      {t('docDetail.sendEmail')}
-                    </>
-                  )}
-                </button>
+              <div class="sm-info-text">
+                <p class="sm-info-title">{document.title}</p>
+                <p class="sm-info-subtitle">
+                  {document.client}
+                  {document.amount ? ` \u2014 ${formatAmount(document.amount)}` : ''}
+                </p>
               </div>
             </div>
-          )}
-        </div>
+
+            <div class="sm-field">
+              <label for="recipient-email" class="sm-label">
+                <Mail size={13} />
+                {t('review.recipientEmail')}
+              </label>
+              <input
+                id="recipient-email"
+                type="email"
+                class={getEmailClass(email, isEmailValid)}
+                value={email}
+                onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
+                placeholder={t('docDetail.emailPlaceholder')}
+                disabled={isSending}
+              />
+            </div>
+
+            <div class="sm-field">
+              <label for="custom-message" class="sm-label">
+                <MessageSquare size={13} />
+                {t('review.customMessage')}
+              </label>
+              <textarea
+                id="custom-message"
+                class="sm-input sm-textarea"
+                value={customMessage}
+                onInput={(e) => setCustomMessage((e.target as HTMLTextAreaElement).value)}
+                placeholder={t('placeholder.addNote')}
+                rows={3}
+                disabled={isSending}
+              />
+            </div>
+
+            {error && (
+              <div class="sm-error">
+                <AlertCircle size={15} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div class="sm-actions">
+              <button
+                class="sm-btn sm-btn-cancel"
+                onClick={handleClose}
+                disabled={isSending}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                class="sm-btn sm-btn-send"
+                onClick={handleSend}
+                disabled={!isEmailValid || isSending}
+              >
+                {isSending ? (
+                  <>
+                    <Loader2 size={16} class="sm-spin" />
+                    {t('docDetail.sending')}
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} />
+                    {t('docDetail.sendEmail')}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }
+
+const smStyles = `
+  .sm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+    padding: 0;
+    animation: smOverlayIn 0.2s ease;
+  }
+
+  @media (min-width: 481px) {
+    .sm-overlay {
+      align-items: center;
+      padding: 20px;
+    }
+  }
+
+  @keyframes smOverlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .sm-content {
+    background: var(--white, #fff);
+    border-radius: 20px 20px 0 0;
+    max-width: 480px;
+    width: 100%;
+    max-height: 92dvh;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 -4px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    animation: smSheetUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (min-width: 481px) {
+    .sm-content {
+      border-radius: 20px;
+      max-height: calc(100dvh - 40px);
+      max-height: calc(100vh - 40px);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+      animation: smSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+
+  @keyframes smSheetUp {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes smSlideUp {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Header */
+  .sm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 16px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--gray-100, #f1f5f9);
+  }
+
+  .sm-header::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    background: var(--gray-300, #cbd5e1);
+    border-radius: 2px;
+  }
+
+  @media (min-width: 481px) {
+    .sm-header::before {
+      display: none;
+    }
+  }
+
+  .sm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .sm-header-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(0, 102, 255, 0.08);
+    color: var(--blu-primary, #0066ff);
+    flex-shrink: 0;
+  }
+
+  .sm-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--gray-900, #0f172a);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .sm-subtitle {
+    font-size: 13px;
+    color: var(--gray-400, #94a3b8);
+    margin: 2px 0 0;
+  }
+
+  .sm-close {
+    background: var(--gray-100, #f1f5f9);
+    border: none;
+    color: var(--gray-500, #64748b);
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .sm-close:hover {
+    background: var(--gray-200, #e2e8f0);
+    color: var(--gray-700, #334155);
+  }
+
+  .sm-close:active {
+    transform: scale(0.92);
+  }
+
+  /* Body */
+  .sm-body {
+    padding: 20px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Document info card */
+  .sm-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: var(--gray-50, #f8fafc);
+    border: 1px solid var(--gray-100, #f1f5f9);
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .sm-info-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(0, 102, 255, 0.06);
+    color: var(--blu-primary, #0066ff);
+    flex-shrink: 0;
+  }
+
+  .sm-info-text {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .sm-info-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900, #0f172a);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sm-info-subtitle {
+    font-size: 13px;
+    color: var(--gray-400, #94a3b8);
+    margin: 2px 0 0;
+  }
+
+  /* Form fields */
+  .sm-field {
+    margin-bottom: 16px;
+  }
+
+  .sm-field:last-of-type {
+    margin-bottom: 20px;
+  }
+
+  .sm-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-600, #475569);
+    margin-bottom: 8px;
+  }
+
+  .sm-label svg {
+    color: var(--gray-400, #94a3b8);
+  }
+
+  .sm-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--gray-900, #0f172a);
+    background: var(--gray-50, #f8fafc);
+    border: 1.5px solid var(--gray-200, #e2e8f0);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 150ms ease;
+  }
+
+  .sm-input:focus {
+    border-color: var(--blu-primary, #0066ff);
+  }
+
+  .sm-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .sm-input::placeholder {
+    color: var(--gray-400, #94a3b8);
+  }
+
+  .sm-input.valid {
+    border-color: #34d399;
+  }
+
+  .sm-input.invalid {
+    border-color: #f87171;
+  }
+
+  .sm-textarea {
+    resize: none;
+    font-family: inherit;
+  }
+
+  /* Error */
+  .sm-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .sm-error svg {
+    flex-shrink: 0;
+  }
+
+  /* Actions */
+  .sm-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .sm-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    transition: transform 100ms ease;
+  }
+
+  .sm-btn:active {
+    transform: scale(0.98);
+  }
+
+  .sm-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .sm-btn:disabled:active {
+    transform: none;
+  }
+
+  .sm-btn-cancel {
+    background: var(--gray-100, #f1f5f9);
+    color: var(--gray-700, #334155);
+  }
+
+  .sm-btn-send {
+    background: var(--blu-primary, #0066ff);
+    color: #fff;
+  }
+
+  /* Success state */
+  .sm-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 40px 24px;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .sm-success-icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    margin-bottom: 16px;
+    animation: smSuccessPop 0.4s ease-out;
+  }
+
+  .sm-success-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #059669;
+    margin: 0 0 8px;
+  }
+
+  .sm-success-text {
+    font-size: 14px;
+    color: var(--gray-500, #64748b);
+    margin: 0;
+  }
+
+  @keyframes smSuccessPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Spinner */
+  @keyframes smSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  .sm-spin {
+    animation: smSpin 0.8s linear infinite;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .sm-overlay,
+    .sm-content,
+    .sm-success-icon {
+      animation: none !important;
+    }
+  }
+`;

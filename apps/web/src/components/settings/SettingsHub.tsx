@@ -14,10 +14,15 @@ import {
   BookOpen,
   Shield,
   Users,
+  Share2,
+  ShieldCheck,
+  MessageSquare,
+  AlertCircle,
 } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
 import { logout } from '@/lib/api/auth';
+import { isAdmin } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
 
 const SCROLL_DOWN_THRESHOLD = 10;
@@ -88,8 +93,13 @@ export function SettingsHub({ user }: SettingsHubProps) {
   const { t } = useI18nStore();
   const [headerHidden, setHeaderHidden] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [isUserAdmin, setIsUserAdmin] = useState(false);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
+
+  useEffect(() => {
+    isAdmin().then(setIsUserAdmin);
+  }, []);
 
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY;
@@ -142,6 +152,12 @@ export function SettingsHub({ user }: SettingsHubProps) {
           href: '/dashboard/settings/price-book',
         },
         {
+          icon: <Share2 size={18} strokeWidth={1.5} />,
+          label: t('accountant.settingsTitle') || 'Accountant Access',
+          value: t('accountant.settingsDesc') || 'Share invoices with accountant',
+          href: '/dashboard/settings/accountant-shares',
+        },
+        {
           icon: <Shield size={18} strokeWidth={1.5} />,
           label: t('security.title') || 'Security',
           value: t('security.settingsDesc') || 'Sessions & account',
@@ -172,6 +188,33 @@ export function SettingsHub({ user }: SettingsHubProps) {
         },
       ],
     },
+    ...(isUserAdmin
+      ? [
+          {
+            title: t('admin.section'),
+            items: [
+              {
+                icon: <ShieldCheck size={18} strokeWidth={1.5} />,
+                label: t('admin.beta.title'),
+                value: t('admin.beta.desc'),
+                href: '/dashboard/settings/beta',
+              },
+              {
+                icon: <MessageSquare size={18} strokeWidth={1.5} />,
+                label: t('admin.feedback.title'),
+                value: t('admin.feedback.desc'),
+                href: '/dashboard/settings/admin-feedback',
+              },
+              {
+                icon: <AlertCircle size={18} strokeWidth={1.5} />,
+                label: t('admin.errors.title'),
+                value: t('admin.errors.desc'),
+                href: '/dashboard/settings/admin-errors',
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   async function handleSignOut() {

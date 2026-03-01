@@ -1,5 +1,0 @@
-import { BusinessSettings } from '@/components/settings/BusinessSettings';
-
-export default function BusinessSettingsScreen() {
-  return <BusinessSettings />;
-}

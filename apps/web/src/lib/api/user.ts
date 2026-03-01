@@ -160,9 +160,23 @@ export async function updateBusiness(business: BusinessData): Promise<void> {
 }
 
 export async function deleteAccount(): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const response = await fetch('/api/user/delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data as { error?: string }).error || 'Failed to delete account');
+  }
+
   await supabase.auth.signOut();
-  // Full deletion requires a service-role key (Edge Function).
-  // Signing out is the client-side portion of the flow.
 }
 
 export async function getNotificationPreferences(): Promise<NotificationPreferences> {

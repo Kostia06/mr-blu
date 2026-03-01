@@ -89,6 +89,8 @@ const styles = `
     left: 0;
     right: 0;
     z-index: 50;
+    display: flex;
+    justify-content: center;
     padding: 12px 20px;
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(to top, var(--white, rgba(219,232,244,0.98)) 60%, transparent);

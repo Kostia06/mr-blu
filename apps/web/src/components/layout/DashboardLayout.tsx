@@ -1,5 +1,6 @@
 import { BottomNav } from './BottomNav'
 import { Toaster } from '@/components/ui/Toaster'
+import { BackgroundBlobs } from '@/components/landing/BackgroundBlobs'
 
 interface DashboardLayoutProps {
   children: preact.ComponentChildren
@@ -7,17 +8,8 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div class="relative h-dvh overflow-hidden">
-      {/* Background decoration */}
-      <div
-        aria-hidden="true"
-        class="fixed inset-0 z-0 pointer-events-none overflow-hidden [contain:strict] [will-change:auto]"
-      >
-        <div class="bg-blob bg-blob-1" />
-        <div class="bg-blob bg-blob-2" />
-        <div class="bg-blob bg-blob-3" />
-        <div class="bg-blob bg-blob-4" />
-      </div>
+    <div class="relative h-dvh overflow-clip overscroll-none">
+      <BackgroundBlobs variant="full" intensity="subtle" />
 
       <main class="relative z-[1] h-full overflow-y-auto [-webkit-overflow-scrolling:touch]">
         {children}

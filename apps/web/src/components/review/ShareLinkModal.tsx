@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
 import { X, Link, Copy, Check, ExternalLink, HelpCircle } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
+import { useModalState } from '@/stores/appStateStore';
 import { copyToClipboard } from '@/lib/clipboard';
 
 interface ShareLinkModalProps {
@@ -12,6 +13,7 @@ interface ShareLinkModalProps {
 
 export function ShareLinkModal({ open, linkUrl, documentType, onClose }: ShareLinkModalProps) {
   const { t } = useI18nStore();
+  useModalState(open);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
