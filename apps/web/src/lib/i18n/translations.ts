@@ -345,6 +345,8 @@ export const translations: Translations = {
 		'error.rateLimit': 'Too many requests. Please wait a moment and try again.',
 		'errors.speechToTextUnavailable':
 			'Voice recognition is unavailable. Please type your request instead.',
+		'errors.microphoneDenied':
+			'Microphone access denied. Enable it in Settings.',
 
 		// Aria Labels
 		'aria.mainNavigation': 'Main navigation',
@@ -1450,6 +1452,8 @@ export const translations: Translations = {
 		'error.rateLimit': 'Demasiadas solicitudes. Por favor espera un momento e intenta de nuevo.',
 		'errors.speechToTextUnavailable':
 			'El reconocimiento de voz no est\u00e1 disponible. Por favor escribe tu solicitud.',
+		'errors.microphoneDenied':
+			'Acceso al micr\u00f3fono denegado. Act\u00edvalo en Configuraci\u00f3n.',
 
 		// Aria Labels
 		'aria.mainNavigation': 'Navegaci\u00f3n principal',
