@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'preact/hooks'
 import { Mail, Loader2, ArrowLeft, Send, RefreshCw, Lock, Eye, EyeOff, Check, Circle, ShieldCheck } from 'lucide-react';
 import { useI18nStore } from '@/lib/i18n';
 import { loginWithOtp, loginWithPassword, signUpWithPassword, AuthError } from '@/lib/api/auth';
+import { supabase } from '@/lib/supabase/client';
 import { validatePassword } from '@/lib/validation/password';
 import { cn } from '@/lib/utils';
 import { isNative } from '@/lib/native';
@@ -66,6 +67,8 @@ export function LoginForm({ urlError }: LoginFormProps) {
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
   const [resendCountdown, setResendCountdown] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [betaRequested, setBetaRequested] = useState(false);
+  const [betaLoading, setBetaLoading] = useState(false);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const translatedError = useMemo(() => {
@@ -426,13 +429,27 @@ export function LoginForm({ urlError }: LoginFormProps) {
                   </div>
                   <p class="text-sm font-semibold text-[var(--gray-800,#1e293b)] m-0 mb-1">{t('auth.betaTitle')}</p>
                   <p class="text-[13px] text-[var(--gray-500,#64748b)] m-0 mb-4 leading-relaxed">{t('auth.betaDescription')}</p>
-                  <a
-                    href="mailto:kos@mrblu.com?subject=Beta Access Request"
-                    class="inline-flex items-center justify-center gap-2 w-full py-3 px-5 bg-[var(--blu-primary,#0066ff)] text-white border-none rounded-xl text-sm font-semibold no-underline transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,102,255,0.3)] active:scale-[0.98]"
-                  >
-                    <Mail size={16} strokeWidth={2} />
-                    {t('auth.requestAccess')}
-                  </a>
+                  {betaRequested ? (
+                    <div class="flex items-center justify-center gap-2 py-3 px-5 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-medium border border-emerald-100">
+                      <Check size={16} strokeWidth={2.5} />
+                      {t('auth.betaRequestSent')}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={betaLoading}
+                      onClick={async () => {
+                        setBetaLoading(true);
+                        await supabase.rpc('request_beta_access', { request_email: email });
+                        setBetaLoading(false);
+                        setBetaRequested(true);
+                      }}
+                      class="inline-flex items-center justify-center gap-2 w-full py-3 px-5 bg-[var(--blu-primary,#0066ff)] text-white border-none rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,102,255,0.3)] active:scale-[0.98] disabled:opacity-70"
+                    >
+                      {betaLoading ? <Loader2 size={16} strokeWidth={2} class="animate-spin" /> : <Mail size={16} strokeWidth={2} />}
+                      {t('auth.requestAccess')}
+                    </button>
+                  )}
                 </div>
               ) : translatedError ? (
                 <div class="mt-5 py-3.5 px-4 rounded-xl text-sm text-center bg-red-500/10 border border-red-500/20">
